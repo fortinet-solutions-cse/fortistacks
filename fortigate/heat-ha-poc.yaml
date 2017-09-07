@@ -1,0 +1,391 @@
+heat_template_version: 2016-04-08
+## cli deploy $ openstack stack create --template heat--ha-minipoc.yaml mini-poc
+description: >
+  HOT template to create 3 neutron networks, 2 generic VMs a 2 Fortigate VM
+  in between and floating ip for everyone.
+  Used for HA setup debugging.
+  
+parameters:
+  fgtimage:
+    type: string
+    description: Fortios image
+    default: "fgt56"
+  ubimage:
+    type: string
+    description: Ubuntu image
+    default: "Trusty x86_64"
+  mgmt_net:
+    type: string
+    description: Management network
+    default: "mgmt"
+  public_net:
+    type: string
+    description: External network for floating ips
+    default: "ext_net"
+
+
+resources:
+ left_net:
+  type: OS::Neutron::Net
+  properties:
+   name: "left"
+      
+ left_subnet:
+  type: OS::Neutron::Subnet
+  properties:
+   network_id: { get_resource: left_net }
+   cidr: "10.40.40.0/24"
+   allocation_pools:
+     - start: "10.40.40.3"
+       end:  "10.40.40.250"
+   host_routes: [{"nexthop": "10.40.40.254", "destination": "10.20.20.0/24"}]
+      
+ right_net:
+  type: OS::Neutron::Net
+  properties:
+   name: "right"
+
+ right_subnet:
+  type: OS::Neutron::Subnet
+  properties:
+    network_id: { get_resource: right_net }
+    cidr: "10.20.20.0/24"
+    allocation_pools:
+      - start: "10.20.20.3"
+        end:  "10.20.20.250"
+          
+ hasync_net:
+  type: OS::Neutron::Net
+  properties:
+   name: "hasync"
+
+ hasync_subnet:
+  type: OS::Neutron::Subnet
+  properties:
+   network_id: { get_resource: hasync_net }
+   cidr: "169.254.0.0/24"
+   allocation_pools:
+    - start: "169.254.0.3"
+      end:  "169.254.0.250"
+      #      dns: "8.8.8.8"
+      
+ fgta_left_port:
+  type: OS::Neutron::Port
+  properties:
+   network_id: { get_resource: left_net }
+   port_security_enabled: false
+   fixed_ips:
+    - ip_address: "10.40.40.254"
+
+ fgta_mgmt_port:
+  type: OS::Neutron::Port
+  properties:
+   network_id: { get_param: mgmt_net }
+   port_security_enabled: false
+   fixed_ips:
+    - ip_address: "192.168.16.254"
+          
+ fgta_right_port:
+  type: OS::Neutron::Port
+  properties:
+   network_id: { get_resource: right_net }
+   port_security_enabled: false
+   fixed_ips:
+    - ip_address: "10.20.20.254"
+
+ fgta_floating_ip:
+  type: OS::Neutron::FloatingIP
+  properties:
+   floating_network: { get_param: public_net }
+
+
+ fgta:
+   type: OS::Nova::Server
+   properties:
+     image: { get_param: fgtimage }
+     flavor: m1.small
+     user_data_format: RAW
+     user_data: |
+                config system interface
+                edit port1
+                set mode static
+                set ip 192.168.16.254 255.255.255.0
+                set allowaccess ping https ssh http snmp fgfm
+                set mtu-override enable 
+                set mtu 1456
+                next
+                edit port2
+                set ip 10.40.40.254 255.255.255.0
+                set mode static
+                set mtu-override enable 
+                set mtu 1456
+                set allowaccess ping
+                set defaultgw disable
+                next
+                edit port3
+                set ip 10.20.20.254 255.255.255.0
+                set mode static
+                set mtu-override enable 
+                set mtu 1456
+                set allowaccess ping
+                set defaultgw disable
+                next
+                edit port4
+                set mode dhcp
+                set mtu-override enable 
+                set mtu 1456
+                set allowaccess ping
+                set defaultgw disable
+                next
+                end
+                config router static
+                 edit 1
+                 set gateway 192.168.16.1
+                 set device port1
+                 end
+                end
+                config firewall policy
+                edit 1
+                set name "Allow any any"
+                set srcintf "any"
+                set dstintf "any"
+                set srcaddr "all"
+                set dstaddr "all"
+                set action accept
+                set schedule "always"
+                set service "ALL"
+                set nat enable
+                next
+                end
+     name: FGTA
+     config_drive: True
+     security_groups: [ default ]
+     user_data_format: RAW
+     personality: {"license": { get_file: FGA.lic }}
+     networks:
+       #    - network: { get_param: mgmt_net }
+       - port:  { get_resource: fgta_mgmt_port }
+       - port:  { get_resource: fgta_left_port }
+       - port:  { get_resource: fgta_right_port }
+      #    - subnet:  { get_resource: right_subnet }
+       - subnet:  { get_resource: hasync_subnet }      
+
+ fgtb_left_port:
+  type: OS::Neutron::Port
+  properties:
+   network_id: { get_resource: left_net }
+   port_security_enabled: false
+   fixed_ips:
+    - ip_address: "10.40.40.253"
+
+ fgtb_mgmt_port:
+  type: OS::Neutron::Port
+  properties:
+   network_id: { get_param: mgmt_net }
+   port_security_enabled: false
+   fixed_ips:
+    - ip_address: "192.168.16.253"
+          
+ fgtb_right_port:
+  type: OS::Neutron::Port
+  properties:
+   network_id: { get_resource: right_net }
+   port_security_enabled: false
+   fixed_ips:
+    - ip_address: "10.20.20.253"
+
+ fgtb_floating_ip:
+  type: OS::Neutron::FloatingIP
+  properties:
+   floating_network: { get_param: public_net }
+
+
+
+ fgtb:
+  type: OS::Nova::Server
+  properties:
+   image: { get_param: fgtimage }
+   flavor: m1.small
+   user_data_format: RAW
+   user_data: |
+                config system interface
+                edit port1
+                set mode static
+                set ip 192.168.16.253 255.255.255.0
+                set allowaccess ping https ssh http snmp fgfm
+                set mtu-override enable 
+                set mtu 1456
+                next
+                edit port2
+                set ip 10.40.40.253 255.255.255.0
+                set mode static
+                set mtu-override enable 
+                set mtu 1456
+                set allowaccess ping
+                set defaultgw disable
+                next
+                edit port3
+                set ip 10.20.20.253 255.255.255.0
+                set mode static
+                set mtu-override enable 
+                set mtu 1456
+                set allowaccess ping
+                set defaultgw disable
+                next
+                edit port4
+                set mode dhcp
+                set mtu-override enable 
+                set mtu 1456
+                set allowaccess ping
+                set defaultgw disable
+                next
+                end
+                config router static
+                 edit 1
+                 set gateway 192.168.16.1
+                 set device port1
+                 end
+                end
+                config firewall policy
+                edit 1
+                set name "Allow any any"
+                set srcintf "any"
+                set dstintf "any"
+                set srcaddr "all"
+                set dstaddr "all"
+                set action accept
+                set schedule "always"
+                set service "ALL"
+                set nat enable
+                next
+                end
+   name: FGTB
+   config_drive: True
+   security_groups: [ default ]
+   user_data_format: RAW
+   personality: {"license": { get_file: FGB.lic }}
+   networks:
+    - port:  { get_resource: fgtb_mgmt_port }
+    - port:  { get_resource: fgtb_left_port }
+    - port:  { get_resource: fgtb_right_port }
+    - subnet:  { get_resource: hasync_subnet }      
+#    - port:  { get_resource: right_port }
+
+ association_fgta:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: fgta_floating_ip }
+      server_id: { get_resource: fgta }
+      
+ association_fgtb:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: fgtb_floating_ip }
+      server_id: { get_resource: fgtb }
+
+# association:
+#   type: OS::Neutron::FloatingIPAssociation
+#   properties:
+#     floatingip_id: { get_resource: floating_ip }
+#     port_id: {get_attr: [fgt, addresses, {get_param: net}, 0, port]}
+
+ ubr_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_net }
+
+ ubl_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_net }
+
+
+ ubleft:
+  type: OS::Nova::Server
+  properties:
+   image: { get_param: ubimage }
+   flavor: m1.small
+   key_name: "default"
+   user_data_format: RAW
+   user_data: |
+     #cloud-config
+     package_upgrade: true
+     packages:
+       - apache2-utils
+       - apache2
+       - tcpdump
+       - iperf3
+     chpasswd:
+       list: |
+         ubuntu:fortinet
+       expire: False
+     write_files:
+       - content: |
+           # Enable dhcp on eth1
+           auto eth1
+           iface eth1 inet dhcp
+         path: /etc/network/interfaces.d/eth1.cfg
+   name: trafleft
+   security_groups: [ default ]
+   networks:
+    - network: { get_param: mgmt_net }
+    - subnet:  { get_resource: left_subnet }
+
+ association_left:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: ubl_floating_ip }
+      server_id: { get_resource: ubleft }
+
+ ubright:
+  type: OS::Nova::Server
+  properties:
+   image: { get_param: ubimage }
+   flavor: m1.small
+   key_name: "default"
+   user_data_format: RAW
+   user_data: |
+     #cloud-config
+     package_upgrade: true
+     packages:
+       - apache2-utils
+       - apache2
+       - tcpdump
+       - iperf3
+     chpasswd:
+       list: |
+         ubuntu:fortinet
+       expire: False
+     write_files:
+       - content: |
+           # Enable dhcp on eth1
+           auto eth1
+           iface eth1 inet dhcp
+         path: /etc/network/interfaces.d/eth1.cfg
+   name: trafright
+   security_groups: [ default ]
+   networks:
+    - network: { get_param: mgmt_net }
+    - subnet:  { get_resource: right_subnet }
+
+
+ association_right:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: ubr_floating_ip }
+      server_id: { get_resource: ubright }
+
+      
+outputs:
+ fgta-info:
+    description: IP address to access of the FGTA
+    value: { get_attr: [ fgta_floating_ip,  floating_ip_address ] }
+ fgtabinfo:
+    description: IP address to access of the FGTB
+    value: { get_attr: [ fgtb_floating_ip,  floating_ip_address ] }
+ left-info:
+    description: IP address to access left ubuntu machine 
+    value: { get_attr: [ ubl_floating_ip,  floating_ip_address ] }
+ right-info:
+    description: IP address to access right ubuntu machine 
+    value: { get_attr: [ ubr_floating_ip,  floating_ip_address ] }
