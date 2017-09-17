@@ -1,0 +1,272 @@
+series: xenial
+applications: 
+  "ceph-mon": 
+    charm: "cs:xenial/ceph-mon"
+    num_units: 3
+    options: 
+      "expected-osd-count": 3
+    annotations: 
+      "gui-x": "750"
+      "gui-y": "500"
+  "ceph-osd": 
+    charm: "cs:xenial/ceph-osd"
+    num_units: 3
+    options: 
+      "osd-devices": /srv/osd
+      "osd-reformat": "yes"
+      "use-direct-io": false
+    annotations: 
+      "gui-x": "1000"
+      "gui-y": "500"
+  "ceph-radosgw": 
+    charm: "cs:xenial/ceph-radosgw"
+    num_units: 1
+    annotations: 
+      "gui-x": "1000"
+      "gui-y": "250"
+  cinder: 
+    charm: "cs:xenial/cinder"
+    num_units: 1
+    options: 
+      "block-device": None
+      "glance-api-version": 2
+    annotations: 
+      "gui-x": "750"
+      "gui-y": "0"
+  "cinder-ceph": 
+    charm: "cs:xenial/cinder-ceph"
+    annotations: 
+      "gui-x": "750"
+      "gui-y": "250"
+  glance: 
+    charm: "cs:xenial/glance"
+    num_units: 1
+    annotations: 
+      "gui-x": "250"
+      "gui-y": "0"
+  keystone: 
+    charm: "cs:xenial/keystone"
+    num_units: 1
+    options: 
+      "admin-password": fortinet
+    annotations: 
+      "gui-x": "500"
+      "gui-y": "0"
+  mysql: 
+    charm: "cs:xenial/percona-cluster"
+    num_units: 1
+    options: 
+      "dataset-size": 256M
+      "max-connections": 20000
+    annotations: 
+      "gui-x": "0"
+      "gui-y": "250"
+  "neutron-api": 
+    charm: "cs:xenial/neutron-api"
+    num_units: 1
+    options:
+      neutron-security-groups: "false"
+      flat-network-providers: "physnet1"
+      manage-neutron-plugin-legacy-mode: "false"
+#      "enable-ml2-port-security": true
+#      "overlay-network-type": gre vxlan
+    annotations: 
+      "gui-x": "500"
+      "gui-y": "500"
+  "neutron-gateway": 
+    charm: "cs:xenial/neutron-gateway"
+    num_units: 1
+    options: 
+      flat-network-providers:  "physnet1"
+      ext-port: "eth1"
+      plugin: "ovs-odl"
+      instance-mtu: "1400"
+    annotations: 
+      "gui-x": "0"
+      "gui-y": "0"
+  openvswitch-odl: 
+    charm: cs:xenial/openvswitch-odl
+    annotations:
+      "gui-x": "250"
+      "gui-y": "500"
+#  "neutron-openvswitch": 
+#    charm: "cs:xenial/neutron-openvswitch"
+#    options: 
+#      "prevent-arp-spoofing": false
+#    annotations:
+#      "gui-x": "250"
+#      "gui-y": "500"
+  "nova-cloud-controller": 
+    charm: "cs:xenial/nova-cloud-controller"
+    num_units: 1
+    options: 
+      "network-manager": Neutron
+      console-access-protocol: novnc
+    annotations: 
+      "gui-x": "0"
+      "gui-y": "500"
+  "nova-compute": 
+    charm: "cs:xenial/nova-compute"
+    num_units: 2
+    options: 
+      "enable-live-migration": true
+      "enable-resize": true
+      "migration-auth-type": ssh
+      virt-type: qemu
+    annotations: 
+      "gui-x": "250"
+      "gui-y": "250"
+  ntp: 
+    charm: "cs:xenial/ntp"
+    annotations: 
+      "gui-x": "1000"
+      "gui-y": "0"
+  "openstack-dashboard": 
+    charm: "cs:xenial/openstack-dashboard"
+    num_units: 1
+    expose: true
+    annotations: 
+      "gui-x": "500"
+      "gui-y": "-250"
+  "rabbitmq-server": 
+    charm: "cs:xenial/rabbitmq-server"
+    num_units: 1
+    annotations: 
+      "gui-x": "500"
+      "gui-y": "250"
+  heat: 
+    charm: "cs:xenial/heat"
+    num_units: 1
+    annotations: 
+      "gui-x": "300"
+      "gui-y": "300"
+  ceilometer: 
+    charm: "cs:xenial/ceilometer"
+    num_units: 1
+    annotations: 
+      "gui-x": "600"
+      "gui-y": "300"
+  mongodb: 
+    charm: "cs:trusty/mongodb"
+    num_units: 1
+    annotations: 
+      "gui-x": "1200"
+      "gui-y": "300"
+  "ceilometer-agent": 
+    charm: "cs:xenial/ceilometer-agent"
+    annotations: 
+      "gui-x": "1049"
+      "gui-y": "121.00001525878906"
+  odl-controller: 
+    charm: cs:xenial/odl-controller
+    num_units: 1
+    options:
+      install-url: "https://nexus.opendaylight.org/content/groups/public/org/opendaylight/integration/distribution-karaf/0.4.2-Beryllium-SR2/distribution-karaf-0.4.2-Beryllium-SR2.tar.gz"
+      profile: "openvswitch-odl-beryllium"
+    annotations: 
+      gui-x: '648.5'
+      gui-y: '452'
+  neutron-api-odl: 
+    charm: cs:xenial/neutron-api-odl
+    annotations: 
+      gui-x: '533.4999389648438'
+      gui-y: '274'
+    options: 
+      vlan-ranges: "physnet2:1000:2000"
+      overlay-network-type: "vxlan gre"
+      security-groups: "true"
+relations:
+  - - nova-compute:amqp
+    - rabbitmq-server:amqp
+  - - neutron-gateway:amqp
+    - rabbitmq-server:amqp
+  - - keystone:shared-db
+    - mysql:shared-db
+  - - nova-cloud-controller:identity-service
+    - keystone:identity-service
+  - - glance:identity-service
+    - keystone:identity-service
+  - - neutron-api:identity-service
+    - keystone:identity-service
+  - - neutron-api:shared-db
+    - mysql:shared-db
+  - - neutron-api:amqp
+    - rabbitmq-server:amqp
+  - - neutron-gateway:neutron-plugin-api
+    - neutron-api:neutron-plugin-api
+  - - glance:shared-db
+    - mysql:shared-db
+  - - glance:amqp
+    - rabbitmq-server:amqp
+  - - nova-cloud-controller:image-service
+    - glance:image-service
+  - - nova-compute:image-service
+    - glance:image-service
+  - - nova-cloud-controller:cloud-compute
+    - nova-compute:cloud-compute
+  - - nova-cloud-controller:amqp
+    - rabbitmq-server:amqp
+  - - nova-cloud-controller:quantum-network-service
+    - neutron-gateway:quantum-network-service
+  - - openstack-dashboard:identity-service
+    - keystone:identity-service
+  - - nova-cloud-controller:shared-db
+    - mysql:shared-db
+  - - nova-cloud-controller:neutron-api
+    - neutron-api:neutron-api
+  - - cinder:image-service
+    - glance:image-service
+  - - cinder:amqp
+    - rabbitmq-server:amqp
+  - - cinder:identity-service
+    - keystone:identity-service
+  - - cinder:cinder-volume-service
+    - nova-cloud-controller:cinder-volume-service
+  - - cinder-ceph:storage-backend
+    - cinder:storage-backend
+  - - ceph-mon:client
+    - nova-compute:ceph
+  - - cinder:shared-db
+    - mysql:shared-db
+  - - ceph-mon:client
+    - cinder-ceph:ceph
+  - - ceph-mon:client
+    - glance:ceph
+  - - ceph-osd:mon
+    - ceph-mon:osd
+  - - ntp:juju-info
+    - nova-compute:juju-info
+  - - ntp:juju-info
+    - neutron-gateway:juju-info
+  - - ceph-radosgw:mon
+    - ceph-mon:radosgw
+  - - ceph-radosgw:identity-service
+    - keystone:identity-service
+  - - nova-compute:neutron-plugin
+    - openvswitch-odl:neutron-plugin
+  - - openvswitch-odl:container
+    - neutron-gateway:juju-info
+  - - neutron-api-odl:odl-controller
+    - odl-controller:controller-api
+  - - openvswitch-odl:ovsdb-manager
+    - odl-controller:ovsdb-manager
+  - - neutron-api:neutron-plugin-api-subordinate
+    - neutron-api-odl:neutron-plugin-api-subordinate
+  - - "heat:shared-db"
+    - "mysql:shared-db"
+  - - "heat:amqp"
+    - "rabbitmq-server:amqp"
+  - - "heat:identity-service"
+    - "keystone:identity-service"
+  - - "ceilometer:shared-db"
+    - "mongodb:database"
+  - - "ceilometer:identity-service"
+    - "keystone:identity-service"
+  - - "ceilometer:identity-notifications"
+    - "keystone:identity-notifications"
+  - - "ceilometer-agent:nova-ceilometer"
+    - "nova-compute:nova-ceilometer"
+  - - "ceilometer:ceilometer-service"
+    - "ceilometer-agent:ceilometer-service"
+  - - "rabbitmq-server:amqp"
+    - "ceilometer:amqp"    
