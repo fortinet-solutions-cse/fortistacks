@@ -10,4 +10,4 @@ juju deploy openstack-nonest.yaml
 sudo apt install python3-pip
 sudo -H pip3 install juju-wait
 echo "waiting for deployment to complete can be 1hour"
-python3 /usr/local/bin/juju-wait
+python3 /usr/local/bin/juju-wait -v
