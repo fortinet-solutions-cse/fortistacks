@@ -1,10 +1,15 @@
-fos_imageid: '7cb018a3-87f8-4137-b631-1a085e473efc'
-fos_flavorid: '81fa4ad6-c010-425e-a107-c1666ac02f0c '
-#ub_imageid: ''
-#ub_flavorid: '81fa4ad6-c010-425e-a107-c1666ac02f0c '
+fos_image: 'fgt54'
+fos_flavor: 'm1.small'
+ub_image: 'Trusty x86_64'
+ub_flavor: 'm1.small'
 mgmt_network_name: "mgmt"
 key_name: 'default'
-fortimanagerip: 10.210.8.25
+fortimanagerip: '10.210.8.25'
+fortigate_license: ''' -----BEGIN FGT VM LICENSE-----
+XXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXXXXxxxXXxxxxXXXXX
+XXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXXXXxxxXXxxxxXXXXX
+XXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXXXXxxxXXxxxxX
+-----END FGT VM LICENSE----- '''
 #keystone_password: 'fortinet'
 #keystone_tenant_name: 'admin'
 #keystone_url: 'http://10.10.10.26:5000/v2.0/'

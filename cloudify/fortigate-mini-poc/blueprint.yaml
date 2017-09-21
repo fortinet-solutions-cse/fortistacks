@@ -10,17 +10,19 @@ imports:
   - http://www.getcloudify.org/spec/openstack-plugin/2.0.1/plugin.yaml
 
 inputs:
-  fos_imageid:
+  fos_image:
     default: {}
-  fos_flavorid:
+  fos_flavor:
     default: {}
   key_name:
     default: {}
-  ub_imageid:
+  ub_image:
      default: {}  
-  ub_flavorid:
+  ub_flavor:
      default: {}
   fortimanagerip:
+     default: {}
+  fortigate_license:
      default: {}
 
   mgmt_network_name:
@@ -152,8 +154,8 @@ node_templates:
     type: cloudify.openstack.nodes.Server
     properties:
       server:
-        image: { get_input: fos_imageid }
-        flavor: { get_input: fos_flavorid }
+        image_name: { get_input: fos_image }
+        flavor_name: { get_input: fos_flavor }
         #useless key_name for fortinet but mandatory for openstack
         key_name: { get_input: key_name }
       agent_config:
@@ -170,22 +172,25 @@ node_templates:
                 #FOS VM Config File
                 config system interface
                 edit port1
-                set mode dhcp
-                set allowaccess ping https ssh http snmp fgfm
-                set mtu-override enable 
-                set mtu 1456
+                 set mode dhcp
+                 set allowaccess ping https ssh http snmp fgfm
+                 set mtu-override enable 
+                 set mtu 1456
+                 set defaultgw enable
                 next
                 edit port2
                 set mode dhcp
                 set mtu-override enable 
                 set mtu 1456
                 set allowaccess ping
+                 set defaultgw disable
                 next
                 edit port3
                 set mode dhcp
                 set mtu-override enable 
                 set mtu 1456
                 set allowaccess ping
+                 set defaultgw disable
                 next
                 end
                 config system dns
@@ -204,19 +209,8 @@ node_templates:
                 set nat enable
                 next
                 end
-                config system central-management
-                set include-default-servers disable
-                set type fortimanager
-                set fmg { get_input: fortimanagerip }
-                config server-list
-                edit 1
-                set server-type update rating
-                set server-address { get_input: fortimanagerip } 
-                end
-                end
-#              files:
-#               license: |
-#                some text to put into the file
+              files:
+               license: { get_input: fortigate_license } 
     relationships:
       - target: fos_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip
@@ -235,9 +229,8 @@ node_templates:
     type: cloudify.openstack.nodes.Server
     properties:
       server:
-        image: { get_input: ub_imageid }
-        flavor: { get_input: ub_flavorid }
-        #useless key_name for fortinet but mandatory for openstack
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
         key_name: { get_input: key_name }
       agent_config:
         install_method: none # Bug in cloudify agents use internal ip and not floating
@@ -280,9 +273,8 @@ node_templates:
     type: cloudify.openstack.nodes.Server
     properties:
       server:
-        image: { get_input: ub_imageid }
-        flavor: { get_input: ub_flavorid }
-        #useless key_name for fortinet but mandatory for openstack
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
         key_name: { get_input: key_name }
       agent_config:
         install_method: none # Bug in cloudify agents use internal ip and not floating

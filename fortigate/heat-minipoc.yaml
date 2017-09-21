@@ -77,22 +77,25 @@ resources:
    user_data: |
                 config system interface
                 edit port1
-                set mode dhcp
-                set allowaccess ping https ssh http snmp fgfm
-                set mtu-override enable 
-                set mtu 1456
+                 set mode dhcp
+                 set allowaccess ping https ssh http snmp fgfm
+                 set mtu-override enable 
+                 set mtu 1456
+                 set defaultgw enable
                 next
                 edit port2
-                set mode dhcp
-                set mtu-override enable 
-                set mtu 1456
-                set allowaccess ping
+                 set mode dhcp
+                 set mtu-override enable 
+                 set mtu 1456
+                 set allowaccess ping
+                 set defaultgw disable
                 next
                 edit port3
-                set mode dhcp
-                set mtu-override enable 
-                set mtu 1456
-                set allowaccess ping
+                 set mode dhcp
+                 set mtu-override enable 
+                 set mtu 1456
+                 set allowaccess ping
+                 set defaultgw disable
                 next
                 end
                 config system dns
