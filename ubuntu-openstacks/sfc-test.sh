@@ -24,6 +24,8 @@ if [ -x "$OS_AUTH_URL" ]; then
   echo "get the Openstack access from ~/nova.rc"
   . ~/nova.rc
 fi
+# src info: https://docs.openstack.org/ocata/networking-guide/config-sfc.html
+
 
 #Create mgmt network for neutron for tenant VMs
 neutron net-show net1 > /dev/null 2>&1 || neutron net-create net1 --provider:network_type vxlan
@@ -43,6 +45,14 @@ do
     nova boot --image "Cirros 0.3.4" vm$vi --key-name default  --security-group default  --flavor m1.small   --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT
 done
 
+ neutron flow-classifier-create \
+  --description "HTTP traffic from 192.0.2.11 to 198.51.100.11" \
+  --ethertype IPv4 \
+  --source-ip-prefix 192.0.2.11/32 \
+  --destination-ip-prefix 198.51.100.11/32 \
+  --protocol tcp \
+  --source-port 1000:1000 \
+  --destination-port 80:80 FC1
  
     neutron port-pair-create   --description "Firewall SF instance 1"   --ingress p1   --egress p2 PP1
     neutron port-pair-create   --description "Firewall SF instance 2"   --ingress p3   --egress p4 PP2
