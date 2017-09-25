@@ -1,7 +1,12 @@
 # follow : https://docs.openstack.org/networking-sfc/latest/install/install.html 
 
+Install soft:
+
+juju run --application neutron-api,nova-compute "sudo apt -y install zile"
+juju run --application neutron-api,nova-compute "export LC_ALL=C; sudo pip install -c https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=stable/ocata networking-sfc==4.0.0"
+
 juju ssh neutron-api/0
-  sudo pip install -c https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=stable/ocata networking-sfc==4.0.0
+  
 
 #After installing the package, enable the service plugins in neutron-server by adding them in neutron.conf 
 #(typically found in /etc/neutron/):
@@ -56,9 +61,11 @@ sudo neutron-db-manage --subproject networking-sfc upgrade head
 On client:
  sudo pip install -c https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=stable/ocata networking-sfc==4.0.0
 
-sudo pip install -c https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=stable/ocata python-neutronclient
 
-To test : 
+To test doc is here: 
 https://docs.openstack.org/ocata/networking-guide/config-sfc.html
+
+corresponding script in this folder
+
 
 Then ODL :
