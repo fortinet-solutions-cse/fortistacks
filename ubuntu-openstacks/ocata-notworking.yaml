@@ -110,7 +110,7 @@ services:
       neutron-security-groups: true
       worker-multiplier: 0.25
       "enable-ml2-port-security": true
-      "overlay-network-type": vxlan gre
+      "overlay-network-type": gre vxlan
   neutron-gateway:
     annotations:
       gui-x: '0'
@@ -155,12 +155,12 @@ services:
     charm: cs:~openstack-charmers-next/nova-compute
     num_units: 2
     options:
-      config-flags: default_ephemeral_format=ext4
+      #config-flags: default_ephemeral_format=ext4
       openstack-origin: cloud:xenial-ocata
       enable-live-migration: true
       enable-resize: true
       migration-auth-type: ssh
-      libvirt-image-backend: rbd  
+      #libvirt-image-backend: qcow2
   ntp:
     annotations:
       gui-x: '1000'
