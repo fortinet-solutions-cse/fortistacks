@@ -42,7 +42,7 @@ do
     pr=`echo "$vi*2"|bc`
     LEFTPORT=`neutron port-show p$pl -F id -f value`
     RIGHTPORT=`neutron port-show p$pr -F id -f value`
-    nova boot --image "Cirros 0.3.4" vm$vi --key-name default  --security-group default  --flavor m1.small   --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT
+    nova boot --image "Trusty x86_64" vm$vi --key-name default  --security-group default  --flavor m1.small   --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT
 done
 
  neutron flow-classifier-create \
@@ -52,7 +52,9 @@ done
   --destination-ip-prefix 198.51.100.11/32 \
   --protocol tcp \
   --source-port 1000:1000 \
-  --destination-port 80:80 FC1
+  --destination-port 80:80 FC1 --logical-source-port p1
+# --logical-destination-port p2
+
  
     neutron port-pair-create   --description "Firewall SF instance 1"   --ingress p1   --egress p2 PP1
     neutron port-pair-create   --description "Firewall SF instance 2"   --ingress p3   --egress p4 PP2

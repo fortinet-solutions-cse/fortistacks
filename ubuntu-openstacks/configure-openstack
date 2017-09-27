@@ -20,9 +20,10 @@
 set -ex
 
 echo "This script helps configure any openstack deployed by juju "
-
+#sudo add-apt-repository cloud-archive:ocata -y
+#sudo apt update
 PKGS=" python-keystone python-neutronclient python-novaclient python-glanceclient python-openstackclient python-heatclient"
-dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
+#dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
 
 
 NEUTRON_EXT_NET_GW="10.10.10.1"
