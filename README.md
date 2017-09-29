@@ -1,10 +1,11 @@
 # fortistacks #
 
-A full explanation/follow along video is available here: https://vimeo.com/215625341
+A full explanation/follow along video is available here: https://youtu.be/0y38B61FTSk
+Previous version https://vimeo.com/215625341 (to see rift.io)
 
-Is a collection of scripts and pre defined setups for running full
-stack of software (multi openstack, docker, kubernetes, etc..)
-orchestrators or even bigdata stacks.
+Is a collection of scripts and pre defined setups for running a full
+stack of software (openstack, container, later kubernetes, etc..)
+orchestrators.
 
 It is based on LXC containers (LXD) on ubuntu 16.04 minimum that
 provides a way to simulate 20+ machines in a beefy vm, a small machine
@@ -19,7 +20,7 @@ here .. it is bad.
 
 ## Requirement ##
 
-(Please have a look to this video showing installation and execution steps: https://vimeo.com/215625341)
+(Please have a look to this video showing installation and execution steps:  https://youtu.be/0y38B61FTSk)
 
 Install a fresh ubuntu 16.04 with a 100G available free linux
 partition or disk.
@@ -44,9 +45,11 @@ Be sure to replace /dev/sdaX with a free to use partition.
 Now you have a lxd ready ubuntu, sudo without passwd and access it
 from MacOSX and windows vnc://<IP of fortistacksxs>
 
+
+Every other step is in its onw folder with a README.md in it.
+
 The first instance of this project contains a openstack mitaka on
 ubuntu you can use:
-
 
 `cd ubuntu-openstack`
 `./deploy.sh`

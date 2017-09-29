@@ -1,0 +1,317 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  Mini poc deployment : 2 tenants networks 1 fortios in the middle with 1 rule for
+  allowing traffic 2 ubuntu with apache to generate traffic. Everyone has floating ip.
+  
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
+  - http://www.getcloudify.org/spec/openstack-plugin/2.0.1/plugin.yaml
+
+inputs:
+  fos_image:
+    default: {}
+  fos_flavor:
+    default: {}
+  key_name:
+    default: {}
+  ub_image:
+     default: {}  
+  ub_flavor:
+     default: {}
+  mgmt_network_name:
+    default: "mgmt"
+
+
+
+dsl_definitions:
+
+  openstack_config: &openstack_config
+#    username: { get_input: keystone_username }
+#   password: { get_input: keystone_password }
+#  tenant_name: { get_input: keystone_tenant_name }
+# auth_url: { get_input: keystone_url }
+
+node_templates:
+
+  fos_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: ext_net
+
+  leftub_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: ext_net
+
+  rightub_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: ext_net
+
+  left_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      resource_id: left_network_openstack
+
+  left_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      resource_id: left_subnet_openstack
+      subnet:
+        host_routes: [ {"nexthop": "10.40.40.254", "destination": "10.20.20.0/24"} ]
+        allocation_pools:
+          - start: 10.40.40.3
+            end: 10.40.40.140
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              cidr: 10.40.40.0/24
+              ip_version: 4
+      cloudify.interfaces.validation:
+        creation:
+          inputs:
+            args:
+              cidr: 10.40.40.0/24
+              ip_version: 4
+    relationships:
+      - target: left_network
+        type: cloudify.relationships.contained_in
+
+  right_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      resource_id: right_network_openstack
+
+  right_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      resource_id: right_subnet_openstack
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              cidr: 10.20.20.0/24
+              ip_version: 4
+      cloudify.interfaces.validation:
+        creation:
+          inputs:
+            args:
+              cidr: 10.20.20.0/24
+              ip_version: 4
+    relationships:
+      - target: right_network
+        type: cloudify.relationships.contained_in
+
+  left_port:
+    type: cloudify.openstack.nodes.Port
+    properties:
+      resource_id: left_port
+      fixed_ip: "10.40.40.254"
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              port_security_enabled: False
+    relationships:
+      - target: left_network
+        type: cloudify.relationships.connected_to
+      - target: left_subnet
+        type: cloudify.relationships.depends_on
+        
+  my_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      resource_id: my_security_group_openstack
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 8080
+
+
+  fortigate:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: fos_image }
+        flavor_name: { get_input: fos_flavor }
+        #useless key_name for fortinet but mandatory for openstack
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: none # do not install agent
+      openstack_config: *openstack_config
+      management_network_name: { get_input: mgmt_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              config_drive: true
+              userdata: |
+                #FOS VM Config File
+                config system interface
+                edit mgmt
+                 set mode dhcp
+                 set allowaccess ping https ssh http snmp fgfm
+                 set mtu-override enable 
+                 set mtu 1456
+                 set defaultgw enable
+                next
+                edit port2
+                set mode dhcp
+                set mtu-override enable 
+                set mtu 1456
+                set allowaccess ping
+                 set defaultgw disable
+                next
+                edit port1
+                set mode dhcp
+                set mtu-override enable 
+                set mtu 1456
+                set allowaccess ping
+                 set defaultgw disable
+                next
+                end
+                config system dns
+                set primary 8.8.8.8
+                end
+                config firewall policy
+                edit 1
+                set name "Allow any any"
+                set srcintf "any"
+                set dstintf "any"
+                set srcaddr "all"
+                set dstaddr "all"
+                set action accept
+                set schedule "always"
+                set service "ALL"
+                set nat enable
+                next
+                end
+                config system central-management
+                set include-default-servers disable
+                set type fortimanager
+                set fmg 10.210.8.25
+                config server-list
+                edit 1
+                set server-type update rating
+                set server-address 10.210.8.25 
+                end
+                end
+    relationships:
+      - target: fos_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+      - target: left_port
+        type: cloudify.relationships.depends_on
+      - target: right_network
+        type: cloudify.relationships.connected_to
+#      - target: right_subnet
+#        type: cloudify.relationships.depends_on
+#      - target: my_security_group
+#        type: cloudify.openstack.server_connected_to_security_group
+#not compatible with portsecurity disabled
+
+
+  leftubuntu:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: none # Bug in cloudify agents use internal ip and not floating
+      openstack_config: *openstack_config
+      management_network_name: { get_input: mgmt_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              userdata: |
+                #cloud-config
+                package_upgrade: true
+                packages:
+                  - apache2-utils
+                  - apache2
+                  - tcpdump
+                  - iperf3
+                chpasswd:
+                  list: |
+                    ubuntu:fortinet
+                  expire: False
+                write_files:
+                  - content: |
+                      # Enable dhcp on eth1
+                      auto eth1
+                      iface eth1 inet dhcp
+                    path: /etc/network/interfaces.d/eth1.cfg
+    relationships:
+      - target: left_network
+        type: cloudify.relationships.connected_to
+      - target: left_subnet
+        type: cloudify.relationships.depends_on
+      - target: leftub_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+      - target: my_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+
+  rightubuntu:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: none # Bug in cloudify agents use internal ip and not floating
+      openstack_config: *openstack_config
+      management_network_name: { get_input: mgmt_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              userdata: |
+                #cloud-config
+                package_upgrade: true
+                packages:
+                  - apache2-utils
+                  - apache2
+                  - tcpdump
+                  - iperf3
+                chpasswd:
+                  list: |
+                    ubuntu:fortinet
+                  expire: False
+                write_files:
+                  - content: |
+                      # Enable dhcp on eth1
+                      auto eth1
+                      iface eth1 inet dhcp
+                    path: /etc/network/interfaces.d/eth1.cfg
+    relationships:
+      - target: right_network
+        type: cloudify.relationships.connected_to
+      - target: right_subnet
+        type: cloudify.relationships.depends_on
+      - target: rightub_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+      - target: my_security_group
+        type: cloudify.openstack.server_connected_to_security_group

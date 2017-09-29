@@ -20,7 +20,7 @@
 # do not put the fortigate as the default gateway on the networks it is not supported by openstack
 
 #if nova access not set then get them from nova.rc
-if [ -x "$OS_AUTH_URL" ]; then 
+if [ -x $OS_AUTH_URL ]; then 
   echo "get the Openstack access from ~/nova.rc"
   . ~/nova.rc
 fi
