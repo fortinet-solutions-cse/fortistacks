@@ -9,7 +9,7 @@ parameters:
  fosimage:
   type: string
   description: Fortios image
-  default: "fos54"
+  default: "fos56"
  ubimage:
   type: string
   description: Ubuntu image

@@ -1,4 +1,4 @@
-fos_image: 'fos54'
+fos_image: 'fos56'
 fos_flavor: 'm1.small'
 ub_image: 'Trusty x86_64'
 ub_flavor: 'm1.small'

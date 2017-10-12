@@ -9,7 +9,7 @@ juju add-model mitaka
 juju deploy openstack-nonest.yaml
 # juju-wait last version was not test with python2 !!
 # Move to python3
-sudo apt install python3-pip
+sudo apt -y install python3-pip
 sudo -H pip3 install juju-wait
 echo "waiting for deployment to complete can be 1hour"
 python3 /usr/local/bin/juju-wait -v
