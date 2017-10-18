@@ -1,0 +1,17 @@
+#!/bin/bash
+
+juju bootstrap lxd lxd
+echo -e "fortinet\nfortinet" | juju change-user-password 
+grep password ~/.local/share/juju/accounts.yaml > /dev/null 2>&1 || echo "    password: fortinet" >> ~/.local/share/juju/accounts.yaml
+juju add-model pike
+juju deploy pike.yaml
+# juju-wait last version was not test with python2 !!
+# Move to python3
+sudo apt -y install python3-pip
+sudo -H pip3 install juju-wait
+echo "waiting for deployment to complete can be 1hour"
+python3 /usr/local/bin/juju-wait -v
+
+vmware-checkvm && ./esxfix.sh
+
+
