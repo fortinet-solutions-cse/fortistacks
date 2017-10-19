@@ -24,7 +24,7 @@ echo "This script helps configure any openstack deployed by juju "
 #sudo apt update
 PKGS=" python-keystone python-neutronclient python-novaclient python-glanceclient python-openstackclient python-heatclient"
 #dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
-
+export LC_ALL=C; sudo pip install -c https://git.openstack.org/cgit/openstack/requirements/plain/upper-constraints.txt?h=stable/pike networking-sfc==5.0.0 python-neutronclient python-openstackclient python-novaclient
 
 NEUTRON_EXT_NET_GW="10.10.10.1"
 NEUTRON_EXT_NET_CIDR="10.10.10.0/23"
@@ -115,20 +115,17 @@ neutron router-gateway-set provider-router ext_net || true
 ## make it always ok to have it indempodent.
 neutron router-interface-add $ROUTER_ID $SUBNET_ID || true
 
-
-
-#Configure the default security group to allow ICMP and SSH
-openstack security group rule create --proto icmp default || echo "should have been created already"
-openstack security group rule create --proto tcp --dst-port 22 default || echo "should have been created already"
-openstack security group rule create --proto tcp --dst-port 80 default || echo "should have been created already"
-openstack security group rule create --proto tcp --dst-port 443 default || echo "should have been created already"
-#port for RDP
-openstack security group rule create --proto tcp --dst-port 3389 default || echo "should have been created already"
-
+# wipe out to have a known state and avoid multiple default
+openstack security group delete default
 
 ##make wide open
-openstack security group rule create --proto tcp --dst-port 1:65535  default || echo "should have been created already"
-openstack security group rule create --proto udp --dst-port 1:65535  default || echo "should have been created already"
+openstack security group rule create --proto tcp --dst-port 1:65535  --ingress default || echo "should have been created already"
+openstack security group rule create --proto udp --dst-port 1:65535  --ingress default || echo "should have been created already"
+openstack security group rule create --proto tcp --dst-port 1:65535  --egress default || echo "should have been created already"
+openstack security group rule create --proto udp --dst-port 1:65535  --egress default || echo "should have been created already"
+
+#openstack security group rule create --proto tcp --dst-port 1:65535  default || echo "should have been created already"
+#openstack security group rule create --proto udp --dst-port 1:65535  default || echo "should have been created already"
 
 
 #Upload a default SSH key
@@ -139,7 +136,7 @@ for flavor in m1.tiny m1.small m1.medium m1.large m1.xlarge
 do
 openstack  flavor delete $flavor || true
 done
-openstack flavor create m1.small --id auto --ram 1024 --disk 20 --vcpus 1
+openstack flavor create m1.small --id auto --ram 1024 --disk 10 --vcpus 1
 openstack flavor create m1.medium --id auto --ram 2048 --disk 20 --vcpus 2
 openstack flavor create m1.large --id auto --ram 4096 --disk 20 --vcpus 4
 
