@@ -116,7 +116,7 @@ neutron router-gateway-set provider-router ext_net || true
 neutron router-interface-add $ROUTER_ID $SUBNET_ID || true
 
 # wipe out to have a known state and avoid multiple default
-openstack security group delete default
+openstack security group list -f value|awk '{print $1}'|xargs -I[] openstack security group delete []
 
 ##make wide open
 openstack security group rule create --proto tcp --dst-port 1:65535  --ingress default || echo "should have been created already"
