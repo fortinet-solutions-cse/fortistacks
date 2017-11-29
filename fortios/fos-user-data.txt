@@ -20,7 +20,7 @@
                 next
                 end
                 config system dns
-                set primary 10.10.10.1
+                set primary 8.8.8.8
                 end
                 config firewall policy
                 edit 1

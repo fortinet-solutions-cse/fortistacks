@@ -33,6 +33,7 @@
       charm: "cs:xenial/ceph-osd"
       num_units: 3
       options:
+        bluestore: true
         osd-devices: /srv/osd
         osd-reformat: 'yes'
         "use-direct-io": false
