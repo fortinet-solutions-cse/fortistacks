@@ -1,13 +1,24 @@
 #!/bin/bash
+# #######
+# Copyright (c) 2016 Fortinet All rights reserved
+# Author: Nicolas Thomas nthomas_at_fortinet.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+#    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    * See the License for the specific language governing permissions and
+#    * limitations under the License.
 
-#     Click here to download the get-cloudify-composer.py script (if the download doesn't automatically begin within a few seconds).
-#  Open a terminal, then, run  sudo python get-cloudify-composer.py.
-#  After the installation is complete, run  sudo /opt/cloudify-composer/nodejs/bin/node /opt/cloudify-composer/blueprint-composer/package/server.js in your terminal to start the composer.
-#  Now run  localhost:3000 in your browser.
-#  Enter the USERNAME: composer and PASSWORD: composer to login. 
 
-wget -c https://raw.githubusercontent.com/cloudify-cosmo/get-cloudify.py/master/get-cloudify-composer.py
-sudo python get-cloudify-composer.py
-mkdir logs
-sudo /opt/cloudify-composer/nodejs/bin/node /opt/cloudify-composer/blueprint-composer/package/server.js
-## add https://raw.githubusercontent.com/cloudify-cosmo/cloudify-openstack-plugin/2.0.1/plugin.yaml to nodes types
+
+
+cat <<EOF
+With cloudify 4.2 composer is part of cloudify manager.
+Go to http://<ip of manager>/composer
+EOF
