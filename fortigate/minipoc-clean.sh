@@ -28,7 +28,7 @@ fi
 
 nova delete trafleft
 nova delete trafright
-nova delete fgt54
+nova delete fgt56
 
 
 neutron port-delete left1
