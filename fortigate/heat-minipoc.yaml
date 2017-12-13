@@ -116,7 +116,6 @@ resources:
                 end
    name: FGT
    config_drive: True
-   security_groups: [ default ]
    user_data_format: RAW
 #   personality: {"license":
 #  -----BEGIN FGT VM LICENSE-----
