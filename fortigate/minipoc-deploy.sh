@@ -24,6 +24,11 @@ if [ -x $OS_AUTH_URL ]; then
   echo "get the Openstack access from ~/nova.rc"
   . ~/nova.rc
 fi
+
+#if EXT_NET variable not set use default (allow to have it as param from the .rc file)
+[ -x $EXT_NET ] && EXT_NET=ext_net
+
+
 #Push image if needed
 openstack image show  "fgt56" > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fgt56"  --file fortios.qcow2
 #find the name of the Ubuntu 16.04 image
@@ -43,7 +48,7 @@ else
     while [ `openstack server show trafleft -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
-    FLOAT_IP=`openstack  floating ip create ext-net -f value -c floating_ip_address`
+    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
     openstack server add floating ip trafleft $FLOAT_IP
 fi
 
@@ -54,7 +59,7 @@ else
     while [ `openstack server show trafright -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
-    FLOAT_IP=`openstack  floating ip create ext-net -f value -c floating_ip_address`
+    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
     openstack server add floating ip trafright $FLOAT_IP
 fi
 
@@ -66,7 +71,7 @@ else
     while [ `openstack server show trafleft -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
-    FLOAT_IP=`openstack  floating ip create ext-net -f value -c floating_ip_address`
+    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
     openstack server add floating ip trafleft $FLOAT_IP
 fi
 
@@ -85,7 +90,7 @@ else
     while [ `openstack server show fgt56 -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
-    FLOAT_IP=`openstack  floating ip create ext-net -f value -c floating_ip_address`
+    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
     openstack server add floating ip fgt56 $FLOAT_IP
 
 fi
