@@ -6,6 +6,9 @@ Example of User Data:
 nova boot --flavor "${flavor}" --image "${image}" --user-data=cloudinit --nic net-id=${netid} --security-group default test
 
 
+You can use 
+$ write-mime-multipart -o fos-user-data.txt config FGT.lic
+(part of cloud-utils package)
 This is the content of the cloudinit userdata file.
 Content-Type: multipart/mixed; boundary="===============0086047718136476635=="
 MIME-Version: 1.0
