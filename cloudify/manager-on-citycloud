@@ -1,0 +1,67 @@
+#!/bin/bash -ex
+#
+#    fortinet deploy-manager
+#    Copyright (C) 2016 Fortinet  Ltd.
+#
+#    Authors: Nicolas Thomss  <nthomasfortinet.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, version 3 of the License.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# Assume there is a default keypair a mgmt network and floating ip enabled.
+# Assume you have openstack cli and cfy installed.
+
+# checking openstack cli is recent enough using sort -V .
+
+OSCLI_VER=`openstack --version |& sed -e "s/openstack //g"`
+read -r -d '' VAR << EOM || true
+3.0
+$OSCLI_VER
+EOM
+
+CHECKED_VER=`echo "$VAR" | sort -V|tail -1`
+
+if [ "$CHECKED_VER" == "3.0" ]; then
+    echo "please upgrade python-openstackclient to a newer version"
+    exit 2
+fi
+
+#if nova access not set then get them from nova.rc
+if [ -x $OS_AUTH_URL ]; then
+  echo "get the Openstack access from ~/nova.rc"
+  . ~/nova.rc
+fi
+
+#if EXT_NET variable not set use default (allow to have it as param from the .rc file)
+[ -x $EXT_NET ] && EXT_NET=ext-net
+
+
+#Push image if needed
+openstack image show  "cfy-manager4.2" > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "cfy-manager4.2"  --file cloudify-manager-4.2ga.qcow2
+
+if (openstack server show cfy-manager  > /dev/null 2>&1 );then
+    echo "cloudify manager already started"
+    FLOAT_IP=`openstack server show cfy-manager -f value -c addresses|awk -F , '{print $2}'`
+else
+    openstack server create  --image "cfy-manager4.2" cfy-manager --key-name default --security-group default --flavor 2C-4GB-50GB --network mgmt
+    while [ `openstack server show cfy-manager -f value -c status` == "BUILD" ]; do
+	sleep 4
+    done
+    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
+    openstack server add floating ip cfy-manager $FLOAT_IP
+fi
+
+cfy init -r
+cfy profiles use $FLOAT_IP -u admin -p admin -t default_tenant
+cfy status
+
