@@ -19,71 +19,82 @@ from charms.reactive import (
 
 from charms import fortios
 import logging
+import json
+import ast
+#to convert single to double quote for json..
 formatter = logging.Formatter(
         '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
-logger = logging.getLogger('fortinetconflib')
-hdlr = logging.FileHandler('/var/tmp/fortigateconflib.log')
+logger = logging.getLogger('fortiosapi')
+hdlr = logging.FileHandler('/var/tmp/fortiosapilib.log')
 hdlr.setFormatter(formatter)
 logger.addHandler(hdlr) 
 logger.setLevel(logging.DEBUG)
 
 cfg = config()
 
+@when('config.changed')
+def config_changed():
+    status_set('maintenance', 'trying to connect and validate config')
+    remove_state('fortios.configured')
+    try:
+        log("trying to get system status")
+        if fortios.connectionisok(vdom="root"):
+            log('API call successfull response')
+            set_state('fortios.configured')
+            status_set('active','alive')
+        else:
+            remove_state('fortios.configured')
+            status_set('blocked', fortios+' can not be reached')
+            raise Exception(fortios+' unreachable')
+    except Exception as e:
+        log(repr(e))
+        status_set('blocked', 'validation failed: %s' % e)
+        remove_state('fortios.configured')
+        not_ready_add()
+        log("can not rest log to fortios")
+
 @when_not('fortios.configured')
 def not_ready_add():
-    actions = [
-        'actions.conf-port',
-        'actions.apiset'
-        'actions.sshcmd'
-    ]
-    for action in actions:
-        remove_state(action)
-        #clean all action state to avoid collapse with config when action is stated
     if helpers.any_states(*actions):
         action_fail('FORTIOS is not configured')
-
     status_set('blocked', 'fortios is not configured')
 
 
-@when('fortios.configured')
-@when('actions.apiset')
+@when('actions.apiset','fortios.configured')
 def apiset():
     """
     Configure an ethernet interface
     """
-    set_state('actions.apiset')
     name = action_get('name')
     path = action_get('path')
     params = action_get('parameters')
     
     status_set('maintenance', 'running cmd on fortios')
-    commands = params.split("\\n")
+    log("in apiset call")
     # multi line is accepted with \n to separate then converted because juju does not allow advanced types like list or json :(
     try:
         mydata={}
-        for line in commands:
+        for line in params.split("\\n"):
             log("line is:"+line)
             key=line.split(":")[0].strip()
             value=line.split(":")[1].strip()
             mydata[key]=value
-        is_set, resp = fortios.set(name,path,data=mydata)
+        res, resp = fortios.set(name,path,data=mydata)
+        if res:
+            action_set({'output': resp})
+        else:
+            action_fail('API call on fortios failed reason:' + repr(resp))
+        remove_state('actions.apiset')
+        status_set('active', 'alive')
     except Exception as e:
          action_fail('API call on fortios failed reason:'+repr(e))
          remove_state('actions.apiset')
          status_set('active','alive')
-    else:
-        if is_set is True:
-            log('API call successfull response %s' % resp)
-            action_set({'output': resp})
-        else:
-            action_fail('API call on fortios failed reason:'+resp)
-    remove_state('actions.apiset')
-    status_set('active','alive')
-   
 
 
-@when('fortios.configured')
-@when('actions.sshcmd')
+
+
+@when('fortios.configured','actions.sshcmd')
 def sshcmd():
     '''
     Create and Activate the network corporation
@@ -107,24 +118,24 @@ def sshcmd():
     status_set('active','alive')
 
 
-@when('fortios.configured')
 @when('update-status')
 def update_status():
     try:
         """
-        Using the fortigaeconf lib to connect ot rest api
+        Using the fortiosapi lib to connect to rest api
         """
         if fortios.connectionisok(vdom="root"):
             status_set('active', 'alive')
+            set_state('fortios.configured')
         else:
+            remove_state('fortios.configured')
             status_set('blocked', fortios+' can not be reached')
             raise Exception(fortios+' unreachable')
     except Exception as e:
         log(repr(e))
         status_set('blocked', 'validation failed: %s' % e)
 
-@when('fortios.configured')
-@when('actions.conf-port')
+@when('fortios.configured','actions.conf-port')
 def conf_port():
     """
     Configure an ethernet interface
@@ -164,22 +175,4 @@ def conf_port():
     remove_state('actions.conf-port')
     status_set('active','alive')
 
-@when('config.changed')
-def config_changed():
-    status_set('maintenance', 'trying to connect validate config')
-    try:
-        log("trying to get system status")
-        if fortios.connectionisok(vdom="root"):
-            log('API call successfull response')
-            remove_state('config.changed')
-            set_state('fortios.configured')
-            status_set('active','alive')
-        else:
-            status_set('blocked', fortios+' can not be reached')
-            raise Exception(fortios+' unreachable')
-    except Exception as e:
-        log(repr(e))
-        status_set('blocked', 'validation failed: %s' % e)
-        remove_state('fortios.configured')
-        log("can not rest log to fortios")
 

@@ -1,1 +1,0 @@
-# ref: https://osm.etsi.org/wikipub/index.php/Creating_your_own_VNF_charm_(Release_ONE)
