@@ -1,3 +1,78 @@
+# New user-data:
+
+Example of User Data:
+
+1). If using NOVA command, can use the following format.
+nova boot --flavor "${flavor}" --image "${image}" --user-data=cloudinit --nic net-id=${netid} --security-group default test
+
+
+You can use 
+$ write-mime-multipart -o fos-user-data.txt config FGT.lic
+(part of cloud-utils package)
+This is the content of the cloudinit userdata file.
+Content-Type: multipart/mixed; boundary="===============0086047718136476635=="
+MIME-Version: 1.0
+
+--===============0086047718136476635==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="config"
+
+config sys global
+    set hostname openstack
+end
+
+--===============0086047718136476635==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="FGVM02DC10310004.txt"
+
+-----BEGIN FGT VM LICENSE-----
+QAAAADiM1vns1XCYqEF0t30wzWVUhdSj9huv+eUzPc+/UL7c1LtDv1sQde6vwi6A
+UDxz8sL6YuoPV/4oHC28wiyriSJQAAAAItcbSUOpQBKNkKxev3grgnk6JQzdyq0A
+rhc4ZQ8cGGEFxcqisz8vOd410duoRfsz4LbG5RjWXp7vX9LvZcQRmTMBEY70iXD5
+OyUoz7yQE9M=
+-----END FGT VM LICENSE-----
+
+--===============0086047718136476635==--
+
+
+
+2). If use HEAT template, can use the following format
+fgt_config:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config: |
+      config sys glo
+      set hostname Openstack
+      end
+      config sys dns
+      set primary 172.16.100.100
+      set secondary 172.16.100.80
+      end
+
+ fgt_license:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config: |
+       -----BEGIN FGT VM LICENSE-----
+       QAAAANSykhlcKicp/SIwya0a4SWIEiIdEQRBu7OvnX5LBzBzCf324SJqHi5vVZLv
+       rcP+S5+yXbzLPz8UqHXdDIClOuRQAAAAm4h8/oNxfatCrqMRKElK/ez4MaF4HXrf
+       mSsAJV+0ecC3ZNqNrex+ROXWhOJAAPDqWb5yCFtSJ5HgHZFkntRQoXgifsP7WWAX
+       81M8mYZlp18=
+       -----END FGT VM LICENSE-----
+
+ fgt_init:
+  type: OS::Heat::MultipartMime
+  properties:
+    parts:
+     - config: {get_resource: fgt_license}
+     - config: {get_resource: fgt_config}
+
 
 # Fortigate/Fortios specifics to virtualized environment and fortistacks setup:
 

@@ -1,0 +1,76 @@
+#!/bin/bash
+#
+#    fortinet-configure-openstack
+#    Copyright (C) 2016 Fortinet  Ltd.
+#
+#    Authors: Nicolas Thomss  <nthomasfortinet.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, version 3 of the License.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+set -ex
+
+echo "This script configure any openstack to be close to the one deployed by fortistacks" 
+
+#PKGS=" python-keystone python-neutronclient python-novaclient python-glanceclient python-openstackclient python-heatclient"
+#dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
+
+
+
+NEUTRON_EXT_NET_NAME="ext-net" 
+NEUTRON_FIXED_NET_CIDR="192.168.16.0/22"
+NEUTRON_DNS="8.8.8.8"
+
+# Determine the tenant id for the configured tenant name.
+
+echo "Configuring Openstack Neutron"
+
+#Create mgmt network for neutron for tenant VMs
+openstack network show mgmt > /dev/null 2>&1 || openstack network create mgmt
+openstack subnet show mgmt_subnet > /dev/null 2>&1 || openstack subnet create mgmt_subnet --network mgmt --subnet-range $NEUTRON_FIXED_NET_CIDR --dns-nameserver $NEUTRON_DNS --dhcp
+SUBNET_ID=$(openstack subnet show mgmt_subnet | grep " id" | awk '{print $4}')
+
+#Create router for external network and mgmt network
+openstack router show provider-router > /dev/null 2>&1 || openstack router create  provider-router
+ROUTER_ID=`openstack router show provider-router -c id -f value`
+
+EXTERNAL_NETWORK_ID=`openstack network show $NEUTRON_EXT_NET_NAME -c id -f value`
+#neutron router gateway-clear provider-router || true
+#neutron router gateway-set $ROUTER_ID $EXTERNAL_NETWORK_ID
+openstack router set --external-gateway  $EXTERNAL_NETWORK_ID provider-router || true
+### make it always ok to have it indempodent.
+#neutron router interface-add $ROUTER_ID $SUBNET_ID || true
+openstack router add subnet provider-router mgmt_subnet  || true
+
+
+#Configure the default security group to allow ICMP and SSH
+openstack security group rule create --proto icmp default || echo "should have been created already"
+openstack security group rule create --proto tcp --dst-port 22 default || echo "should have been created already"
+openstack security group rule create --proto tcp --dst-port 80 default || echo "should have been created already"
+openstack security group rule create --proto tcp --dst-port 443 default || echo "should have been created already"
+#port for RDP
+openstack security group rule create --proto tcp --dst-port 3389 default || echo "should have been created already"
+
+
+##make wide open
+openstack security group rule create --proto tcp --dst-port 1:65535  default || echo "should have been created already"
+openstack security group rule create --proto udp --dst-port 1:65535  default || echo "should have been created already"
+
+
+#Upload a default SSH key
+openstack keypair create  --public-key ~/.ssh/id_rsa.pub default  || echo "asssuming key is already uploaded"
+
+
+openstack flavor create m1.small --id auto --ram 1024 --disk 20 --vcpus 1
+openstack flavor create m1.medium --id auto --ram 2048 --disk 20 --vcpus 2
+openstack flavor create m1.large --id auto --ram 4096 --disk 20 --vcpus 4
+

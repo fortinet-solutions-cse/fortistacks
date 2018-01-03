@@ -26,12 +26,12 @@ fi
 
 
 
-nova delete trafleft
-nova delete trafright
-nova delete fgt54
+openstack server delete trafleft
+openstack server delete trafright
+openstack server delete fgt56
 
 
-neutron port-delete left1
-neutron port-delete right1
-neutron net-delete left
-neutron net-delete right
+openstack port delete left1
+openstack port delete right1
+openstack network delete left
+openstack network delete right
