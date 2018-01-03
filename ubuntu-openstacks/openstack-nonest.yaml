@@ -176,7 +176,7 @@ applications:
     to: 
       - "15"
   mongodb: 
-    charm: "cs:trusty/mongodb"
+    charm: "cs:xenial/mongodb"
     num_units: 1
     annotations: 
       "gui-x": "1200"
@@ -329,7 +329,7 @@ machines:
     series: xenial
     constraints: arch=amd64
   "16": 
-    series: trusty
+    series: xenial
     constraints: arch=amd64
   "17": 
     series: xenial

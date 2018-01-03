@@ -1,12 +1,13 @@
-#!/bin/bash
+#!/bin/bash -x
 
+export LC_ALL=C
 juju bootstrap lxd lxd
 echo -e "fortinet\nfortinet" | juju change-user-password 
 grep password ~/.local/share/juju/accounts.yaml > /dev/null 2>&1 || echo "    password: fortinet" >> ~/.local/share/juju/accounts.yaml
 # becouse some random versions of juju comes without the gui
 juju upgrade-gui
 juju add-model mitaka
-juju deploy openstack-nonest.yaml
+juju deploy openstack-nonest.yaml || exit 2
 # juju-wait last version was not test with python2 !!
 # Move to python3
 sudo apt -y install python3-pip
