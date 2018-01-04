@@ -1,8 +1,10 @@
 # OSM Rel3 installation /usage 
 
-Run ./deploy.sh
+Source your openstack credentials files.
+On fortistacks it is in ~/nova.rc
+Then run ./deploy.sh
 wait a bit .. then you should be able to login on
-http://10.10.10.x:8443/
+https://10.10.10.x:8443/
 
 do lxc list and look for the SO-ub (Rift-io) container IP
 is 10.10.10.x 
