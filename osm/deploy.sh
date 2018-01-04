@@ -42,8 +42,12 @@ fi
 export OSM_HOSTNAME=`lxc list | awk '($2=="SO-ub"){print $6}'`
 export OSM_RO_HOSTNAME=`lxc list | awk '($2=="RO"){print $6}'`
 
-# add this at the end
+# Connect OSM to openstack
+# TODO check if already done
 osm vim-create --name openstack --user $OS_USERNAME \
     --password $OS_PASSWORD --auth_url $OS_AUTH_URL  \
     --tenant $OS_TENANT_NAME --account_type openstack
 
+echo "OSM configured to use the local openstack"
+echo "Using _chrome or chromium_ connect to https://$OSM_HOSTNAME:8443"
+echo "source osm.rc to configure for your osm cli"
