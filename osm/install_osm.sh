@@ -56,15 +56,7 @@ function uninstall(){
     fi
 }
 
-#Configure NAT rules, based on the current IP addresses of containers
-function nat(){
-    echo -e "\nChecking required packages: iptables-persistent"
-    dpkg -l iptables-persistent &>/dev/null || ! echo -e "    Not installed.\nInstalling iptables-persistent requires root privileges" || \
-    sudo DEBIAN_FRONTEND=noninteractive apt-get -yq install iptables-persistent
-    echo -e "\nConfiguring NAT rules"
-    echo -e "   Required root privileges"
-    sudo $OSM_DEVOPS/installers/nat_osm
-}
+
 
 function FATAL(){
     echo "FATAL error: Cannot install OSM due to \"$1\""
@@ -552,7 +544,7 @@ OSM_JENKINS="$TEMPDIR/jenkins"
 . $OSM_JENKINS/common/all_funcs
 
 [ -n "$UNINSTALL" ] && uninstall && echo -e "\nDONE" && exit 0
-[ -n "$NAT" ] && nat && echo -e "\nDONE" && exit 0
+#[ -n "$NAT" ] && nat && echo -e "\nDONE" && exit 0
 [ -n "$UPDATE" ] && update && echo -e "\nDONE" && exit 0
 [ -n "$RECONFIGURE" ] && configure && echo -e "\nDONE" && exit 0
 
