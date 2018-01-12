@@ -1,0 +1,13 @@
+options:
+  hostname:
+    type: string
+    default: ""
+    description: "Hostname or IP of the fortimail"
+  user:
+    type: string
+    default: admin
+    description: "Username for fortimail admin"
+  password:
+    type: string
+    default: ""
+    description: "Password for fortimail admin"

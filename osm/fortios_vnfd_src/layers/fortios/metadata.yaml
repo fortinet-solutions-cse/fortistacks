@@ -9,5 +9,5 @@ description: |
   Proxy charm to configure through actions fortigate products
   fortios or fortigate, others might be added
 tags:
-  - vnf
   - network
+  - security

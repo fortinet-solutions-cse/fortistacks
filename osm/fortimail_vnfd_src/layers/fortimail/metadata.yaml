@@ -15,5 +15,7 @@ tags:
   - network
   - security
   - web_server
-subordinate: false
+series:
+  - trusty
+  - xenial
 

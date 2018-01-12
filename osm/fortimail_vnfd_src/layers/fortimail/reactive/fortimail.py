@@ -15,3 +15,43 @@ def install_fortimail():
     #  * https://github.com/juju-solutions/layer-basic#overview
     #
     set_state('fortimail.installed')
+
+
+@when('actions.create-domain')
+def create_domain():
+    err = ''
+    try:
+        cmd = ""
+        result, err = charms.sshproxy._run(cmd)
+    except:
+        action_fail('command failed:' + err)
+    else:
+        action_set({'outout': result})
+    finally:
+        remove_flag('actions.create-domain')
+
+@when('actions.delete-domain')
+def create_domain():
+    err = ''
+    try:
+        cmd = ""
+        result, err = charms.sshproxy._run(cmd)
+    except:
+        action_fail('command failed:' + err)
+    else:
+        action_set({'outout': result})
+    finally:
+        remove_flag('actions.delete-domain')
+
+@when('actions.get-administrative-resource')
+def get_administrative_resource():
+    err = ''
+    try:
+        cmd = ""
+        result, err = charms.sshproxy._run(cmd)
+    except:
+        action_fail('command failed:' + err)
+    else:
+        action_set({'outout': result})
+    finally:
+        remove_flag('actions.get-administrative-resource')
