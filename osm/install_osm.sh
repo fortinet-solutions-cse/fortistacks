@@ -289,13 +289,6 @@ function configure_SOUI(){
       --data '{"post-logout-redirect-uri": "https://'$DEFAULT_IP':8443/?api_server=https://'$DEFAULT_IP'" }')
     [[ $result =~ .*success.* ]] || FATAL "Failed post-logout-redirect-uri configuration: $result"
 
-    lxc exec SO-ub -- tee /etc/network/interfaces.d/60-rift.cfg <<EOF
-auto lo:1
-iface lo:1 inet static 
-        address  $DEFAULT_IP
-        netmask 255.255.255.255
-EOF
-    lxc exec SO-ub ifup lo:1
 }
 
 #Configure RO, VCA, and SO with the initial configuration:

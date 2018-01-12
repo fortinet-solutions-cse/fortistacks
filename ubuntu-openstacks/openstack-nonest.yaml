@@ -4,7 +4,7 @@ applications:
     charm: "cs:xenial/ceph-mon"
     num_units: 3
     options: 
-      "expected-osd-count": 3
+      "expected-osd-count": 2
     annotations: 
       "gui-x": "750"
       "gui-y": "500"
@@ -14,7 +14,7 @@ applications:
       - "2"
   "ceph-osd": 
     charm: "cs:xenial/ceph-osd"
-    num_units: 3
+    num_units: 2
     options: 
       "osd-devices": /srv/osd
       "osd-reformat": "yes"
@@ -25,7 +25,6 @@ applications:
     to: 
       - "3"
       - "4"
-      - "5"
   "ceph-radosgw": 
     charm: "cs:xenial/ceph-radosgw"
     num_units: 1
@@ -135,11 +134,6 @@ applications:
     to: 
       - "3"
       - "4"
-  ntp: 
-    charm: "cs:xenial/ntp"
-    annotations: 
-      "gui-x": "1000"
-      "gui-y": "0"
   "openstack-dashboard": 
     charm: "cs:xenial/openstack-dashboard"
     num_units: 1
@@ -253,10 +247,6 @@ relations:
     - "glance:ceph"
   - - "ceph-osd:mon"
     - "ceph-mon:osd"
-  - - "ntp:juju-info"
-    - "nova-compute:juju-info"
-  - - "ntp:juju-info"
-    - "neutron-gateway:juju-info"
   - - "ceph-radosgw:mon"
     - "ceph-mon:radosgw"
   - - "ceph-radosgw:identity-service"
@@ -293,9 +283,6 @@ machines:
     series: xenial
     constraints: arch=amd64
   "4": 
-    series: xenial
-    constraints: arch=amd64
-  "5": 
     series: xenial
     constraints: arch=amd64
   "6": 

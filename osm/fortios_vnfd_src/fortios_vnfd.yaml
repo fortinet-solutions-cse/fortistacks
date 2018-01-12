@@ -1,74 +1,76 @@
 vnfd:vnfd-catalog:
     vnfd:vnfd:
     -   vnfd:connection-point:
-        -   vnfd:name: fortigate/cp1
-            vnfd:port-security-enabled: 'false'
-            vnfd:short-name: port1
+        -   vnfd:id: mgmt
+            vnfd:name: fortios/mgmt
+            vnfd:port-security-enabled: 'true'
             vnfd:type: VPORT
-        -   vnfd:name: fortigate/cp3
-            vnfd:port-security-enabled: 'false'
-            vnfd:type: VPORT
-        -   vnfd:name: fortigate/cp2
+        -   vnfd:id: port1
+            vnfd:name: fortios/cp1
             vnfd:port-security-enabled: 'false'
             vnfd:type: VPORT
+        -   vnfd:id: port2
+            vnfd:name: fortios/cp2
+            vnfd:type: VPORT
+            vnfd:port-security-enabled: 'false'
+        -   vnfd:id: port3
+            vnfd:name: fortios/cp3
+            vnfd:type: VPORT
+            vnfd:port-security-enabled: 'false'
         vnfd:description: Fortios vnfd
-        vnfd:id: fortios
+        vnfd:id: fortios-solo-vnfd
         vnfd:logo: FortiGateVMLogo.png
         vnfd:mgmt-interface:
-            rw-vnfd:ssh-key: 'false'
+            vnfd:cp: fortios/mgmt
             vnfd:dashboard-params:
                 vnfd:https: 'true'
                 vnfd:path: ng/page/system/status/status
-            vnfd:port: '0'
-            vnfd:vdu-id: fortiosvdu
-        vnfd:name: Fortios solo
+            vnfd:port: '443'
+        vnfd:name: Fortios with primitives
         vnfd:service-function-chain: UNAWARE
         vnfd:short-name: fortios
         vnfd:vdu:
-        -   vnfd:alarm:
-            -   vnfd:alarm-id: alarm-1
-                vnfd:enabled: 'true'
-                vnfd:name: alarm-1
-                vnfd:repeat: 'true'
-            vnfd:cloud-init-file: userdata.txt
-            vnfd:count: '1'
-            vnfd:description: Fortios VDU 1 VNFc
-            vnfd:guest-epa:
+        -   vnfd:guest-epa:
                 vnfd:cpu-pinning-policy: ANY
-            vnfd:id: fortiosvdu
-            vnfd:image: fortios.qcow2
-            vnfd:image-checksum: 825e42add3981ddf03c763443adfed5e
+            vnfd:id: fosvdu
+            vnfd:image: fos56
             vnfd:interface:
-            -   rw-vnfd:floating-ip-needed: 'false'
-                vnfd:external-connection-point-ref: fortigate/cp1
-                vnfd:name: port1
+            -   rw-vnfd:floating-ip-needed: 'true'
+                vnfd:external-connection-point-ref: fortios/mgmt
+                vnfd:name: mgmt
                 vnfd:position: '1'
+                vnfd:type: EXTERNAL
+                vnfd:virtual-interface:
+                    vnfd:type: OM-MGMT
+            -   rw-vnfd:floating-ip-needed: 'false'
+                vnfd:external-connection-point-ref: fortios/cp1
+                vnfd:name: port1
+                vnfd:position: '2'
                 vnfd:type: EXTERNAL
                 vnfd:virtual-interface:
                     vnfd:type: VIRTIO
             -   rw-vnfd:floating-ip-needed: 'false'
-                vnfd:name: mgmt
-                vnfd:position: '0'
-                vnfd:type: INTERNAL
+                vnfd:external-connection-point-ref: fortios/cp2
+                vnfd:name: port2
+                vnfd:position: '3'
+                vnfd:type: EXTERNAL
                 vnfd:virtual-interface:
                     vnfd:type: VIRTIO
-            vnfd:internal-connection-point:
-            -   vnfd:id: mgmt
-                vnfd:name: mgmt
-                vnfd:port-security-enabled: 'false'
-                vnfd:short-name: mgmt interface
-                vnfd:type: VPORT
-            vnfd:name: fortiosvdu
+            -   rw-vnfd:floating-ip-needed: 'false'
+                vnfd:external-connection-point-ref: fortios/cp3
+                vnfd:name: port3
+                vnfd:position: '3'
+                vnfd:type: EXTERNAL
+                vnfd:virtual-interface:
+                    vnfd:type: VIRTIO
+            vnfd:name: fgtvdu
             vnfd:supplemental-boot-data:
                 vnfd:boot-data-drive: 'false'
-            vnfd:vdu-configuration:
-                vnfd:juju:
-                    vnfd:charm: fortios
             vnfd:vm-flavor:
                 vnfd:memory-mb: '2000'
-                vnfd:storage-gb: '10'
+                vnfd:storage-gb: '25'
                 vnfd:vcpu-count: '1'
-        vnfd:vendor: fortinet
+        vnfd:vendor: Fortinet
         vnfd:version: 5.6.3
         vnfd:vnf-configuration:
             vnfd:initial-config-primitive:

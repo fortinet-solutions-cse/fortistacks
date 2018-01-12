@@ -49,5 +49,10 @@ osm vim-create --name openstack --user $OS_USERNAME \
     --tenant $OS_TENANT_NAME --account_type openstack
 
 echo "OSM configured to use the local openstack"
-echo "Using _chrome or chromium_ connect to https://$OSM_HOSTNAME:8443"
+echo "creating install snapshots"
+lxc snapshot RO install
+lxc snapshot VCA install
+lxc snapshot SO-ub install
+
+echo "Using _chrome or chromium_ connect to https://$OSM_HOSTNAME:8443 admin/admin"
 echo "source osm.rc to configure for your osm cli"
