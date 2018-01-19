@@ -46,7 +46,8 @@ export OSM_RO_HOSTNAME=`lxc list | awk '($2=="RO"){print $6}'`
 # TODO check if already done
 osm vim-create --name openstack --user $OS_USERNAME \
     --password $OS_PASSWORD --auth_url $OS_AUTH_URL  \
-    --tenant $OS_TENANT_NAME --account_type openstack
+    --tenant $OS_TENANT_NAME --account_type openstack \
+    --config='{use_floating_ip: True}'
 
 echo "OSM configured to use the local openstack"
 echo "creating install snapshots"
