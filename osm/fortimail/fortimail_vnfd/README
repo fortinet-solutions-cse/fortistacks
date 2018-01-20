@@ -1,0 +1,8 @@
+This descriptor provides a VNFd for FortiMail VM
+Fortimail Version is 5.4
+
+Auxiliary log disk is just created by VIM with a size of 1 GB
+(not taken from predefined log disk)
+
+FortiMail is started up in server mode
+(check cloud-init if you want to switch to gateway mode)

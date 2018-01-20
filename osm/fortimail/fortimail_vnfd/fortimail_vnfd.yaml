@@ -1,0 +1,61 @@
+vnfd:vnfd-catalog:
+    vnfd:vnfd:
+    -   rw-vnfd:meta: '{"containerPositionMap":{"ae516bde-92cc-4988-ae68-44592d4c1d82":{"top":30,"left":255,"right":505,"bottom":85,"width":250,"height":55},"ae516bde-92cc-4988-ae68-44592d4c1d82/vdu-1":{"top":130,"left":260,"right":510,"bottom":185,"width":250,"height":55},"ae516bde-92cc-4988-ae68-44592d4c1d82/fortimail-vdu":{"top":135,"left":330,"right":580,"bottom":190,"width":250,"height":55},"ae516bde-92cc-4988-ae68-44592d4c1d82/vdu-2":{"top":135,"left":630,"right":880,"bottom":190,"width":250,"height":55},"ae516bde-92cc-4988-ae68-44592d4c1d82/fortimail-logs-vdu":{"top":130,"left":635,"right":885,"bottom":185,"width":250,"height":55}}}'
+        vnfd:connection-point:
+        -   vnfd:id: incoming
+            vnfd:name: incoming
+            vnfd:port-security-enabled: 'false'
+            vnfd:short-name: incoming
+            vnfd:type: VPORT
+        -   vnfd:id: mgmt
+            vnfd:name: mgmt
+            vnfd:type: VPORT
+        -   vnfd:id: outgoing
+            vnfd:name: outgoing
+            vnfd:port-security-enabled: 'false'
+            vnfd:short-name: outgoing
+            vnfd:type: VPORT
+        vnfd:description: A simple VNF descriptor w/ one VDU
+        vnfd:id: ae516bde-92cc-4988-ae68-44592d4c1d82
+        vnfd:name: FortiMail
+        vnfd:service-function-chain: UNAWARE
+        vnfd:short-name: fortimail
+        vnfd:vdu:
+        -   vnfd:cloud-init-file: userdata.txt
+            vnfd:count: '1'
+            vnfd:guest-epa:
+                vnfd:cpu-pinning-policy: ANY
+            vnfd:id: fortimail-vdu
+            vnfd:image: fortimail
+            vnfd:interface:
+            -   rw-vnfd:floating-ip-needed: 'false'
+                vnfd:external-connection-point-ref: incoming
+                vnfd:name: incoming
+                vnfd:type: EXTERNAL
+                vnfd:virtual-interface:
+                    vnfd:type: VIRTIO
+            -   rw-vnfd:floating-ip-needed: 'false'
+                vnfd:external-connection-point-ref: outgoing
+                vnfd:name: outgoing
+                vnfd:type: EXTERNAL
+                vnfd:virtual-interface:
+                    vnfd:type: VIRTIO
+            -   rw-vnfd:floating-ip-needed: 'true'
+                vnfd:external-connection-point-ref: mgmt
+                vnfd:name: mgmt
+                vnfd:type: EXTERNAL
+                vnfd:virtual-interface:
+                    vnfd:type: OM-MGMT
+            vnfd:name: fortimail-vdu
+            vnfd:supplemental-boot-data:
+                vnfd:boot-data-drive: 'false'
+            vnfd:vm-flavor:
+                rw-vnfd:vm-flavor-name: fortinet
+                vnfd:memory-mb: '2096'
+                vnfd:storage-gb: '3'
+                vnfd:vcpu-count: '2'
+            vnfd:volumes:
+            -   vnfd:name: volumes-1
+                vnfd:size: '1'
+        vnfd:vendor: Fortinet
+        vnfd:version: '5.4'
