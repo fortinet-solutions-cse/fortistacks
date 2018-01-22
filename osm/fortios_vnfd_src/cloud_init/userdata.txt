@@ -1,18 +1,12 @@
-#FOS VM Config File
-
+#FOS VM Config File >5.6.3 
 config sys global
 set hostname fos-vm
 end
 config system interface
 edit port1
 set mode dhcp
-set mtu-override enable
-set mtu 1456
 next
 edit port2
-set mode dhcp
-next
-edit port3
 set mode dhcp
 next
 end

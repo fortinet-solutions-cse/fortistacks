@@ -24,54 +24,73 @@ if [ -x $OS_AUTH_URL ]; then
   echo "get the Openstack access from ~/nova.rc"
   . ~/nova.rc
 fi
-#Push image
-openstack image show  "fgt54" > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare  --public  "fgt54"  --file fortios.qcow2
+
+#if EXT_NET variable not set use default (allow to have it as param from the .rc file)
+[ -x $EXT_NET ] && EXT_NET=ext_net
 
 
-#Create mgmt network for neutron for tenant VMs
-neutron net-show left > /dev/null 2>&1 || neutron net-create left
-neutron subnet-show left_subnet > /dev/null 2>&1 || neutron subnet-create left "10.40.40.0/24"  --name left_subnet  --host-route destination=10.20.20.0/24,nexthop=10.40.40.254 
-#--gateway 10.40.40.254
-neutron net-show right > /dev/null 2>&1 || neutron net-create right
-neutron subnet-show right_subnet > /dev/null 2>&1 || neutron subnet-create right "10.20.20.0/24" --name right_subnet
-#--gateway 10.20.20.254
- 
+#Push image if needed
+openstack image show  "fgt56" > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fgt56"  --file fortios.qcow2
+#find the name of the Ubuntu 16.04 image
+UB_IMAGE=`openstack image list -f value -c Name |grep 16.04`
 
-if (nova show trafleft  > /dev/null 2>&1 );then
+#Create left network  for tenant VMs with a route to right network
+openstack network show left > /dev/null 2>&1 || openstack network create left
+openstack subnet show left_subnet > /dev/null 2>&1 || openstack subnet create left_subnet --network left --subnet-range  "10.40.40.0/24" --host-route destination=10.20.20.0/24,gateway=10.40.40.254
+#
+openstack network show right > /dev/null 2>&1 || openstack network create right
+openstack subnet show right_subnet > /dev/null 2>&1 || openstack subnet create right_subnet --network right --subnet-range  "10.20.20.0/24"
+
+if (openstack server show trafleft  > /dev/null 2>&1 );then
     echo "trafleft already installed"
 else
-    nova boot --image "Trusty x86_64" trafleft --key-name default --security-group default --flavor m1.small --user-data apache_userdata.txt --nic net-name=mgmt --nic net-name=left
-    while [ $(nova list |grep trafleft | awk -F "|" '{print $4}') == "BUILD" ]; do
+    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor m1.small --user-data apache_userdata.txt --network mgmt --network left
+    while [ `openstack server show trafleft -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
-    
-    FLOAT_IP="$(nova floating-ip-create | grep ext_net | awk -F "|" '{ print $3}')"
-    nova floating-ip-associate trafleft $FLOAT_IP
+    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
+    openstack server add floating ip trafleft $FLOAT_IP
 fi
 
-if (nova show trafright  > /dev/null 2>&1 );then
+if (openstack server show trafright  > /dev/null 2>&1 );then
     echo "trafright already installed"
 else
-    nova boot --image "Trusty x86_64" trafright --key-name default --security-group default --flavor m1.small --user-data apache_userdata.txt --nic net-name=mgmt --nic net-name=right
-    while [ $(nova list |grep trafright | awk -F "|" '{print $4}') == "BUILD" ]; do
+    openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor m1.small --user-data apache_userdata.txt --network mgmt --network right
+    while [ `openstack server show trafright -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
-    FLOAT_IP="$(nova floating-ip-create | grep ext_net | awk -F "|" '{ print $3}')"
-    nova floating-ip-associate trafright $FLOAT_IP
+    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
+    openstack server add floating ip trafright $FLOAT_IP
 fi
 
 
-if (nova show fgt54  > /dev/null 2>&1 );then
-    echo "fgt54 already installed"
+if (openstack server show trafleft  > /dev/null 2>&1 );then
+    echo "trafleft already installed"
 else
-    neutron port-show left1 > /dev/null 2>&1 ||neutron port-create left --port-security-enabled=False --fixed-ip ip_address=10.40.40.254 --name left1 
-    neutron port-show right1 > /dev/null 2>&1 ||neutron port-create right --port-security-enabled=False --fixed-ip ip_address=10.20.20.254 --name right1 
-    LEFTPORT=`neutron port-show left1 -F id -f value`
-    RIGHTPORT=`neutron port-show right1 -F id -f value`
-    nova boot --image "fgt54" fgt54 --config-drive=true --key-name default  --security-group default  --flavor m1.small  --user-data fgt-user-data.txt --nic net-name=mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --file license=FGT.lic
-    FLOAT_IP="$(nova floating-ip-create | grep ext_net | awk -F "|" '{ print $3}')"
-    while [ $(nova list |grep fgt54 | awk -F "|" '{print $4}') == "BUILD" ]; do
+    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor m1.small --user-data apache_userdata.txt --network mgmt --network left
+    while [ `openstack server show trafleft -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
-    nova floating-ip-associate fgt54 $FLOAT_IP
+    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
+    openstack server add floating ip trafleft $FLOAT_IP
+fi
+
+
+openstack port show left1 > /dev/null 2>&1 ||openstack port create left1 --network left  --disable-port-security --fixed-ip ip-address=10.40.40.254
+openstack port show right1 > /dev/null 2>&1 ||openstack port create right1 --network right  --disable-port-security --fixed-ip ip-address=10.20.20.254 
+ 
+LEFTPORT=`openstack port show left1 -c id -f value`
+RIGHTPORT=`openstack port show right1 -c id -f value`
+    
+if (openstack show fgt56  > /dev/null 2>&1 );then
+    echo "fgt56 already installed"
+else
+    openstack server create --image "fgt56" fgt56 --config-drive=true --key-name default  --security-group default  --flavor m1.small  --user-data fgt-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --file license=FGT.lic
+
+    while [ `openstack server show fgt56 -f value -c status` == "BUILD" ]; do
+	sleep 4
+    done
+    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
+    openstack server add floating ip fgt56 $FLOAT_IP
+
 fi

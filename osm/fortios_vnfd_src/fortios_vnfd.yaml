@@ -1,0 +1,178 @@
+vnfd:vnfd-catalog:
+    vnfd:vnfd:
+    -   vnfd:connection-point:
+        -   vnfd:id: mgmt
+            vnfd:name: fortios/mgmt
+            vnfd:port-security-enabled: 'true'
+            vnfd:type: VPORT
+        -   vnfd:id: port1
+            vnfd:name: fortios/cp1
+            vnfd:port-security-enabled: 'false'
+            vnfd:type: VPORT
+        -   vnfd:id: port2
+            vnfd:name: fortios/cp2
+            vnfd:type: VPORT
+            vnfd:port-security-enabled: 'false'
+        -   vnfd:id: port3
+            vnfd:name: fortios/cp3
+            vnfd:type: VPORT
+            vnfd:port-security-enabled: 'false'
+        vnfd:description: Fortios vnfd
+        vnfd:id: fortios-solo-vnfd
+        vnfd:logo: FortiGateVMLogo.png
+        vnfd:mgmt-interface:
+            vnfd:cp: fortios/mgmt
+            vnfd:dashboard-params:
+                vnfd:https: 'true'
+                vnfd:path: ng/page/system/status/status
+            vnfd:port: '443'
+        vnfd:name: Fortios with primitives
+        vnfd:service-function-chain: UNAWARE
+        vnfd:short-name: fortios
+        vnfd:vdu:
+        -   vnfd:guest-epa:
+                vnfd:cpu-pinning-policy: ANY
+            vnfd:id: fosvdu
+            vnfd:image: fos56
+            vnfd:interface:
+            -   rw-vnfd:floating-ip-needed: 'true'
+                vnfd:external-connection-point-ref: fortios/mgmt
+                vnfd:name: mgmt
+                vnfd:position: '1'
+                vnfd:type: EXTERNAL
+                vnfd:virtual-interface:
+                    vnfd:type: OM-MGMT
+            -   rw-vnfd:floating-ip-needed: 'false'
+                vnfd:external-connection-point-ref: fortios/cp1
+                vnfd:name: port1
+                vnfd:position: '2'
+                vnfd:type: EXTERNAL
+                vnfd:virtual-interface:
+                    vnfd:type: VIRTIO
+            -   rw-vnfd:floating-ip-needed: 'false'
+                vnfd:external-connection-point-ref: fortios/cp2
+                vnfd:name: port2
+                vnfd:position: '3'
+                vnfd:type: EXTERNAL
+                vnfd:virtual-interface:
+                    vnfd:type: VIRTIO
+            -   rw-vnfd:floating-ip-needed: 'false'
+                vnfd:external-connection-point-ref: fortios/cp3
+                vnfd:name: port3
+                vnfd:position: '3'
+                vnfd:type: EXTERNAL
+                vnfd:virtual-interface:
+                    vnfd:type: VIRTIO
+            vnfd:name: fgtvdu
+            vnfd:supplemental-boot-data:
+                vnfd:boot-data-drive: 'false'
+            vnfd:vm-flavor:
+                vnfd:memory-mb: '2000'
+                vnfd:storage-gb: '25'
+                vnfd:vcpu-count: '1'
+        vnfd:vendor: Fortinet
+        vnfd:version: 5.6.3
+        vnfd:vnf-configuration:
+            vnfd:initial-config-primitive:
+            -   vnfd:name: config
+                vnfd:parameter:
+                -   vnfd:name: hostname
+                    vnfd:value: <rw_mgmt_ip>
+                -   vnfd:name: user
+                    vnfd:value: admin
+                vnfd:seq: '1'
+            -   vnfd:name: sshcmd
+                vnfd:parameter:
+                -   vnfd:name: commands
+                    vnfd:value: execute update-now
+                vnfd:seq: '2'
+            -   vnfd:name: confport
+                vnfd:parameter:
+                -   vnfd:name: mtu
+                    vnfd:value: '1458'
+                -   vnfd:name: port
+                    vnfd:value: port2
+                -   vnfd:name: ip
+                    vnfd:value: 172.27.1.254
+                vnfd:seq: '3'
+            -   vnfd:name: confport
+                vnfd:parameter:
+                -   vnfd:name: mtu
+                    vnfd:value: '1458'
+                -   vnfd:name: port
+                    vnfd:value: port3
+                -   vnfd:name: ip
+                    vnfd:value: 10.40.10.254
+                vnfd:seq: '4'
+            -   vnfd:name: sshcmd
+                vnfd:parameter:
+                -   vnfd:name: commands
+                    vnfd:value: 'config firewall policy  \n  edit 1  \n  set srcintf
+                        port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
+                        dstaddr all \n  set action accept \n  set schedule always
+                        \n  set service HTTP \n  set logtraffic all \n  next \n  edit
+                        2  \n  set srcintf port2  \n   set dstintf port3  \n  set
+                        srcaddr all  \n  set dstaddr all \n  set action accept \n  set
+                        schedule always \n  set service HTTPS \n  set logtraffic all
+                        \n  next \n  end '
+                vnfd:seq: '6'
+            -   vnfd:name: sshcmd
+                vnfd:parameter:
+                -   vnfd:name: commands
+                    vnfd:value: 'config firewall policy  \n  edit 3  \n  set srcintf
+                        port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
+                        dstaddr all \n  set action accept \n  set schedule always
+                        \n  set service DNS \n  set logtraffic all \n  next \n  end '
+                vnfd:seq: '7'
+            -   vnfd:name: sshcmd
+                vnfd:parameter:
+                -   vnfd:name: commands
+                    vnfd:value: 'config firewall policy  \n  edit 4  \n  set srcintf
+                        port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
+                        dstaddr all \n  set action accept \n  set schedule always
+                        \n  set service PING \n  set logtraffic all \n  next \n  end '
+                vnfd:seq: '8'
+            -   vnfd:name: sshcmd
+                vnfd:parameter:
+                -   vnfd:name: commands
+                    vnfd:value: 'config firewall policy  \n  edit 5  \n  set srcintf
+                        port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
+                        dstaddr all \n  set action accept \n  set schedule always
+                        \n  set service IMAP POP3 \n  set logtraffic all \n  next
+                        \n  end '
+                vnfd:seq: '9'
+            -   vnfd:name: sshcmd
+                vnfd:parameter:
+                -   vnfd:name: commands
+                    vnfd:value: 'config firewall policy  \n  edit 6  \n  set srcintf
+                        port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
+                        dstaddr all \n  set action accept \n  set schedule always
+                        \n  set service SMTP\n  set logtraffic all \n  next \n  end '
+                vnfd:seq: '10'
+            -   vnfd:name: sshcmd
+                vnfd:parameter:
+                -   vnfd:name: commands
+                    vnfd:value: 'config firewall policy  \n  edit 7 \n  set srcintf
+                        port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
+                        dstaddr all \n  set action accept \n  set schedule always
+                        \n  set service FTP \n  set logtraffic all \n  next \n  end '
+                vnfd:seq: '11'
+            -   vnfd:name: sshcmd
+                vnfd:parameter:
+                -   vnfd:name: commands
+                    vnfd:value: 'config firewall policy  \n  edit 8\n  set srcintf
+                        port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
+                        dstaddr all \n  set action accept \n  set schedule always
+                        \n  set service IMAPS POP3S \n  set logtraffic all \n  next
+                        \n  end '
+                vnfd:seq: '12'
+            -   vnfd:name: sshcmd
+                vnfd:parameter:
+                -   vnfd:name: commands
+                    vnfd:value: 'config firewall policy  \n  edit 9  \n set srcintf
+                        port2  \n   set dstintf port3  \n  set srcaddr all \n  set
+                        dstaddr all \n  set action accept \n  set schedule  always
+                        \n  set service ALL \n  set logtraffic all \n  next \n  end '
+                vnfd:seq: '17'
+            vnfd:juju:
+                vnfd:charm: fortios

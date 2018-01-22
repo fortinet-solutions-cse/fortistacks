@@ -15,17 +15,27 @@
 # under the License.
 #
 
-BUILD_DIR = apache_vnfd
+BUILD_DIR = fortios_vnfd
 
-all: $(BUILD_DIR)/%
+CHARMS:= fortios
+CHARM_SRC_DIR := layers
+CHARM_BUILD_DIR := $(BUILD_DIR)/charms
+
+CHARM_SRC_DIRS := $(addprefix $(CHARM_SRC_DIR)/, $(CHARMS))
+CHARM_BUILD_DIRS := $(addprefix $(CHARM_BUILD_DIR)/, $(CHARMS))
+
+all: $(CHARM_BUILD_DIRS)
 
 clean:
-	-@ $(RM) -rf $(BUILD_DIR)
+	-@ $(RM) -rf $(CHARM_BUILD_DIR)
 
-$(BUILD_DIR)/%: 
+$(CHARM_BUILD_DIR)/%: $(CHARM_SRC_DIR)/%
 	rm -rf $(BUILD_DIR)/*
-	mkdir -p $(BUILD_DIR)
-	cp -rf cloud_init icons apache_vnfd.yaml $(BUILD_DIR)
+	export LC_ALL=C; charm-build -o $(BUILD_DIR) $<
+	cp -rf image* cloud_init  *.yaml  icons  scripts $(BUILD_DIR)
+	mv $(BUILD_DIR)/builds $(BUILD_DIR)/charms
+	rm -rf $(BUILD_DIR)/deps
 	cd $(BUILD_DIR); find * -type f   | xargs md5sum > checksums.txt; cd ..
-	tar czf ../apache_vnfd.tar.gz $(BUILD_DIR)
-	echo "apache_vnfd.tar.gz ready to be on-boarded" 
+	tar czf ../fortios_vnfd.tar.gz $(BUILD_DIR)
+#	rm -rf $(BUILD_DIR)/*
+	echo "fortios_vnfd.tar.gz ready to be on-boarded" 

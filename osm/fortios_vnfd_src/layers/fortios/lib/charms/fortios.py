@@ -20,9 +20,9 @@ from charmhelpers.core.hookenv import (
     log,
 )
 
-from fortigateconf import FortiOSConf
+from fortiosapi import FortiOSAPI
 
-fgt = FortiOSConf()
+fgt = FortiOSAPI()
 cfg = config()
 
 class FoS(object):
