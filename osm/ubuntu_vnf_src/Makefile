@@ -15,7 +15,7 @@
 # under the License.
 #
 
-BUILD_DIR = apache_vnfd
+BUILD_DIR = ubuntu16.04_vnfd
 
 all: $(BUILD_DIR)/%
 
@@ -25,7 +25,8 @@ clean:
 $(BUILD_DIR)/%: 
 	rm -rf $(BUILD_DIR)/*
 	mkdir -p $(BUILD_DIR)
-	cp -rf cloud_init icons apache_vnfd.yaml $(BUILD_DIR)
+	cp -rf cloud_init icons *.yaml $(BUILD_DIR)
 	cd $(BUILD_DIR); find * -type f   | xargs md5sum > checksums.txt; cd ..
-	tar czf ../apache_vnfd.tar.gz $(BUILD_DIR)
-	echo "apache_vnfd.tar.gz ready to be on-boarded" 
+	tar czf ../$(BUILD_DIR).tar.gz $(BUILD_DIR)
+	rm -rf $(BUILD_DIR)/
+	echo "../$(BUILD_DIR).tar.gz ready to be on-boarded" 
