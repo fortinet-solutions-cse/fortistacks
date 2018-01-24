@@ -115,64 +115,64 @@ vnfd:vnfd-catalog:
                         srcaddr all  \n  set dstaddr all \n  set action accept \n  set
                         schedule always \n  set service HTTPS \n  set logtraffic all
                         \n  next \n  end '
-                vnfd:seq: '6'
-            -   vnfd:name: sshcmd
-                vnfd:parameter:
-                -   vnfd:name: commands
-                    vnfd:value: 'config firewall policy  \n  edit 3  \n  set srcintf
+                seq: '6'
+            -   name: sshcmd
+                parameter:
+                -   name: commands
+                    value: 'config firewall policy  \n  edit 3  \n  set srcintf
                         port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
                         dstaddr all \n  set action accept \n  set schedule always
                         \n  set service DNS \n  set logtraffic all \n  next \n  end '
-                vnfd:seq: '7'
-            -   vnfd:name: sshcmd
-                vnfd:parameter:
-                -   vnfd:name: commands
-                    vnfd:value: 'config firewall policy  \n  edit 4  \n  set srcintf
+                seq: '7'
+            -   name: sshcmd
+                parameter:
+                -   name: commands
+                    value: 'config firewall policy  \n  edit 4  \n  set srcintf
                         port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
                         dstaddr all \n  set action accept \n  set schedule always
                         \n  set service PING \n  set logtraffic all \n  next \n  end '
-                vnfd:seq: '8'
-            -   vnfd:name: sshcmd
-                vnfd:parameter:
-                -   vnfd:name: commands
-                    vnfd:value: 'config firewall policy  \n  edit 5  \n  set srcintf
+                seq: '8'
+            -   name: sshcmd
+                parameter:
+                -   name: commands
+                    value: 'config firewall policy  \n  edit 5  \n  set srcintf
                         port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
                         dstaddr all \n  set action accept \n  set schedule always
                         \n  set service IMAP POP3 \n  set logtraffic all \n  next
                         \n  end '
-                vnfd:seq: '9'
-            -   vnfd:name: sshcmd
-                vnfd:parameter:
-                -   vnfd:name: commands
-                    vnfd:value: 'config firewall policy  \n  edit 6  \n  set srcintf
+                seq: '9'
+            -   name: sshcmd
+                parameter:
+                -   name: commands
+                    value: 'config firewall policy  \n  edit 6  \n  set srcintf
                         port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
                         dstaddr all \n  set action accept \n  set schedule always
                         \n  set service SMTP\n  set logtraffic all \n  next \n  end '
-                vnfd:seq: '10'
-            -   vnfd:name: sshcmd
-                vnfd:parameter:
-                -   vnfd:name: commands
-                    vnfd:value: 'config firewall policy  \n  edit 7 \n  set srcintf
+                seq: '10'
+            -   name: sshcmd
+                parameter:
+                -   name: commands
+                    value: 'config firewall policy  \n  edit 7 \n  set srcintf
                         port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
                         dstaddr all \n  set action accept \n  set schedule always
                         \n  set service FTP \n  set logtraffic all \n  next \n  end '
-                vnfd:seq: '11'
-            -   vnfd:name: sshcmd
-                vnfd:parameter:
-                -   vnfd:name: commands
-                    vnfd:value: 'config firewall policy  \n  edit 8\n  set srcintf
+                seq: '11'
+            -   name: sshcmd
+                parameter:
+                -   name: commands
+                    value: 'config firewall policy  \n  edit 8\n  set srcintf
                         port2  \n   set dstintf port3  \n  set srcaddr all  \n  set
                         dstaddr all \n  set action accept \n  set schedule always
                         \n  set service IMAPS POP3S \n  set logtraffic all \n  next
                         \n  end '
-                vnfd:seq: '12'
-            -   vnfd:name: sshcmd
-                vnfd:parameter:
-                -   vnfd:name: commands
-                    vnfd:value: 'config firewall policy  \n  edit 9  \n set srcintf
+                seq: '12'
+            -   name: sshcmd
+                parameter:
+                -   name: commands
+                    value: 'config firewall policy  \n  edit 9  \n set srcintf
                         port2  \n   set dstintf port3  \n  set srcaddr all \n  set
                         dstaddr all \n  set action accept \n  set schedule  always
                         \n  set service ALL \n  set logtraffic all \n  next \n  end '
-                vnfd:seq: '17'
-            vnfd:juju:
-                vnfd:charm: fortios
+                seq: '17'
+            juju:
+                charm: fortios

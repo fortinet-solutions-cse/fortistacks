@@ -1,6 +1,16 @@
 # fortistacks #
 
+This project aims at automating building or using the NfV stack
+required to test, demo Fortinet products (mostly Fortigate) in a Cloud
+and NfV environment.
+
+For stable versions of this project refer to :
+https://github.com/fortinet-solutions-cse/fortistacks/releases to find
+the release you like. The master branch can contain work in progress.
+
+For v1.1:
 A full explanation/follow along video is available here: https://youtu.be/0y38B61FTSk
+For v1.0 :
 Previous version https://vimeo.com/215625341 (to see rift.io)
 
 Is a collection of scripts and pre defined setups for running a full
