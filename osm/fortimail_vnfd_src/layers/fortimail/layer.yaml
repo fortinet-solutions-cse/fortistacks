@@ -1,3 +1,0 @@
-includes:
-    - layer:basic
-    - layer:vnfproxy
