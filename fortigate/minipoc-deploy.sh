@@ -27,6 +27,7 @@ fi
 
 #if EXT_NET variable not set use default (allow to have it as param from the .rc file)
 [ -x $EXT_NET ] && EXT_NET=ext_net
+[ -x $OS_FLAVOR ] && OS_FLAVOR=m1.small
 
 
 #Push image if needed
@@ -44,7 +45,7 @@ openstack subnet show right_subnet > /dev/null 2>&1 || openstack subnet create r
 if (openstack server show trafleft  > /dev/null 2>&1 );then
     echo "trafleft already installed"
 else
-    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor m1.small --user-data apache_userdata.txt --network mgmt --network left
+    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor $OS_FLAVOR --user-data apache_userdata.txt --network mgmt --network left
     while [ `openstack server show trafleft -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
@@ -55,24 +56,12 @@ fi
 if (openstack server show trafright  > /dev/null 2>&1 );then
     echo "trafright already installed"
 else
-    openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor m1.small --user-data apache_userdata.txt --network mgmt --network right
+    openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor $OS_FLAVOR --user-data apache_userdata.txt --network mgmt --network right
     while [ `openstack server show trafright -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
     FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
     openstack server add floating ip trafright $FLOAT_IP
-fi
-
-
-if (openstack server show trafleft  > /dev/null 2>&1 );then
-    echo "trafleft already installed"
-else
-    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor m1.small --user-data apache_userdata.txt --network mgmt --network left
-    while [ `openstack server show trafleft -f value -c status` == "BUILD" ]; do
-	sleep 4
-    done
-    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
-    openstack server add floating ip trafleft $FLOAT_IP
 fi
 
 
@@ -85,7 +74,8 @@ RIGHTPORT=`openstack port show right1 -c id -f value`
 if (openstack show fgt56  > /dev/null 2>&1 );then
     echo "fgt56 already installed"
 else
-    openstack server create --image "fgt56" fgt56 --config-drive=true --key-name default  --security-group default  --flavor m1.small  --user-data fgt-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --file license=FGT.lic
+    #need to provide an example without config_drive
+    openstack server create --image "fgt56" fgt56 --config-drive=true --key-name default  --security-group default  --flavor $OS_FLAVOR  --user-data fgt-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --file license=FGT.lic
 
     while [ `openstack server show fgt56 -f value -c status` == "BUILD" ]; do
 	sleep 4
