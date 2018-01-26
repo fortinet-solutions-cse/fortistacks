@@ -1,0 +1,20 @@
+# Overview
+
+This charm will configure a domain in FortiMail. Other operations will come later
+
+# Usage
+
+juju deploy fortimail
+
+## Known Limitations and Issues
+
+# Configuration
+
+# Contact Information
+
+Miguel Angel Muñoz González <magonzalez at fortinet.com>
+
+## Upstream Project Name
+
+  https://github.com/fortinet-solutions-cse/40ansible
+

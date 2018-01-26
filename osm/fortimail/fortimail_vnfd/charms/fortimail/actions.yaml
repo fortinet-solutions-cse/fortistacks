@@ -1,0 +1,27 @@
+create-domain:
+  description: Creates a new domain
+  params:
+    domain:
+      type: string
+      description: Name of the domain
+    fallbackhost:
+      type: string
+      description: Secondary host for the domain
+    port:
+      type: int
+      description: Port for incoming requests
+  required: [domain]
+delete-domain:
+  description: Removes a domain
+  params:
+    domain:
+      type: string
+      description: Name of the domain
+  required: [domain]
+get-administrative-resource:
+  description: Gets information about indicated administrative resource
+  params:
+    resource:
+      type: string
+      description: Indicator of the resource to be fetched.
+      required: [resource]

@@ -1,0 +1,21 @@
+name: fortimail
+summary: Secure Email Gateway and Server with security features from Fortinet
+maintainer: Miguel Angel Munoz <magonzalez@fortinet.com>
+description: |
+  FortiMail is a top-rated secure email gateway that
+  stops volume-based and targeted cyber threats to
+  help secure the dynamic enterprise attack surface,
+  prevents the loss of sensitive data and helps maintain
+  compliance with regulations. High performance
+  physical and virtual appliances deploy on-site or in
+  the public cloud to serve any size organization —
+  from small businesses to carriers, service providers,
+  and large enterprises.
+tags:
+  - network
+  - security
+  - web_server
+series:
+  - trusty
+  - xenial
+

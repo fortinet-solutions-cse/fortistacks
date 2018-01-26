@@ -1,0 +1,40 @@
+nsd:nsd-catalog:
+  nsd:nsd:
+    id: "a44305f8-0983-4593-ae0f-1d512bdf696c"
+    name: "fortimail-nsd"
+    vendor: "fortinet"
+    version: "1.0"
+    vld:
+       -
+         id: "mgmtvld-1"
+         name: "mgmtvld-1"
+         mgmt-network: "true"
+         vnfd-connection-point-ref:
+            -
+              member-vnf-index-ref: 1
+              vnfd-id-ref: "ae516bde-92cc-4988-ae68-44592d4c1d82"
+              vnfd-connection-point-ref: "mgmt"
+       -
+         id: "vld-2"
+         name: "vld-2"
+         mgmt-network: "false"
+         vnfd-connection-point-ref:
+            -
+              member-vnf-index-ref: 1
+              vnfd-id-ref: "ae516bde-92cc-4988-ae68-44592d4c1d82"
+              vnfd-connection-point-ref: "incoming"
+       -
+         id: "vld-3"
+         name: "vld-3"
+         mgmt-network: "false"
+         vnfd-connection-point-ref:
+            -
+              member-vnf-index-ref: 1
+              vnfd-id-ref: "ae516bde-92cc-4988-ae68-44592d4c1d82"
+              vnfd-connection-point-ref: "outgoing"
+    constituent-vnfd:
+       -
+         member-vnf-index: 1
+         vnfd-id-ref: "ae516bde-92cc-4988-ae68-44592d4c1d82"
+         start-by-default: "true"
+    meta: "{\"containerPositionMap\":{\"1\":{\"top\":210,\"left\":240,\"right\":490,\"bottom\":265,\"width\":250,\"height\":55},\"a44305f8-0983-4593-ae0f-1d512bdf696c\":{\"top\":30,\"left\":135,\"right\":385,\"bottom\":85,\"width\":250,\"height\":55},\"vld-1\":{\"top\":255,\"left\":165,\"right\":415,\"bottom\":293,\"width\":250,\"height\":38},\"mgmtvld-1\":{\"top\":135,\"left\":240,\"right\":490,\"bottom\":173,\"width\":250,\"height\":38},\"vld-2\":{\"top\":315,\"left\":10,\"right\":260,\"bottom\":353,\"width\":250,\"height\":38},\"vld-3\":{\"top\":315,\"left\":450,\"right\":700,\"bottom\":353,\"width\":250,\"height\":38}}}"

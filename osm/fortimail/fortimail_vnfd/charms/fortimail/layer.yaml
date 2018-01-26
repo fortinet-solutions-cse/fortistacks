@@ -1,0 +1,4 @@
+includes:
+    - layer:basic
+    - layer:vnfproxy
+repo: 'https://github.com/fortinet-solutions-cse/fortistacks.git'
