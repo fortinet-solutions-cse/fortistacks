@@ -1,3 +1,0 @@
-config system global
-  set operation-mode server
-end
