@@ -1,0 +1,26 @@
+config system interface
+  edit "port1"
+    set ip 192.168.122.50/24
+    set allowaccess ping ssh snmp http https telnet
+  next
+end
+
+config system global
+   set rest-api enable
+end
+
+config system global
+   set pki-mode enable
+end
+
+config system route
+  edit 1
+    set gateway 192.168.122.1
+  next
+end
+
+config system dns
+    set primary 8.8.8.8
+    set secondary 8.8.4.4
+end
+

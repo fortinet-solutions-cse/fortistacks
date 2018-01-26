@@ -15,14 +15,13 @@ vnfd:vnfd-catalog:
             vnfd:port-security-enabled: 'false'
             vnfd:short-name: outgoing
             vnfd:type: VPORT
-        vnfd:description: A simple VNF descriptor w/ one VDU
+        vnfd:description: FortiMail VNF descriptor
         vnfd:id: ae516bde-92cc-4988-ae68-44592d4c1d82
         vnfd:name: FortiMail
         vnfd:service-function-chain: UNAWARE
         vnfd:short-name: fortimail
         vnfd:vdu:
-        -   vnfd:cloud-init-file: userdata.txt
-            vnfd:count: '1'
+        -   vnfd:count: '1'
             vnfd:guest-epa:
                 vnfd:cpu-pinning-policy: ANY
             vnfd:id: fortimail-vdu
@@ -59,3 +58,19 @@ vnfd:vnfd-catalog:
                 vnfd:size: '1'
         vnfd:vendor: Fortinet
         vnfd:version: '5.4'
+        vnfd:vnf-configuration:
+            juju:
+                charm:fortimail
+            config-primitive:
+            -   name: create-domain
+                parameter:
+                -   name: domain
+                    data-type: STRING
+                    default-value: 'example-domain'
+                -   name: fallbackhost
+                    data-type: STRING
+                    default-value: 'localhost'
+                -   name: port
+                    data-type: int
+                    default-value: 25
+
