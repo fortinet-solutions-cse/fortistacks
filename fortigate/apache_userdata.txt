@@ -15,6 +15,11 @@ write_files:
       auto eth1
       iface eth1 inet dhcp
     path: /etc/network/interfaces.d/eth1.cfg
+  - content: |
+      # Enable dhcp on ens4 some use the new schema
+      auto ens4
+      iface ens4 inet dhcp
+    path: /etc/network/interfaces.d/ens4.cfg
 
 #runcmd:
 #  - echo $'auto eth1\niface eth1 inet dhcp' > /etc/network/interfaces.d/eth1.cfg

@@ -31,7 +31,7 @@ fi
 
 
 #Push image if needed
-openstack image show  "fgt56" > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fgt56"  --file fortios.qcow2
+openstack image show  fgt56 > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fgt56"  --file fortios.qcow2
 #find the name of the Ubuntu 16.04 image
 UB_IMAGE=`openstack image list -f value -c Name |grep 16.04`
 
@@ -71,7 +71,7 @@ openstack port show right1 > /dev/null 2>&1 ||openstack port create right1 --net
 LEFTPORT=`openstack port show left1 -c id -f value`
 RIGHTPORT=`openstack port show right1 -c id -f value`
     
-if (openstack show fgt56  > /dev/null 2>&1 );then
+if (openstack server show fgt56  > /dev/null 2>&1 );then
     echo "fgt56 already installed"
 else
     #need to provide an example without config_drive
