@@ -17,6 +17,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+sudo apt install -y curl
+
 #if nova access not set then get them from nova.rc
 if [ -x $OS_AUTH_URL ]; then 
     echo "Source an Openstack credentials like . ~/nova.rc before running this"
