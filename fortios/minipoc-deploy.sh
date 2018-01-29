@@ -72,7 +72,7 @@ RIGHTPORT=`openstack port show right1 -c id -f value`
 if (openstack server show fos56  > /dev/null 2>&1 );then
     echo "fos56 already installed"
 else
-    openstack server create --image "fos56" fos56 --key-name default  --security-group default  --flavor $OS_FLAVOR  --user-data fgt-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT 
+    openstack server create --image "fos56" fos56 --key-name default  --security-group default  --flavor $OS_FLAVOR  --user-data fos-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT 
 
     while [ `openstack server show fos56 -f value -c status` == "BUILD" ]; do
 	sleep 4

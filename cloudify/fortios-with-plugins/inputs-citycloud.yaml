@@ -1,0 +1,7 @@
+fos_image: 'fos56'
+fos_flavor: '1C-0.5GB'
+ub_image: 'Ubuntu 16.04 Xenial Xerus'
+ub_flavor: '1C-0.5GB'
+mgmt_network_name: "mgmt"
+key_name: 'default'
+external_network_name: "ext-net"

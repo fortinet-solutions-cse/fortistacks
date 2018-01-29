@@ -44,7 +44,7 @@ fi
 
 #if EXT_NET variable not set use default (allow to have it as param from the .rc file)
 [ -x $EXT_NET ] && EXT_NET=ext-net
-[ -x $OS_FLAVOR ] && OS_FLAVOR=2C-2GB-50GB
+[ -x $OS_FLAVOR_CFY ] && OS_FLAVOR_CFY=2C-2GB-50GB
 #Follow http://docs.getcloudify.org/
 export LC_ALL=C
 
@@ -62,7 +62,7 @@ if (openstack server show cfy-manager  > /dev/null 2>&1 );then
     echo "cloudify manager already started"
     FLOAT_IP=`openstack server show cfy-manager -f value -c addresses|awk -F , '{print $2}'`
 else
-    openstack server create  --image "cfy-manager4.2" cfy-manager --key-name default --security-group default --flavor $OS_FLAVOR --network mgmt
+    openstack server create  --image "cfy-manager4.2" cfy-manager --key-name default --security-group default --flavor $OS_FLAVOR_CFY --network mgmt
     while [ `openstack server show cfy-manager -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
@@ -74,11 +74,17 @@ sleep 4
 echo "waiting the vm to be up"
 done
 ## change the default openstack config to use the one currently on.
-envsubst < openstack_config.template | ssh -o StrictHostKeyChecking=no centos@$FLOAT_IP sudo tee /etc/cloudify/openstack_config.json
+envsubst < openstack_configv3.template | ssh -o StrictHostKeyChecking=no centos@$FLOAT_IP sudo tee /etc/cloudify/openstack_config.json
 
 cfy init -r
 #Colors in the logs
 sed -i 's/colors: false/colors: true/g' $HOME/.cloudify/config.yaml
 cfy profiles use $FLOAT_IP -u admin -p admin -t default_tenant
+
+wget -c https://s3-eu-west-1.amazonaws.com/cloudify-release-eu/cloudify/wagons/cloudify-openstack-plugin/2.5.2/cloudify_openstack_plugin-2.5.2-py27-none-linux_x86_64-centos-Core.wgn
+cfy plugins upload cloudify_openstack_plugin-2.5.2-py27-none-linux_x86_64-centos-Core.wgn
+
+wget -c http://repository.cloudifysource.org/cloudify/wagons/cloudify-diamond-plugin/1.3.6/cloudify_diamond_plugin-1.3.6-py26-none-linux_x86_64-centos-Final.wgn
+cfy plugins upload cloudify_diamond_plugin-1.3.6-py26-none-linux_x86_64-centos-Final.wgn
 cfy status
 

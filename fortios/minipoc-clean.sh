@@ -19,19 +19,19 @@
 set -x
 
 #if nova access not set then get them from nova.rc
-if [ -x $OS_AUTH_URL ]; then 
+if [ -x "$OS_AUTH_URL" ]; then 
   echo "get the Openstack access from ~/nova.rc"
-  source ~/nova.rc
+  . ~/nova.rc
 fi
 
 
 
-nova delete trafleft
-nova delete trafright
-nova delete fos56
+openstack server delete trafleft
+openstack server delete trafright
+openstack server delete fos56
 
 
-neutron port-delete left1
-neutron port-delete right1
-neutron net-delete left
-neutron net-delete right
+openstack port delete left1
+openstack port delete right1
+openstack network delete left
+openstack network delete right

@@ -1,0 +1,56 @@
+###########################################################
+# Cloudify Fortinet built in types and plugins definitions.
+###########################################################
+
+plugins:
+  fortinet:
+    executor: central_deployment_agent
+    source: fortinet-plugin
+#    package_name: cloudify-fortinet-plugin
+#    package_version: '1.0'
+
+
+node_types:
+
+
+  cloudify.Fortinet.FortiGate.Status:
+    derived_from: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fortinet.fortigate.generic.command_verify
+
+  # This is a generic type used for development / testing of
+  # new node types. The key difference here is the "name" input.
+  # This field should be set to the configuration name such as
+  # "firewall vip". 
+  # Exposed runtime properties:
+  #   config_name
+  #   config_id
+  #   config (as returned by FortiGate; dict)
+  #   ssh_config
+  cloudify.Fortinet.FortiGate.ConfigSet:
+    derived_from: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fortinet.fortigate.config.cmdbset
+          inputs:
+            endpoint:
+              required: true
+              description: >
+                The part of the configuration to set.
+                Ex. "firewall policy" or "system interface".
+            vdom:
+              required: false
+              default: "root"
+              description: >
+                Vdom or global if necessary for multi vdom
+            config:
+              required: true
+              description: >
+                Arrays of key-value pairs corresponding to
+                the values expected y the endpoint.
+                Refer to Fortigate/fortios API specificiation
+                available on http://fndn.fortinet.com
+        delete: fortinet.fortigate.config.delete
