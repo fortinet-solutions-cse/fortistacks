@@ -136,13 +136,11 @@ node_templates:
             args:
               port_security_enabled: False
     relationships:
-      - target: left_subnet
-        type: cloudify.relationships.connected_to
+      - target: left_network
+        type: cloudify.relationships.contained_in
       - target: left_subnet
         type: cloudify.relationships.depends_on
-      - target: left_subnet
-        type: cloudify.relationships.contained_in
-        
+
   my_security_group:
     type: cloudify.openstack.nodes.SecurityGroup
     properties:
@@ -150,6 +148,51 @@ node_templates:
       rules:
         - remote_ip_prefix: 0.0.0.0/0
           port: 8080
+
+
+  leftubuntu:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: none # Bug in cloudify agents use internal ip and not floating
+      openstack_config: *openstack_config
+      management_network_name: { get_input: mgmt_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              userdata: |
+                #cloud-config
+                package_upgrade: true
+                packages:
+                  - apache2-utils
+                  - apache2
+                  - tcpdump
+                  - iperf3
+                chpasswd:
+                  list: |
+                    ubuntu:fortinet
+                  expire: False
+                write_files:
+                  - content: |
+                      # Enable dhcp on ens4
+                      auto ens4
+                      iface ens4 inet dhcp
+                    path: /etc/network/interfaces.d/ens4.cfg
+    relationships:
+      - target: left_network
+        type: cloudify.relationships.connected_to
+      - target: left_subnet
+        type: cloudify.relationships.depends_on
+      - target: leftub_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+      - target: my_security_group
+        type: cloudify.openstack.server_connected_to_security_group
 
 
   fortigate:
@@ -169,7 +212,7 @@ node_templates:
         create:
           inputs:
             args:
-              config_drive: true
+              #try with concat to put the fortimanageip has a config
               userdata: |
                 #FOS VM Config File
                 config system interface
@@ -219,8 +262,6 @@ node_templates:
       - target: fos_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip
       - target: left_port
-        type: cloudify.relationships.depends_on
-      - target: left_port
         type: cloudify.relationships.connected_to
       - target: right_network
         type: cloudify.relationships.connected_to
@@ -230,55 +271,6 @@ node_templates:
 #        type: cloudify.openstack.server_connected_to_security_group
 #not compatible with portsecurity disabled
 
-
-  leftubuntu:
-    type: cloudify.openstack.nodes.Server
-    properties:
-      server:
-        image_name: { get_input: ub_image }
-        flavor_name: { get_input: ub_flavor }
-        key_name: { get_input: key_name }
-      agent_config:
-        install_method: none # Bug in cloudify agents use internal ip and not floating
-      openstack_config: *openstack_config
-      management_network_name: { get_input: mgmt_network_name }
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              userdata: |
-                #cloud-config
-                package_upgrade: true
-                packages:
-                  - apache2-utils
-                  - apache2
-                  - tcpdump
-                  - iperf3
-                chpasswd:
-                  list: |
-                    ubuntu:fortinet
-                  expire: False
-                write_files:
-                  - content: |
-                      # Enable dhcp on eth1
-                      auto eth1
-                      iface eth1 inet dhcp
-                    path: /etc/network/interfaces.d/eth1.cfg
-                  - content: |
-                      # Enable dhcp on ens4
-                      auto ens4
-                      iface ens4 inet dhcp
-                    path: /etc/network/interfaces.d/ens4.cfg
-    relationships:
-      - target: left_network
-        type: cloudify.relationships.connected_to
-      - target: left_subnet
-        type: cloudify.relationships.depends_on
-      - target: leftub_floating_ip
-        type: cloudify.openstack.server_connected_to_floating_ip
-      - target: my_security_group
-        type: cloudify.openstack.server_connected_to_security_group
 
   rightubuntu:
     type: cloudify.openstack.nodes.Server
@@ -309,11 +301,6 @@ node_templates:
                     ubuntu:fortinet
                   expire: False
                 write_files:
-                  - content: |
-                      # Enable dhcp on eth1
-                      auto eth1
-                      iface eth1 inet dhcp
-                    path: /etc/network/interfaces.d/eth1.cfg
                   - content: |
                       # Enable dhcp on ens4
                       auto ens4
