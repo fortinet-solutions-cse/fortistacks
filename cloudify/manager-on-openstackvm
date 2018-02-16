@@ -23,7 +23,7 @@
 
 # checking openstack cli is recent enough using sort -V .
 
-OSCLI_VER=`openstack --version |& sed -e "s/openstack //g"`
+OSCLI_VER=`openstack --version 2>&1 | sed -e "s/openstack //g"`
 read -r -d '' VAR << EOM || true
 3.0
 $OSCLI_VER
@@ -60,7 +60,8 @@ openstack image show  "cfy-manager4.2" > /dev/null 2>&1 || openstack image creat
 
 if (openstack server show cfy-manager  > /dev/null 2>&1 );then
     echo "cloudify manager already started"
-    FLOAT_IP=`openstack server show cfy-manager -f value -c addresses|awk -F , '{print $2}'`
+    #get the floating-ip from openstack and trim result
+    FLOAT_IP=`openstack server show cfy-manager -f value -c addresses|awk -F , '{print $2}'|sed 's/ //g'`
 else
     openstack server create  --image "cfy-manager4.2" cfy-manager --key-name default --security-group default --flavor $OS_FLAVOR_CFY --network mgmt
     while [ `openstack server show cfy-manager -f value -c status` == "BUILD" ]; do
