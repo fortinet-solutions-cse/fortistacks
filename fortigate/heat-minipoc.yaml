@@ -22,7 +22,10 @@ parameters:
   type: string
   description: External network for floating ips
   default: "ext_net"
-
+ vms_flavor:
+  type: string
+  description: Flavor of the VMs
+  default: "m1.small"
 
 resources:
  left_net:
@@ -72,7 +75,7 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: fgtimage }
-   flavor: m1.small
+   flavor: { get_param: vms_flavor }
    user_data_format: RAW
    user_data: |
                 config system interface
@@ -161,7 +164,7 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: ubimage }
-   flavor: m1.small
+   flavor:  { get_param: vms_flavor }
    key_name: "default"
    user_data_format: RAW
    user_data: |
@@ -198,7 +201,7 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: ubimage }
-   flavor: m1.small
+   flavor:  { get_param: vms_flavor }
    key_name: "default"
    user_data_format: RAW
    user_data: |

@@ -22,6 +22,10 @@ parameters:
   type: string
   description: External network for floating ips
   default: "ext_net"
+ vms_flavor:
+  type: string
+  description: Flavor of the VMs
+  default: "m1.small"
 
 
 resources:
@@ -61,6 +65,15 @@ resources:
       port_security_enabled: false
       fixed_ips:
         - ip_address: "10.40.40.254"
+#https://blueprints.launchpad.net/heat/+spec/add-security-group-to-port may come handy
+# Create a mgmt port to apply security group to it instead of global to the VM
+ fos_mgmt_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_param: mgmt_net }
+      security_groups: [ default ]
+      fixed_ips:
+        - subnet_id: "mgmt_subnet"
 
  fos_floating_ip:
     type: OS::Neutron::FloatingIP
@@ -72,28 +85,22 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: fosimage }
-   flavor: m1.small
+   flavor: { get_param: vms_flavor }
    user_data_format: RAW
    user_data: |
                 config system interface
                 edit mgmt
                  set mode dhcp
                  set allowaccess ping https ssh http snmp fgfm
-                 set mtu-override enable 
-                 set mtu 1456
                  set defaultgw enable
                 next
                 edit port1
                  set mode dhcp
-                 set mtu-override enable 
-                 set mtu 1456
                  set allowaccess ping
                  set defaultgw disable
                 next
                 edit port2
                  set mode dhcp
-                 set mtu-override enable 
-                 set mtu 1456
                  set allowaccess ping
                  set defaultgw disable
                 next
@@ -125,15 +132,13 @@ resources:
                 end
                 end
    name: FOS
-   config_drive: True
-   security_groups: [ default ]
    user_data_format: RAW
-#   personality: {"license": { get_file: FGVM080000032371.lic }}
    networks:
-    - network: { get_param: mgmt_net }
+    - port: { get_resource: fos_mgmt_port }
     - port:  { get_resource: fos_left_port }
     - subnet:  { get_resource: right_subnet }
-#    - port:  { get_resource: right_port }
+
+
 
  association_fos:
     type: OS::Nova::FloatingIPAssociation
@@ -166,7 +171,7 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: ubimage }
-   flavor: m1.small
+   flavor: { get_param: vms_flavor }
    key_name: "default"
    user_data_format: RAW
    user_data: |
@@ -203,7 +208,7 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: ubimage }
-   flavor: m1.small
+   flavor: { get_param: vms_flavor }
    key_name: "default"
    user_data_format: RAW
    user_data: |

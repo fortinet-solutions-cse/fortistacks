@@ -1,1 +1,7 @@
-../fortigate/citycloud-env.yaml
+# usage : openstack stack create --template heat-minipoc.yaml -e citycloud-env.yaml mini-poc
+parameters:
+  fosimage: "fos56"
+  ubimage: "Ubuntu 16.04 Xenial Xerus"
+  mgmt_net: "mgmt"
+  public_net: "ext-net"
+  vms_flavor: "1C-0.5GB"
