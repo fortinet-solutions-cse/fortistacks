@@ -15,7 +15,7 @@ pip install python-novaclient==9.1.1 python-openstackclient
 #need to do a Dockerfile (fortistacks cli)
 Check dockerfile
 ```shell
-$ docker run -v $HOME/src/fortistacks/:/fortistack/ -v $HOME/.ssh:/root/.ssh/ --rm -i -t fortistack-cli  --name fortistack-cli  -h fortistack-cli --env-file $HOME/cityCloudKra.rc 
+$ docker run -v $HOME/src/fortistacks/:/fortistack/ -v $HOME/.ssh:/root/.ssh/ --rm -i -t fortistack-cli  --name fortistack-cli:1.0  -h fortistack-cli 
  ```
 
 Ensure to have the citycloud rc environment variable in the file
