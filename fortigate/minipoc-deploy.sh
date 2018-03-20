@@ -40,10 +40,12 @@ echo $OS_AUTH_URL | grep ".citycloud." >/dev/null && UB_USERDATA_FILE=apache_use
 
 #Create left network  for tenant VMs with a route to right network
 openstack network show left > /dev/null 2>&1 || openstack network create left
-openstack subnet show left_subnet > /dev/null 2>&1 || openstack subnet create left_subnet --network left --subnet-range  "10.40.40.0/24" --host-route destination=10.20.20.0/24,gateway=10.40.40.254
+openstack subnet show left_subnet > /dev/null 2>&1 || openstack subnet create left_subnet --network left --subnet-range  "10.40.40.0/24" \
+                                                      --host-route destination=10.20.20.0/24,gateway=10.40.40.254 --gateway none
 #
 openstack network show right > /dev/null 2>&1 || openstack network create right
-openstack subnet show right_subnet > /dev/null 2>&1 || openstack subnet create right_subnet --network right --subnet-range  "10.20.20.0/24"
+openstack subnet show right_subnet > /dev/null 2>&1 || openstack subnet create right_subnet --network right \
+                                                       --subnet-range  "10.20.20.0/24" --gateway none
 
 if (openstack server show trafleft  > /dev/null 2>&1 );then
     echo "trafleft already installed"
