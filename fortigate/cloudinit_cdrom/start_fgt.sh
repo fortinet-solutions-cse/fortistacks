@@ -74,5 +74,5 @@ config router static
 EOF
 
 sudo mkisofs -publisher "OpenStack Nova 12.0.2" -J -R -V config-2 -o ${SF2_NAME}-cidata.iso cfg-drv-fgt
-virt-install --connect qemu:///system --noautoconsole --filesystem ${PWD},shared_dir --import --name ${SF2_NAME} --ram 1024 --vcpus 1 --disk fortios.qcow2,size=3 --disk fgt-logs.qcow2,size=30 --disk ${SF2_NAME}-cidata.iso,device=cdrom,bus=ide,format=raw,cache=none --network bridge=virbr0,mac=${SF2_MAC_ADMIN},model=virtio
+virt-install --connect qemu:///system --noautoconsole --import --name ${SF2_NAME} --ram 1024 --vcpus 1 --disk fortios.qcow2,size=3  --disk ${SF2_NAME}-cidata.iso,device=cdrom,bus=ide,format=raw --network bridge=virbr0,mac=${SF2_MAC_ADMIN},model=virtio
 

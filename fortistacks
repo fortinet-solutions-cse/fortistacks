@@ -150,6 +150,7 @@ install-packages()
 
     [ -f /etc/apt/sources.list.d/ubuntu-lxc-ubuntu-lxd-lts-xenial.list ] || sudo add-apt-repository -y ppa:ubuntu-lxc/lxd-lts
     [ -f /etc/apt/sources.list.d/juju-ubuntu-stable-xenial.list ]  || sudo add-apt-repository -y ppa:juju/stable
+    sudo add-apt-repository cloud-archive:pike -y
     sudo apt update  || sudo apt upgrade
     sudo apt -y install ntp zfsutils-linux lxd virt-manager openvswitch-switch-dpdk juju python-openstackclient python-novaclient \
 	 python-glanceclient python-neutronclient ubuntu-desktop chromium-browser vino python-pip zile htop cgroup-tools charm-tools cloud-utils||  exit 2

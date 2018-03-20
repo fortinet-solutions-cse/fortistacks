@@ -1,0 +1,23 @@
+#cloud-config for citycloud using new schema ens
+chpasswd:
+  list: |
+    ubuntu:fortinet
+  expire: False
+write_files:
+  - content: |
+      # Enable dhcp on ens4 some use the new schema
+      auto ens4
+      iface ens4 inet dhcp
+    path: /etc/network/interfaces.d/51-ens4.cfg
+package_upgrade: true
+packages:
+  - apache2-utils
+  - apache2
+  - tcpdump
+  - iperf3
+power_state:
+ delay: "+1"
+ mode: reboot
+ message: Rebooting to ensure network conf
+ timeout: 10
+ condition: True

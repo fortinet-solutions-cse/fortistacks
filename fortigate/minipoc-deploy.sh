@@ -35,6 +35,9 @@ openstack image show  fgt56 > /dev/null 2>&1 || openstack image create --disk-fo
 #find the name of the Ubuntu 16.04 image
 UB_IMAGE=`openstack image list -f value -c Name |grep 16.04`
 
+UB_USERDATA_FILE=apache_userdata.txt
+echo $OS_AUTH_URL | grep ".citycloud." >/dev/null && UB_USERDATA_FILE=apache_userdata_citycloud.txt
+
 #Create left network  for tenant VMs with a route to right network
 openstack network show left > /dev/null 2>&1 || openstack network create left
 openstack subnet show left_subnet > /dev/null 2>&1 || openstack subnet create left_subnet --network left --subnet-range  "10.40.40.0/24" --host-route destination=10.20.20.0/24,gateway=10.40.40.254
@@ -45,7 +48,7 @@ openstack subnet show right_subnet > /dev/null 2>&1 || openstack subnet create r
 if (openstack server show trafleft  > /dev/null 2>&1 );then
     echo "trafleft already installed"
 else
-    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor $OS_FLAVOR --user-data apache_userdata.txt --network mgmt --network left
+    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network left
     while [ `openstack server show trafleft -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
@@ -56,7 +59,7 @@ fi
 if (openstack server show trafright  > /dev/null 2>&1 );then
     echo "trafright already installed"
 else
-    openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor $OS_FLAVOR --user-data apache_userdata.txt --network mgmt --network right
+    openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network right
     while [ `openstack server show trafright -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
