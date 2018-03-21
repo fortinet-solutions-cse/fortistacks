@@ -1,5 +1,9 @@
 heat_template_version: 2016-04-08
-## cli deploy $ openstack stack create --template heat-minipoc.yaml mini-poc
+## cli deploy
+#$ openstack stack create --template heat-minipoc.yaml mini-poc
+# on citycloud or with specific inputs file
+# openstack stack create --template heat-minipoc.yaml mini-poc -e citycloud-env.yaml
+
 description: >
   HOT template to create 2 neutron networks, 2 generic VMs a Fortios VM
   in between and floating ip for everyone.
@@ -26,8 +30,102 @@ parameters:
   type: string
   description: Flavor of the VMs
   default: "m1.small"
+ ub_nic2_name:
+  type: string
+  description: Name of the second interface on Ubuntu may vary
+  default: "eth1"
 
+  
 resources:
+ fgt_config:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config: |
+      config system interface
+      edit port1
+      set mode dhcp
+      set allowaccess ping https ssh http snmp fgfm
+      set defaultgw enable 
+      next
+      edit port2
+      set mode dhcp
+      set allowaccess ping
+      set defaultgw disable 
+      next
+      edit port3
+      set mode dhcp
+      set allowaccess ping
+      set defaultgw disable 
+      next
+      end
+      config system dns
+      set primary 8.8.8.8
+      end
+      config firewall policy
+      edit 1
+      set name "Allow any any"
+      set srcintf "any"
+      set dstintf "any"
+      set srcaddr "all"
+      set dstaddr "all"
+      set action accept
+      set schedule "always"
+      set service "ALL"
+      set nat enable
+      next
+      end
+      
+ fgt_license:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config: |
+      -----BEGIN FGT VM LICENSE-----
+      QAAAALSJKa+KWVPzr9fqir2ldpPctcUMYAPft2EWEBFzp7jwsHtQ4DyyVvBP7pvGDtqxTAe+YNYr
+      AecoceX3xnA4OWhgAAAAEPKXlEk1xvPuMs1vXBG0BGzWeB66nNdgacxYjydWG6erVk8VFAQynzGm
+      /WWBdEB/7TjBRLdLArK8jvACHiukd3nimveB7EUwb6gHfaC/8TbFM6J1KnFMBNVaYgiUgOtD
+      -----END FGT VM LICENSE-----
+
+ fgt_init:
+  type: OS::Heat::MultipartMime
+  properties:
+    parts:
+     - config: {get_resource: fgt_license}
+     - config: {get_resource: fgt_config}
+
+ ub_config:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config:
+      str_replace:
+        template: |
+           #cloud-config for citycloud using new schema ens
+           chpasswd:
+             list: |
+               ubuntu:fortinet
+             expire: False
+           write_files:
+             - content: |
+                 # Enable dhcp on ens4 some use the new schema
+                 auto $nic2
+                 iface $nic2 inet dhcp
+               path: /etc/network/interfaces.d/51-$nic2.cfg
+           package_upgrade: true
+           packages:
+             - apache2-utils
+             - apache2
+             - tcpdump
+             - iperf3
+           power_state:
+             mode: reboot
+             message: Rebooting to ensure network conf
+             timeout: 10
+             condition: True
+        params:
+          $nic2:  { get_param: ub_nic2_name }
+          
  left_net:
     type: OS::Neutron::Net
     properties:
@@ -64,6 +162,15 @@ resources:
       port_security_enabled: false
       fixed_ips:
         - ip_address: "10.40.40.254"
+#https://blueprints.launchpad.net/heat/+spec/add-security-group-to-port may come handy
+# Create a mgmt port to apply security group to it instead of global to the VM
+ fgt_mgmt_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_param: mgmt_net }
+      security_groups: [ default ]
+      fixed_ips:
+        - subnet_id: "mgmt_subnet"
 
  fgt_floating_ip:
     type: OS::Neutron::FloatingIP
@@ -76,59 +183,12 @@ resources:
   properties:
    image: { get_param: fgtimage }
    flavor: { get_param: vms_flavor }
-   user_data_format: RAW
-   user_data: |
-                config system interface
-                edit port1
-                 set mode dhcp
-                 set allowaccess ping https ssh http snmp fgfm
-                 set mtu-override enable 
-                 set mtu 1456
-                 set defaultgw enable
-                next
-                edit port2
-                 set mode dhcp
-                 set mtu-override enable 
-                 set mtu 1456
-                 set allowaccess ping
-                 set defaultgw disable
-                next
-                edit port3
-                 set mode dhcp
-                 set mtu-override enable 
-                 set mtu 1456
-                 set allowaccess ping
-                 set defaultgw disable
-                next
-                end
-                config system dns
-                set primary 8.8.8.8
-                end
-                config firewall policy
-                edit 1
-                set name "Allow any any"
-                set srcintf "any"
-                set dstintf "any"
-                set srcaddr "all"
-                set dstaddr "all"
-                set action accept
-                set schedule "always"
-                set service "ALL"
-                set nat enable
-                next
-                end
+   user_data:     
+     get_resource: fgt_init
    name: FGT
-   config_drive: True
    user_data_format: RAW
-#   personality: {"license":
-#  -----BEGIN FGT VM LICENSE-----
-#  XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-#  KQkV+M0QnaPNeflgAAAAuK74PkXL6V33n2WaYUEb9S981Xoo6hjuF4EUAwbgJKL/v3ZF0doXylw2
-#  oXben61XZpvip3cwZfbeQuaa5Vmt+SnBH7GZPkBGQSbuSXqjJHB+/iq4naP8h1t05yWhHlRM
-#  -----END FGT VM LICENSE-----}
-   personality: {"license": { get_file: FGT.lic }}
    networks:
-    - network: { get_param: mgmt_net }
+    - port: { get_resource: fgt_mgmt_port }
     - port:  { get_resource: fgt_left_port }
     - subnet:  { get_resource: right_subnet }
 #    - port:  { get_resource: right_port }
@@ -164,27 +224,10 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: ubimage }
-   flavor:  { get_param: vms_flavor }
+   flavor: { get_param: vms_flavor }
    key_name: "default"
    user_data_format: RAW
-   user_data: |
-     #cloud-config
-     package_upgrade: true
-     packages:
-       - apache2-utils
-       - apache2
-       - tcpdump
-       - iperf3
-     chpasswd:
-       list: |
-         ubuntu:fortinet
-       expire: False
-     write_files:
-       - content: |
-           # Enable dhcp on eth1
-           auto eth1
-           iface eth1 inet dhcp
-         path: /etc/network/interfaces.d/eth1.cfg
+   user_data: { get_resource: ub_config }
    name: trafleft
    security_groups: [ default ]
    networks:
@@ -201,27 +244,10 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: ubimage }
-   flavor:  { get_param: vms_flavor }
+   flavor: { get_param: vms_flavor }
    key_name: "default"
    user_data_format: RAW
-   user_data: |
-     #cloud-config
-     package_upgrade: true
-     packages:
-       - apache2-utils
-       - apache2
-       - tcpdump
-       - iperf3
-     chpasswd:
-       list: |
-         ubuntu:fortinet
-       expire: False
-     write_files:
-       - content: |
-           # Enable dhcp on eth1
-           auto eth1
-           iface eth1 inet dhcp
-         path: /etc/network/interfaces.d/eth1.cfg
+   user_data: { get_resource: ub_config }
    name: trafright
    security_groups: [ default ]
    networks:

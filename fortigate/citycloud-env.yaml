@@ -1,7 +1,8 @@
 # usage : openstack stack create --template heat-minipoc.yaml -e citycloud-env.yaml mini-poc
 parameters:
-  fosimage: "fgt56"
+  fgtimage: "fgt56"
   ubimage: "Ubuntu 16.04 Xenial Xerus"
   mgmt_net: "mgmt"
   public_net: "ext-net"
   vms_flavor: "1C-0.5GB"
+  ub_nic2_name: "ens4"
