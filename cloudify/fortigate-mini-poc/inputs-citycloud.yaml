@@ -1,0 +1,17 @@
+fos_image: 'fgt56'
+fos_flavor: '1C-1G'
+ub_image: 'Ubuntu 16.04 Xenial Xerus'
+ub_flavor: '1C-1G'
+mgmt_network_name: "mgmt"
+key_name: 'default'
+fortimanagerip: '10.210.8.25'
+fortigate_license: ''' -----BEGIN FGT VM LICENSE-----
+XXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXXXXxxxXXxxxxXXXXX
+XXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXXXXxxxXXxxxxXXXXX
+XXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXxxxxXXXXXXXXxxxXXXXXxxxXXxxxxX
+-----END FGT VM LICENSE----- '''
+#keystone_password: 'fortinet'
+#keystone_tenant_name: 'admin'
+#keystone_url: 'http://10.10.10.26:5000/v2.0/'
+#keystone_username: 'admin'
+#region: 'RegionOne'

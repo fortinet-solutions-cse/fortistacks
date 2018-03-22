@@ -9,8 +9,6 @@ description: >
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
   - http://www.getcloudify.org/spec/openstack-plugin/2.5.2/plugin.yaml
-  - http://www.getcloudify.org/spec/diamond-plugin/1.3.6/plugin.yaml
-  - plugins/fortigate-plugin/plugin.yaml
 
 inputs:
   fos_image:
@@ -88,12 +86,14 @@ node_templates:
             args:
               cidr: 10.40.40.0/24
               ip_version: 4
+              gateway_ip: null
       cloudify.interfaces.validation:
         creation:
           inputs:
             args:
               cidr: 10.40.40.0/24
               ip_version: 4
+              gateway_ip: null
     relationships:
       - target: left_network
         type: cloudify.relationships.contained_in
@@ -114,12 +114,14 @@ node_templates:
             args:
               cidr: 10.20.20.0/24
               ip_version: 4
+              gateway_ip: null
       cloudify.interfaces.validation:
         creation:
           inputs:
             args:
               cidr: 10.20.20.0/24
               ip_version: 4
+              gateway_ip: null
     relationships:
       - target: right_network
         type: cloudify.relationships.contained_in
@@ -148,6 +150,12 @@ node_templates:
       rules:
         - remote_ip_prefix: 0.0.0.0/0
           port: 8080
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 443
 
 
   leftubuntu:
@@ -168,12 +176,6 @@ node_templates:
             args:
               userdata: |
                 #cloud-config
-                package_upgrade: true
-                packages:
-                  - apache2-utils
-                  - apache2
-                  - tcpdump
-                  - iperf3
                 chpasswd:
                   list: |
                     ubuntu:fortinet
@@ -183,7 +185,19 @@ node_templates:
                       # Enable dhcp on ens4
                       auto ens4
                       iface ens4 inet dhcp
-                    path: /etc/network/interfaces.d/ens4.cfg
+                    path: /etc/network/interfaces.d/51-ens4.cfg
+                package_upgrade: true
+                packages:
+                  - apache2-utils
+                  - apache2
+                  - tcpdump
+                  - iperf3
+                power_state:
+                 delay: "now"
+                 mode: reboot
+                 message: Rebooting to ensure network conf
+                 timeout: 10
+                 condition: True
     relationships:
       - target: left_network
         type: cloudify.relationships.connected_to
@@ -290,12 +304,6 @@ node_templates:
             args:
               userdata: |
                 #cloud-config
-                package_upgrade: true
-                packages:
-                  - apache2-utils
-                  - apache2
-                  - tcpdump
-                  - iperf3
                 chpasswd:
                   list: |
                     ubuntu:fortinet
@@ -305,7 +313,19 @@ node_templates:
                       # Enable dhcp on ens4
                       auto ens4
                       iface ens4 inet dhcp
-                    path: /etc/network/interfaces.d/ens4.cfg
+                    path: /etc/network/interfaces.d/51-ens4.cfg
+                package_upgrade: true
+                packages:
+                  - apache2-utils
+                  - apache2
+                  - tcpdump
+                  - iperf3
+                power_state:
+                 delay: "now"
+                 mode: reboot
+                 message: Rebooting to ensure network conf
+                 timeout: 10
+                 condition: True
     relationships:
       - target: right_network
         type: cloudify.relationships.connected_to
