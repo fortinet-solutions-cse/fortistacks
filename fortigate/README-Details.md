@@ -1,6 +1,3 @@
-# TODO: integrate this new way of doing in the script.
-# use write multi mime part from cloud-utils
-# New user-data:
 
 Example of User Data:
 
