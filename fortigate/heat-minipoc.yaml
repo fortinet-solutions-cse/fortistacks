@@ -136,6 +136,7 @@ resources:
     properties:
       network_id: { get_resource: left_net }
       cidr: "10.40.40.0/24"
+      gateway_ip: null
       allocation_pools:
         - start: "10.40.40.3"
           end:  "10.40.40.250"
@@ -151,6 +152,7 @@ resources:
     properties:
       network_id: { get_resource: right_net }
       cidr: "10.20.20.0/24"
+      gateway_ip: null
       allocation_pools:
         - start: "10.20.20.3"
           end:  "10.20.20.250"
@@ -183,10 +185,10 @@ resources:
   properties:
    image: { get_param: fgtimage }
    flavor: { get_param: vms_flavor }
-   user_data:     
-     get_resource: fgt_init
+   user_data:     { get_resource: fgt_init }
+   config_drive: True
    name: FGT
-   user_data_format: RAW
+   user_data_format: SOFTWARE_CONFIG
    networks:
     - port: { get_resource: fgt_mgmt_port }
     - port:  { get_resource: fgt_left_port }

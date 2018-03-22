@@ -1,10 +1,4 @@
-#cloud-config for citycloud using new schema ens
-package_upgrade: true
-packages:
-  - apache2-utils
-  - apache2
-  - tcpdump
-  - iperf3
+#cloud-config for local openstack with Ubuntu using eth scheme
 chpasswd:
   list: |
     ubuntu:fortinet
@@ -14,5 +8,16 @@ write_files:
       # Enable dhcp on eth1 some use the new schema
       auto eth1
       iface eth1 inet dhcp
-    path: /etc/network/interfaces.d/eth1.cfg
-
+    path: /etc/network/interfaces.d/51-eth1.cfg
+package_upgrade: true
+packages:
+  - apache2-utils
+  - apache2
+  - tcpdump
+  - iperf3
+power_state:
+ delay: "now"
+ mode: reboot
+ message: Rebooting to ensure network conf
+ timeout: 10
+ condition: True

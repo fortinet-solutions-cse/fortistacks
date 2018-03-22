@@ -4,4 +4,6 @@ parameters:
   ubimage: "Ubuntu 16.04 Xenial Xerus"
   mgmt_net: "mgmt"
   public_net: "ext-net"
-  vms_flavor: "1C-0.5GB"
+  vms_flavor: "1C-1GB"
+  ub_nic2_name: "ens4"
+  fortimanager_ip: "10.210.40.40"

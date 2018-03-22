@@ -16,7 +16,7 @@ packages:
   - tcpdump
   - iperf3
 power_state:
- delay: "+1"
+ delay: "now"
  mode: reboot
  message: Rebooting to ensure network conf
  timeout: 10
