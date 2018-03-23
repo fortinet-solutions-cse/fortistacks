@@ -262,16 +262,6 @@ node_templates:
                 set nat enable
                 next
                 end
-                config system central-management
-                set include-default-servers disable
-                set type fortimanager
-                set fmg 10.210.8.25
-                config server-list
-                edit 1
-                set server-type update rating
-                set server-address 10.210.8.25 
-                end
-                end
     relationships:
       - target: fos_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip
