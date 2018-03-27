@@ -6,7 +6,7 @@ Ref: https://docs.fortinet.com/d/fortimanager-5.6-vm-install
 Get FMG_VM64_KVM-v5-build1631-FORTINET.out.kvm.zip from https://support.fortinet.com
 unzip it.
 
-openstack image create --disk-format qcow2 --container-format bare  "FMG 5.6.2"  --file fmg.qcow2
+```openstack image create --disk-format qcow2 --container-format bare  "FMG 5.6.2"  --file fmg.qcow2
 
 openstack volume create --size 8 fmg-log1
 
@@ -14,7 +14,7 @@ export OS_FLAVOR="2C-4GB"
 openstack server create --image "FMG 5.6.2" fmg56 --key-name default  --security-group default  --flavor $OS_FLAVOR --network mgmt 
 
 openstack server add volume fmg56 fmg-log1 --device /dev/vdb
-
+```
 
 You then need to update your interface to the openstack one (no dhcp)
 ```shell
@@ -37,6 +37,7 @@ config system route
 edit 1
         set device "port1"
         set gateway 192.168.16.1
+#must match your network mtu#        set mtu 1400
 end
 execute lvm start
 ```
