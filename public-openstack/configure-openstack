@@ -56,8 +56,15 @@ openstack router add subnet provider-router mgmt_subnet  || true
 openstack security group rule create --proto icmp default || echo "should have been created already"
 
 ##make wide open
-openstack security group rule create --proto tcp --dst-port 1:65535  default || echo "should have been created already"
-openstack security group rule create --proto udp --dst-port 1:65535  default || echo "should have been created already"
+openstack security group rule create --ingress  --ethertype IPv4 --remote-ip 0.0.0.0/0 default|| echo "should have been created already"
+openstack security group rule create --ingress  --ethertype IPv4 --remote-ip 0.0.0.0/0 --protocol udp  default|| echo "should have been created already"
+
+openstack security group rule create --ingress  --ethertype IPv6 --remote-ip ::/0  --protocol tcp default|| echo "should have been created already"
+openstack security group rule create --ingress  --ethertype IPv6 --remote-ip ::/0  --protocol udp default|| echo "should have been created already"
+
+
+#openstack security group rule create --proto tcp --dst-port 1:65535  default || echo "should have been created already"
+#openstack security group rule create --proto udp --dst-port 1:65535  default || echo "should have been created already"
 
 
 #Upload a default SSH key
