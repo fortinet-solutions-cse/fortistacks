@@ -1,4 +1,3 @@
-# New user-data:
 
 Example of User Data:
 

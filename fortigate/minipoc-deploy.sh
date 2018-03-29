@@ -31,21 +31,26 @@ fi
 
 
 #Push image if needed
-openstack image show  "fgt56" > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fgt56"  --file fortios.qcow2
+openstack image show  fgt56 > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fgt56"  --file fortios.qcow2
 #find the name of the Ubuntu 16.04 image
 UB_IMAGE=`openstack image list -f value -c Name |grep 16.04`
 
+UB_USERDATA_FILE=apache_userdata.txt
+echo $OS_AUTH_URL | grep ".citycloud." >/dev/null && UB_USERDATA_FILE=apache_userdata_citycloud.txt
+
 #Create left network  for tenant VMs with a route to right network
 openstack network show left > /dev/null 2>&1 || openstack network create left
-openstack subnet show left_subnet > /dev/null 2>&1 || openstack subnet create left_subnet --network left --subnet-range  "10.40.40.0/24" --host-route destination=10.20.20.0/24,gateway=10.40.40.254
+openstack subnet show left_subnet > /dev/null 2>&1 || openstack subnet create left_subnet --network left --subnet-range  "10.40.40.0/24" \
+                                                      --host-route destination=10.20.20.0/24,gateway=10.40.40.254 --gateway none
 #
 openstack network show right > /dev/null 2>&1 || openstack network create right
-openstack subnet show right_subnet > /dev/null 2>&1 || openstack subnet create right_subnet --network right --subnet-range  "10.20.20.0/24"
+openstack subnet show right_subnet > /dev/null 2>&1 || openstack subnet create right_subnet --network right \
+                                                       --subnet-range  "10.20.20.0/24" --gateway none
 
 if (openstack server show trafleft  > /dev/null 2>&1 );then
     echo "trafleft already installed"
 else
-    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor $OS_FLAVOR --user-data apache_userdata.txt --network mgmt --network left
+    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network left
     while [ `openstack server show trafleft -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
@@ -56,7 +61,7 @@ fi
 if (openstack server show trafright  > /dev/null 2>&1 );then
     echo "trafright already installed"
 else
-    openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor $OS_FLAVOR --user-data apache_userdata.txt --network mgmt --network right
+    openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network right
     while [ `openstack server show trafright -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
@@ -71,7 +76,7 @@ openstack port show right1 > /dev/null 2>&1 ||openstack port create right1 --net
 LEFTPORT=`openstack port show left1 -c id -f value`
 RIGHTPORT=`openstack port show right1 -c id -f value`
     
-if (openstack show fgt56  > /dev/null 2>&1 );then
+if (openstack server show fgt56  > /dev/null 2>&1 );then
     echo "fgt56 already installed"
 else
     #need to provide an example without config_drive

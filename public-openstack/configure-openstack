@@ -54,23 +54,21 @@ openstack router add subnet provider-router mgmt_subnet  || true
 
 #Configure the default security group to allow ICMP and SSH
 openstack security group rule create --proto icmp default || echo "should have been created already"
-openstack security group rule create --proto tcp --dst-port 22 default || echo "should have been created already"
-openstack security group rule create --proto tcp --dst-port 80 default || echo "should have been created already"
-openstack security group rule create --proto tcp --dst-port 443 default || echo "should have been created already"
-#port for RDP
-openstack security group rule create --proto tcp --dst-port 3389 default || echo "should have been created already"
-
 
 ##make wide open
-openstack security group rule create --proto tcp --dst-port 1:65535  default || echo "should have been created already"
-openstack security group rule create --proto udp --dst-port 1:65535  default || echo "should have been created already"
+openstack security group rule create --ingress  --ethertype IPv4 --remote-ip 0.0.0.0/0 default|| echo "should have been created already"
+openstack security group rule create --ingress  --ethertype IPv4 --remote-ip 0.0.0.0/0 --protocol udp  default|| echo "should have been created already"
+
+openstack security group rule create --ingress  --ethertype IPv6 --remote-ip ::/0  --protocol tcp default|| echo "should have been created already"
+openstack security group rule create --ingress  --ethertype IPv6 --remote-ip ::/0  --protocol udp default|| echo "should have been created already"
+
+
+#openstack security group rule create --proto tcp --dst-port 1:65535  default || echo "should have been created already"
+#openstack security group rule create --proto udp --dst-port 1:65535  default || echo "should have been created already"
 
 
 #Upload a default SSH key
 openstack keypair create  --public-key ~/.ssh/id_rsa.pub default  || echo "asssuming key is already uploaded"
 
 
-openstack flavor create m1.small --id auto --ram 1024 --disk 20 --vcpus 1
-openstack flavor create m1.medium --id auto --ram 2048 --disk 20 --vcpus 2
-openstack flavor create m1.large --id auto --ram 4096 --disk 20 --vcpus 4
 

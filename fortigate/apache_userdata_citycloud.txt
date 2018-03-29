@@ -1,14 +1,14 @@
-#cloud-config for local openstack with Ubuntu using eth scheme
+#cloud-config for citycloud using new schema ens
 chpasswd:
   list: |
     ubuntu:fortinet
   expire: False
 write_files:
   - content: |
-      # Enable dhcp on eth1 some use the new schema
-      auto eth1
-      iface eth1 inet dhcp
-    path: /etc/network/interfaces.d/51-eth1.cfg
+      # Enable dhcp on ens4 some use the new schema
+      auto ens4
+      iface ens4 inet dhcp
+    path: /etc/network/interfaces.d/51-ens4.cfg
 package_upgrade: true
 packages:
   - apache2-utils

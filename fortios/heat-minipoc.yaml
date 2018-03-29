@@ -1,5 +1,9 @@
 heat_template_version: 2016-04-08
-## cli deploy $ openstack stack create --template heat-minipoc.yaml mini-poc
+## cli deploy
+#$ openstack stack create --template heat-minipoc.yaml mini-poc
+# on citycloud or with specific inputs file
+# openstack stack create --template heat-minipoc.yaml mini-poc -e citycloud-env.yaml
+
 description: >
   HOT template to create 2 neutron networks, 2 generic VMs a Fortios VM
   in between and floating ip for everyone.
@@ -22,9 +26,146 @@ parameters:
   type: string
   description: External network for floating ips
   default: "ext_net"
-
+ vms_flavor:
+  type: string
+  description: Flavor of the VMs
+  default: "m1.small"
+ ub_nic2_name:
+  type: string
+  description: Name of the second interface on Ubuntu may vary
+  default: "eth1"
+ fortimanager_ip:
+  type: string
+  description: IP / name of the fortimanger doing the metering
+  default: "192.168.16.40"
 
 resources:
+ fos_config_fmg:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config:
+      str_replace:
+        template: |
+          config system interface
+          edit mgmt
+           set mode dhcp
+           set allowaccess ping https ssh http snmp fgfm
+           set defaultgw enable 
+           next
+          edit port1
+           set mode dhcp
+           set allowaccess ping
+           set defaultgw disable 
+           next
+          edit port2
+           set mode dhcp
+           set allowaccess ping
+           set defaultgw disable 
+           next
+          end
+          config system dns
+           set primary 8.8.8.8
+          end
+          config firewall policy
+           edit 1
+           set name "Allow any any"
+           set srcintf "any"
+           set dstintf "any"
+           set srcaddr "all"
+           set dstaddr "all"
+           set action accept
+           set schedule "always"
+           set service "ALL"
+           set nat enable
+           next
+          end          
+          config system central-management
+           set include-default-servers disable
+           set type fortimanager
+           set fmg $fortimanager_ip
+           config server-list
+            edit 1
+            set server-type update rating
+            set server-address $fortimanager_ip
+            end
+          end
+        params:
+          $fortimanager_ip:  { get_param: fortimanager_ip }
+
+ #Following config is used to evaluate (no need of fortimanager but limited in time 1h )
+ fos_config_eval:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config: |
+          config system interface
+          edit mgmt
+           set mode dhcp
+           set allowaccess ping https ssh http snmp fgfm
+           set defaultgw enable
+           next
+          edit port1
+           set mode dhcp
+           set allowaccess ping
+           set defaultgw disable
+           next
+          edit port2
+           set mode dhcp
+           set allowaccess ping
+           set defaultgw disable
+           next
+          end
+          config system dns
+           set primary 8.8.8.8
+          end
+          config firewall policy
+           edit 1
+           set name "Allow any any"
+           set srcintf "any"
+           set dstintf "any"
+           set srcaddr "all"
+           set dstaddr "all"
+           set action accept
+           set schedule "always"
+           set service "ALL"
+           set nat enable
+           next
+          end
+
+ ub_config:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config:
+      str_replace:
+        template: |
+           #cloud-config for citycloud using new schema ens
+           chpasswd:
+             list: |
+               ubuntu:fortinet
+             expire: False
+           write_files:
+             - content: |
+                 # Enable dhcp on ens4 some use the new schema
+                 auto $nic2
+                 iface $nic2 inet dhcp
+               path: /etc/network/interfaces.d/51-$nic2.cfg
+           package_upgrade: true
+           packages:
+             - apache2-utils
+             - apache2
+             - tcpdump
+             - iperf3
+           power_state:
+            delay: "now"
+            mode: reboot
+            message: Rebooting to ensure network conf
+            timeout: 10
+            condition: True
+        params:
+          $nic2:  { get_param: ub_nic2_name }
+          
  left_net:
     type: OS::Neutron::Net
     properties:
@@ -35,6 +176,7 @@ resources:
     properties:
       network_id: { get_resource: left_net }
       cidr: "10.40.40.0/24"
+      gateway_ip: null
       allocation_pools:
         - start: "10.40.40.3"
           end:  "10.40.40.250"
@@ -50,6 +192,7 @@ resources:
     properties:
       network_id: { get_resource: right_net }
       cidr: "10.20.20.0/24"
+      gateway_ip: null
       allocation_pools:
         - start: "10.20.20.3"
           end:  "10.20.20.250"
@@ -61,6 +204,15 @@ resources:
       port_security_enabled: false
       fixed_ips:
         - ip_address: "10.40.40.254"
+#https://blueprints.launchpad.net/heat/+spec/add-security-group-to-port may come handy
+# Create a mgmt port to apply security group to it instead of global to the VM
+ fos_mgmt_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_param: mgmt_net }
+      security_groups: [ default ]
+      fixed_ips:
+        - subnet_id: "mgmt_subnet"
 
  fos_floating_ip:
     type: OS::Neutron::FloatingIP
@@ -72,68 +224,17 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: fosimage }
-   flavor: m1.small
-   user_data_format: RAW
-   user_data: |
-                config system interface
-                edit mgmt
-                 set mode dhcp
-                 set allowaccess ping https ssh http snmp fgfm
-                 set mtu-override enable 
-                 set mtu 1456
-                 set defaultgw enable
-                next
-                edit port1
-                 set mode dhcp
-                 set mtu-override enable 
-                 set mtu 1456
-                 set allowaccess ping
-                 set defaultgw disable
-                next
-                edit port2
-                 set mode dhcp
-                 set mtu-override enable 
-                 set mtu 1456
-                 set allowaccess ping
-                 set defaultgw disable
-                next
-                end
-                config system dns
-                set primary 8.8.8.8
-                end
-                config firewall policy
-                edit 1
-                set name "Allow any any"
-                set srcintf "any"
-                set dstintf "any"
-                set srcaddr "all"
-                set dstaddr "all"
-                set action accept
-                set schedule "always"
-                set service "ALL"
-                set nat enable
-                next
-                end
-                config system central-management
-                set include-default-servers disable
-                set type fortimanager
-                set fmg 10.210.8.25
-                config server-list
-                edit 1
-                set server-type update rating
-                set server-address 10.210.8.25 
-                end
-                end
+   flavor: { get_param: vms_flavor }
+#   user_data:     { get_resource: fos_config }
+   user_data:     { get_resource: fos_config_eval }
    name: FOS
-   config_drive: True
-   security_groups: [ default ]
-   user_data_format: RAW
-#   personality: {"license": { get_file: FGVM080000032371.lic }}
+   user_data_format: SOFTWARE_CONFIG
    networks:
-    - network: { get_param: mgmt_net }
+    - port: { get_resource: fos_mgmt_port }
     - port:  { get_resource: fos_left_port }
     - subnet:  { get_resource: right_subnet }
-#    - port:  { get_resource: right_port }
+
+
 
  association_fos:
     type: OS::Nova::FloatingIPAssociation
@@ -166,27 +267,10 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: ubimage }
-   flavor: m1.small
+   flavor: { get_param: vms_flavor }
    key_name: "default"
-   user_data_format: RAW
-   user_data: |
-     #cloud-config
-     package_upgrade: true
-     packages:
-       - apache2-utils
-       - apache2
-       - tcpdump
-       - iperf3
-     chpasswd:
-       list: |
-         ubuntu:fortinet
-       expire: False
-     write_files:
-       - content: |
-           # Enable dhcp on eth1
-           auto eth1
-           iface eth1 inet dhcp
-         path: /etc/network/interfaces.d/eth1.cfg
+   user_data_format:  RAW
+   user_data: { get_resource: ub_config }
    name: trafleft
    security_groups: [ default ]
    networks:
@@ -203,27 +287,10 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: ubimage }
-   flavor: m1.small
+   flavor: { get_param: vms_flavor }
    key_name: "default"
-   user_data_format: RAW
-   user_data: |
-     #cloud-config
-     package_upgrade: true
-     packages:
-       - apache2-utils
-       - apache2
-       - tcpdump
-       - iperf3
-     chpasswd:
-       list: |
-         ubuntu:fortinet
-       expire: False
-     write_files:
-       - content: |
-           # Enable dhcp on eth1
-           auto eth1
-           iface eth1 inet dhcp
-         path: /etc/network/interfaces.d/eth1.cfg
+   user_data_format:   RAW
+   user_data: { get_resource: ub_config }
    name: trafright
    security_groups: [ default ]
    networks:
@@ -240,7 +307,7 @@ resources:
       
 outputs:
  fos-info:
-    description: IP address to access of the FGT
+    description: IP address to access of the FOS
     value: { get_attr: [ fos_floating_ip,  floating_ip_address ] }
  left-info:
     description: IP address to access left ubuntu machine 

@@ -7,7 +7,7 @@ description: >
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
-  - http://www.getcloudify.org/spec/openstack-plugin/2.3.0/plugin.yaml
+  - http://www.getcloudify.org/spec/openstack-plugin/2.5.2/plugin.yaml
 
 inputs:
   fos_image:
@@ -22,6 +22,8 @@ inputs:
      default: {}
   mgmt_network_name:
     default: "mgmt"
+  external_network_name:
+    default: "ext_net"
 
 
 
@@ -42,7 +44,7 @@ node_templates:
         create:
           inputs:
             args:
-              floating_network_name: ext_net
+              floating_network_name: { get_input: external_network_name }
 
   leftub_floating_ip:
     type: cloudify.openstack.nodes.FloatingIP
@@ -51,7 +53,7 @@ node_templates:
         create:
           inputs:
             args:
-              floating_network_name: ext_net
+              floating_network_name: { get_input: external_network_name }
 
   rightub_floating_ip:
     type: cloudify.openstack.nodes.FloatingIP
@@ -60,7 +62,7 @@ node_templates:
         create:
           inputs:
             args:
-              floating_network_name: ext_net
+              floating_network_name: { get_input: external_network_name }
 
   left_network:
     type: cloudify.openstack.nodes.Network
@@ -83,12 +85,14 @@ node_templates:
             args:
               cidr: 10.40.40.0/24
               ip_version: 4
+              gateway_ip: null
       cloudify.interfaces.validation:
         creation:
           inputs:
             args:
               cidr: 10.40.40.0/24
               ip_version: 4
+              gateway_ip: null
     relationships:
       - target: left_network
         type: cloudify.relationships.contained_in
@@ -109,12 +113,14 @@ node_templates:
             args:
               cidr: 10.20.20.0/24
               ip_version: 4
+              gateway_ip: null
       cloudify.interfaces.validation:
         creation:
           inputs:
             args:
               cidr: 10.20.20.0/24
               ip_version: 4
+              gateway_ip: null
     relationships:
       - target: right_network
         type: cloudify.relationships.contained_in
@@ -132,100 +138,27 @@ node_templates:
               port_security_enabled: False
     relationships:
       - target: left_network
-        type: cloudify.relationships.connected_to
+        type: cloudify.relationships.contained_in
       - target: left_subnet
         type: cloudify.relationships.depends_on
         
-  my_security_group:
+  cfy_security_group:
     type: cloudify.openstack.nodes.SecurityGroup
     properties:
-      resource_id: my_security_group_openstack
+      resource_id: cfy_security_group_openstack
       rules:
         - remote_ip_prefix: 0.0.0.0/0
           port: 8080
-
-
-  fortigate:
-    type: cloudify.openstack.nodes.Server
-    properties:
-      server:
-        image_name: { get_input: fos_image }
-        flavor_name: { get_input: fos_flavor }
-        #useless key_name for fortinet but mandatory for openstack
-        key_name: { get_input: key_name }
-      agent_config:
-        install_method: none # do not install agent
-      openstack_config: *openstack_config
-      management_network_name: { get_input: mgmt_network_name }
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              config_drive: true
-              userdata: |
-                #FOS VM Config File
-                config system interface
-                edit mgmt
-                 set mode dhcp
-                 set allowaccess ping https ssh http snmp fgfm
-                 set mtu-override enable 
-                 set mtu 1456
-                 set defaultgw enable
-                next
-                edit port2
-                set mode dhcp
-                set mtu-override enable 
-                set mtu 1456
-                set allowaccess ping
-                 set defaultgw disable
-                next
-                edit port1
-                set mode dhcp
-                set mtu-override enable 
-                set mtu 1456
-                set allowaccess ping
-                 set defaultgw disable
-                next
-                end
-                config system dns
-                set primary 8.8.8.8
-                end
-                config firewall policy
-                edit 1
-                set name "Allow any any"
-                set srcintf "any"
-                set dstintf "any"
-                set srcaddr "all"
-                set dstaddr "all"
-                set action accept
-                set schedule "always"
-                set service "ALL"
-                set nat enable
-                next
-                end
-                config system central-management
-                set include-default-servers disable
-                set type fortimanager
-                set fmg 10.210.8.25
-                config server-list
-                edit 1
-                set server-type update rating
-                set server-address 10.210.8.25 
-                end
-                end
-    relationships:
-      - target: fos_floating_ip
-        type: cloudify.openstack.server_connected_to_floating_ip
-      - target: left_port
-        type: cloudify.relationships.depends_on
-      - target: right_network
-        type: cloudify.relationships.connected_to
-#      - target: right_subnet
-#        type: cloudify.relationships.depends_on
-#      - target: my_security_group
-#        type: cloudify.openstack.server_connected_to_security_group
-#not compatible with portsecurity disabled
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 443
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: icmp
+          port_range_max: null
+          port_range_min: null
 
 
   leftubuntu:
@@ -246,22 +179,28 @@ node_templates:
             args:
               userdata: |
                 #cloud-config
-                package_upgrade: true
-                packages:
-                  - apache2-utils
-                  - apache2
-                  - tcpdump
-                  - iperf3
                 chpasswd:
                   list: |
                     ubuntu:fortinet
                   expire: False
                 write_files:
                   - content: |
-                      # Enable dhcp on eth1
-                      auto eth1
-                      iface eth1 inet dhcp
-                    path: /etc/network/interfaces.d/eth1.cfg
+                      # Enable dhcp on ens4
+                      auto ens4
+                      iface ens4 inet dhcp
+                    path: /etc/network/interfaces.d/51-ens4.cfg
+                package_upgrade: true
+                packages:
+                  - apache2-utils
+                  - apache2
+                  - tcpdump
+                  - iperf3
+                power_state:
+                 delay: "now"
+                 mode: reboot
+                 message: Rebooting to ensure network conf
+                 timeout: 10
+                 condition: True
     relationships:
       - target: left_network
         type: cloudify.relationships.connected_to
@@ -269,8 +208,73 @@ node_templates:
         type: cloudify.relationships.depends_on
       - target: leftub_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip
-      - target: my_security_group
+      - target: cfy_security_group
         type: cloudify.openstack.server_connected_to_security_group
+
+
+  fortigate:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: fos_image }
+        flavor_name: { get_input: fos_flavor }
+        #useless key_name for fortinet but mandatory for openstack
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: none # do not install agent
+      openstack_config: *openstack_config
+      management_network_name: { get_input: mgmt_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              #try with concat to put the fortimanageip has a config
+              userdata: |
+                #FOS VM Config File
+                config system interface
+                edit mgmt
+                 set mode dhcp
+                 set allowaccess ping https ssh http snmp fgfm
+                 set defaultgw enable
+                next
+                edit port1
+                set mode dhcp
+                set allowaccess ping
+                 set defaultgw disable
+                next
+                edit port2
+                set mode dhcp
+                set allowaccess ping
+                set defaultgw disable
+                next
+                end
+                config firewall policy
+                edit 1
+                set name "Allow any any"
+                set srcintf "any"
+                set dstintf "any"
+                set srcaddr "all"
+                set dstaddr "all"
+                set action accept
+                set schedule "always"
+                set service "ALL"
+                set nat enable
+                next
+                end
+    relationships:
+      - target: fos_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+      - target: left_port
+        type: cloudify.relationships.connected_to
+      - target: right_network
+        type: cloudify.relationships.connected_to
+#      - target: right_subnet
+#        type: cloudify.relationships.depends_on
+#      - target: my_security_group
+#        type: cloudify.openstack.server_connected_to_security_group
+#not compatible with portsecurity disabled
+
 
   rightubuntu:
     type: cloudify.openstack.nodes.Server
@@ -290,22 +294,28 @@ node_templates:
             args:
               userdata: |
                 #cloud-config
-                package_upgrade: true
-                packages:
-                  - apache2-utils
-                  - apache2
-                  - tcpdump
-                  - iperf3
                 chpasswd:
                   list: |
                     ubuntu:fortinet
                   expire: False
                 write_files:
                   - content: |
-                      # Enable dhcp on eth1
-                      auto eth1
-                      iface eth1 inet dhcp
-                    path: /etc/network/interfaces.d/eth1.cfg
+                      # Enable dhcp on ens4
+                      auto ens4
+                      iface ens4 inet dhcp
+                    path: /etc/network/interfaces.d/51-ens4.cfg
+                package_upgrade: true
+                packages:
+                  - apache2-utils
+                  - apache2
+                  - tcpdump
+                  - iperf3
+                power_state:
+                 delay: "now"
+                 mode: reboot
+                 message: Rebooting to ensure network conf
+                 timeout: 10
+                 condition: True
     relationships:
       - target: right_network
         type: cloudify.relationships.connected_to
@@ -313,5 +323,5 @@ node_templates:
         type: cloudify.relationships.depends_on
       - target: rightub_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip
-      - target: my_security_group
+      - target: cfy_security_group
         type: cloudify.openstack.server_connected_to_security_group

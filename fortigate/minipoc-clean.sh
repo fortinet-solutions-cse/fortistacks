@@ -35,3 +35,4 @@ openstack port delete left1
 openstack port delete right1
 openstack network delete left
 openstack network delete right
+../public-openstack/bleach-floatingips.sh 

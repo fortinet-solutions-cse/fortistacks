@@ -1,0 +1,37 @@
+#!/bin/bash -e
+#
+#    fortinet Check openstack client
+#    Copyright (C) 2016 Fortinet  Ltd.
+#
+#    Authors: Nicolas Thomss  <nthomasfortinet.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, version 3 of the License.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# checking openstack cli is recent enough using sort -V .
+
+OSCLI_VER=`openstack --version 2>&1 | sed -e "s/openstack //g"`
+read -r -d '' VAR << EOM || true
+3.0
+$OSCLI_VER
+EOM
+
+CHECKED_VER=`echo "$VAR" | sort -V|tail -1`
+
+if [ "$CHECKED_VER" == "3.0" ]; then
+    echo "please upgrade python-openstackclient to a newer version"
+    exit 2
+else
+    echo "openstack client seem recent enough"
+    exit 0
+fi
