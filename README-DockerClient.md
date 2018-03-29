@@ -1,12 +1,32 @@
-If not using an Ubuntu machine:
+# Fortistacks client on Docker (any macine)
 
-But won't be able to have your own OpenStack then.
+Using a Docker image will require that you already have access to an Openstack. 
+The ubuntu-openstacks scripts run only on native Ubuntu with virtualization available.
 
+# Quick start
 
-#need to do a Dockerfile (fortistacks cli)
-Check dockerfile
+Copy your .rc file with the openstack credentials in fortistacks folder.
+
+From fortistacks folder:
 ```shell
-$ docker run -v $HOME/src/fortistacks/:/fortistacks/ -v $HOME/.ssh:/root/.ssh/ --rm -i  --name fortistacks-cli  -h fortistacks-cli -t fortistacks-cli:1.2 
+docker run -v $PWD:/fortistacks/ -v $HOME/.ssh:/root/.ssh/ --rm -i  --name fortistacks-cli  -h fortistacks-cli -t thomnico/fortinet-cse:fortistacks-cli-1.2
+```
+Or adapt to your folder layout.
+
+Once started cd /fortistacks/ and simply source your RC-file than you get from https://citycontrolpanel.com/openstack#openstack_api_access (link in the parameters of the user)
+Be sure to add:
+```shell
+export OS_FLAVOR=1C-1GB
+export EXT_NET=ext-net
+```
+At the end of your RC-file first.
+
+
+# Hackers/curious 
+Check Dockerfile in this folder to see how it is done.
+Have to use pinpoint version due to weeks long bugs in openstack clients.
+
+```shell
+$ docker run -v $PWD:/fortistacks/ -v $HOME/.ssh:/root/.ssh/ --rm -i  --name fortistacks-cli  -h fortistacks-cli -t fortistacks-cli:1.2 
  ```
 
-Ensure to have the citycloud rc environment variable in the file
