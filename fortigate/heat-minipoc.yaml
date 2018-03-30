@@ -59,9 +59,6 @@ resources:
       set defaultgw disable 
       next
       end
-      config system dns
-      set primary 8.8.8.8
-      end
       config firewall policy
       edit 1
       set name "Allow any any"
@@ -81,11 +78,11 @@ resources:
   properties:
     group: ungrouped
     config: |
-      -----BEGIN FGT VM LICENSE-----
-      QAAAALSJKa+KWVPzr9fqir2ldpPctcUMYAPft2EWEBFzp7jwsHtQ4DyyVvBP7pvGDtqxTAe+YNYr
-      AecoceX3xnA4OWhgAAAAEPKXlEk1xvPuMs1vXBG0BGzWeB66nNdgacxYjydWG6erVk8VFAQynzGm
-      /WWBdEB/7TjBRLdLArK8jvACHiukd3nimveB7EUwb6gHfaC/8TbFM6J1KnFMBNVaYgiUgOtD
-      -----END FGT VM LICENSE-----
+       -----BEGIN FGT VM LICENSE-----
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXA
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXA
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdE
+       -----END FGT VM LICENSE-----
 
  fgt_init:
   type: OS::Heat::MultipartMime

@@ -9,7 +9,7 @@ They can easily be adapted to other environment. Pull request appreciated.
 
 Once you created an account on 
 Go to https://citycontrolpanel.com/openstack#openstack_api_access line with user there a wheel on the right you can download rc file to get cli access
-Download your credentials in a CityCloud.rc type of file. (Name does not matter)
+Download your credentials in a openstack.rc type of file. (Name does not matter)
 
 Add the following to your .rc file:
 ```shell
@@ -27,7 +27,15 @@ export EXT_NET=ext-net
 In order to run Fortistacks scripts you will need your own Ubunut16.04 image.
 It can be a VM or your own laptop.
 
-We provide a Docker image for portability check README-DockerClient.md for details on building using it.
+We provide a Docker image for portability:
+ 
+Copy your .rc file with the openstack credentials in fortistacks folder.
+
+From fortistacks folder:
+```shell
+docker run -v $PWD:/fortistacks/ -v $HOME/.ssh:/root/.ssh/ --rm -i  --name fortistacks-cli  -h fortistacks-cli -t thomnico/fortinet-cse:fortistacks-cli-1.2
+```
+Or adapt to your folder layout, check README-DockerClient.md for details on building using it.
 
 Once you are logged in this Ubuntu environment source your openstack.rc file and run:
 ````shell
