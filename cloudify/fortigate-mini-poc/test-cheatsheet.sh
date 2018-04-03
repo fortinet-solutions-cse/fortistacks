@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+
+cfy secret create fgt_license -f ../../fortigate/FGT.lic
+
+
 #all in one
 cfy install  blueprint.yaml -i inputs-citycloud.yaml
 
@@ -9,7 +13,7 @@ cfy deployment create -b fortigate-mini-poc -i inputs-citycloud.yaml
 cfy deployments update fortigate-mini-poc -p blueprint.yaml -i inputs-citycloud.yaml
 
 
-cfy secret create fgt_license -f ../../fortigate/FGT.lic 
+
 #Then install works too.
 cfy executions start install -d fortigate-mini-poc
 

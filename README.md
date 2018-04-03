@@ -10,6 +10,14 @@ Cloudify or OSM/Rift.io formats.
 The scripts are supposed to run on an Ubuntu with root access.
 See the README Dockerclient for running on external Openstack on any client.
 
+## Videos
+
+Fortistacks1.2 on Public openstack : https://youtu.be/Zp6CCEbJiUU
+
+If you want to install your own openstack and use the same (on 1 machine) refer to 
+ Fortistacks1.1  https://youtu.be/0y38B61FTSk the video applies to version 1.2.
+
+## Previous versions
 For stable versions of this project refer to :
 
 https://github.com/fortinet-solutions-cse/fortistacks/releases to find
@@ -78,6 +86,3 @@ As described here:
 The goal is to offer an easy access to all parts and being able to experiment with Fortinet products on Openstack.
 
 
-## Video tutorial ##
-
-(Please have a look to this video showing installation and execution steps:  https://youtu.be/0y38B61FTSk)
