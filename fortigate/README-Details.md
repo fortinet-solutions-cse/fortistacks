@@ -69,8 +69,8 @@ fgt_config:
   type: OS::Heat::MultipartMime
   properties:
     parts:
-     - config: {get_resource: fgt_license}
      - config: {get_resource: fgt_config}
+     - config: {get_resource: fgt_license}
 
 
 # Fortigate/Fortios specifics to virtualized environment and fortistacks setup:

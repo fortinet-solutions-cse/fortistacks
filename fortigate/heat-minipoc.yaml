@@ -84,12 +84,13 @@ resources:
        xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdE
        -----END FGT VM LICENSE-----
 
+
  fgt_init:
   type: OS::Heat::MultipartMime
   properties:
     parts:
-     - config: {get_resource: fgt_license}
      - config: {get_resource: fgt_config}
+     - config: {get_resource: fgt_license}
 
  ub_config:
   type: OS::Heat::SoftwareConfig
@@ -158,7 +159,9 @@ resources:
     type: OS::Neutron::Port
     properties:
       network_id: { get_resource: left_net }
-      port_security_enabled: false
+#      port_security_enabled: false
+      allowed_address_pairs:
+        - ip_address: "10.20.20.0/24"
       fixed_ips:
         - ip_address: "10.40.40.254"
 #https://blueprints.launchpad.net/heat/+spec/add-security-group-to-port may come handy
@@ -182,10 +185,11 @@ resources:
   properties:
    image: { get_param: fgtimage }
    flavor: { get_param: vms_flavor }
-   user_data:     { get_resource: fgt_init }
+   user_data: { get_resource: fgt_config }
    config_drive: True
    name: FGT
-   user_data_format: SOFTWARE_CONFIG
+   user_data_format: RAW
+   personality: {"license": { get_attr: [fgt_license, config] }}
    networks:
     - port: { get_resource: fgt_mgmt_port }
     - port:  { get_resource: fgt_left_port }
