@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-
+#RAW list of usefull commands while debugging
 
 cfy secret create fgt_license -f ../../fortigate/FGT.lic
 

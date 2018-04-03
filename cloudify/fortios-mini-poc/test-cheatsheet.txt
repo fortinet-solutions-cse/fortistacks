@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#RAW list of usefull commands while debugging
 
 #all in one
 cfy install  blueprint.yaml -i inputs-citycloud.yaml
