@@ -16,6 +16,7 @@ Add the following to your .rc file:
 export OS_FLAVOR=1C-1GB
 export EXT_NET=ext-net
 ```
+List of Regions: "Sto2 Lon1 Fra1 Buf1 La1 Kna1"
 
 ### Limitations 
 
