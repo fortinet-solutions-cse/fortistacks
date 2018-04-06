@@ -1,0 +1,56 @@
+node_types:
+
+  FortigateCollector:
+    derived_from: cloudify.nodes.Compute # "fake compute"
+    properties:
+      install_agent:
+        default: false
+      diamond_config:
+        default:
+          interval: 30
+    interfaces:
+      cloudify.interfaces.monitoring_agent:
+        install:
+          executor: host_agent
+          implementation: diamond.diamond_agent.tasks.install
+          inputs:
+            diamond_config:
+              default: { get_property: [SELF, diamond_config] }
+        start:
+          executor: host_agent
+          implementation: diamond.diamond_agent.tasks.start
+        stop:
+          executor: host_agent
+          implementation: diamond.diamond_agent.tasks.stop
+        uninstall:
+          executor: host_agent
+          implementation: diamond.diamond_agent.tasks.uninstall
+
+      cloudify.interfaces.lifecycle:
+        configure:
+          executor: host_agent
+          implementation: scripts/install_requirements.sh
+
+      cloudify.interfaces.monitoring:
+        start:
+          implementation: diamond.diamond_agent.tasks.add_collectors
+          executor: host_agent
+          inputs:
+            collectors_config:
+              default:
+                fortiosProxyCollector:
+                  path: collectors/fortiosgate.py
+                  config: { get_attribute: [SELF, fortios_collector_config ] }
+
+relationships:
+  cloudify.relationships.monitors:
+    derived_from: cloudify.relationships.depends_on
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        preconfigure:
+          implementation: scripts/append_diamond_conf.py
+          executor: host_agent
+          inputs:
+            vdom:
+              default: 'root'
+              description: "default vdom"

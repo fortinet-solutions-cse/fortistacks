@@ -1,0 +1,16 @@
+node_types:
+
+  FortiosSecurityGroup:
+    derived_from: cloudify.openstack.nodes.SecurityGroup
+      security_group:
+        default:
+          name: fortios_security_group
+          description: Allows http/https  communication for API
+      rules:
+        default:
+          - remote_ip_prefix: 0.0.0.0/0
+            port: 443
+            protocol: tcp
+          - remote_ip_prefix: 0.0.0.0/0
+            port: 80
+            protocol: tcp
