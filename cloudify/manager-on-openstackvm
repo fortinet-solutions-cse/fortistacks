@@ -104,10 +104,11 @@ PRIV_IP=`openstack server show cfy-manager -f value -c addresses|awk -F ",|=" '{
 #cfy_manager configure --private-ip $PRIV_IP --public-ip $FLOAT_IP --admin-password "fortinet" -v
 
 wget -c https://s3-eu-west-1.amazonaws.com/cloudify-release-eu/cloudify/wagons/cloudify-openstack-plugin/2.5.2/cloudify_openstack_plugin-2.5.2-py27-none-linux_x86_64-centos-Core.wgn
-cfy plugins upload cloudify_openstack_plugin-2.5.2-py27-none-linux_x86_64-centos-Core.wgn
+
+cfy plugins list | grep openstack ||cfy plugins upload cloudify_openstack_plugin-2.5.2-py27-none-linux_x86_64-centos-Core.wgn
 
 wget -c http://repository.cloudifysource.org/cloudify/wagons/cloudify-diamond-plugin/1.3.8/cloudify_diamond_plugin-1.3.8-py27-none-linux_x86_64-centos-Core.wgn
-cfy plugins upload cloudify_diamond_plugin-1.3.8-py27-none-linux_x86_64-centos-Core.wgn
+cfy plugins list | grep diamond ||cfy plugins upload cloudify_diamond_plugin-1.3.8-py27-none-linux_x86_64-centos-Core.wgn
 
 ## 4.3 check : cfy plugins bundle-upload
 
