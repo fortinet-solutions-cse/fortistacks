@@ -8,7 +8,7 @@ description: >
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
-  - http://www.getcloudify.org/spec/openstack-plugin/2.5.2/plugin.yaml
+  - http://www.getcloudify.org/spec/openstack-plugin/2.9.0/plugin.yaml
 
 inputs:
   fos_image:
@@ -32,11 +32,15 @@ inputs:
 
 dsl_definitions:
 
-  openstack_config: &openstack_config
-#    username: { get_input: keystone_username }
-#   password: { get_input: keystone_password }
-#  tenant_name: { get_input: keystone_tenant_name }
-# auth_url: { get_input: keystone_url }
+# The configuration of openstack access is in the file /etc/cloudify/openstack_config.json
+# For simplicity of blueprint reading.
+
+#  ##openstack_config: &openstack_config
+#    username: { get_secret: keystone_username }
+#    password: { get_secret: keystone_password }
+#    tenant_name: { get_secret: keystone_tenant_name }
+#    auth_url: { get_secret: keystone_url }
+#    region: { get_secret: region }
 
 node_templates:
 
@@ -75,6 +79,7 @@ node_templates:
   left_subnet:
     type: cloudify.openstack.nodes.Subnet
     properties:
+      ##openstack_config: *openstack_config
       resource_id: left_subnet_openstack
       subnet:
         host_routes: [ {"nexthop": "10.40.40.254", "destination": "10.20.20.0/24"} ]
@@ -103,6 +108,7 @@ node_templates:
   right_network:
     type: cloudify.openstack.nodes.Network
     properties:
+      ##openstack_config: *openstack_config
       resource_id: right_network_openstack
 
   right_subnet:
@@ -173,7 +179,7 @@ node_templates:
         key_name: { get_input: key_name }
       agent_config:
         install_method: none # Bug in cloudify agents use internal ip and not floating
-      openstack_config: *openstack_config
+      ##openstack_config: *openstack_config
       management_network_name: { get_input: mgmt_network_name }
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -225,7 +231,7 @@ node_templates:
         key_name: { get_input: key_name }
       agent_config:
         install_method: none # do not install agent
-      openstack_config: *openstack_config
+      ##openstack_config: *openstack_config
       management_network_name: { get_input: mgmt_network_name }
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -290,7 +296,7 @@ node_templates:
         key_name: { get_input: key_name }
       agent_config:
         install_method: none # Bug in cloudify agents use internal ip and not floating
-      openstack_config: *openstack_config
+      ##openstack_config: *openstack_config
       management_network_name: { get_input: mgmt_network_name }
     interfaces:
       cloudify.interfaces.lifecycle:
