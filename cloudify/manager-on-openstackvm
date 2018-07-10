@@ -23,6 +23,8 @@
 
 # checking openstack cli is recent enough using sort -V .
 
+#check the docker image from here:http://repository.cloudifysource.org/cloudify/4.3.2/ga-release/cloudify-docker-manager-4.3.2ga.tar
+
 OSCLI_VER=`openstack --version 2>&1 | sed -e "s/openstack //g"`
 read -r -d '' VAR << EOM || true
 3.0
@@ -44,49 +46,83 @@ fi
 
 #if EXT_NET variable not set use default (allow to have it as param from the .rc file)
 [ -x $EXT_NET ] && EXT_NET=ext-net
-[ -x $OS_FLAVOR_CFY ] && OS_FLAVOR_CFY=2C-2GB-50GB
+[ -x $OS_FLAVOR_CFY ] && OS_FLAVOR_CFY=2C-4GB-50GB
 #Follow http://docs.getcloudify.org/
 export LC_ALL=C
-
-sudo apt -y install python-pip python-virtualenv wget git
-#sudo pip install --upgrade pip
+PKGS=" python-pip python-virtualenv wget git"
+dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
 # if already install do nothing
-[ -f cloudify-cli-4.2ga.deb ] || wget -c http://repository.cloudifysource.org/cloudify/4.2.0/ga-release/cloudify-cli-4.2ga.deb
-
+[ -f cloudify-cli-4.3.2ga.deb ] || wget -c http://repository.cloudifysource.org/cloudify/4.3.2/ga-release/cloudify-cli-4.3.2ga.deb
  (dpkg -l cloudify >/dev/null)  || sudo dpkg -i cloudify*.deb
 
-#Push image if needed
-openstack image show  "cfy-manager4.2" > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "cfy-manager4.2"  --file cloudify-manager-4.2ga.qcow2
+# Will now use the Docker image on centos ..
+#
+CentOSImageID=`openstack image list --format value -c ID -c Name |grep "CentOS 7"|head -1|awk '{print $1}'`
+#openstack image show  "cfy-manager4.2" > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "cfy-manager4.2"  --file cloudify-manager-4.2ga.qcow2
 
-if (openstack server show cfy-manager  > /dev/null 2>&1 );then
+if (openstack server show cfy-manager-4.3  > /dev/null 2>&1 );then
     echo "cloudify manager already started"
     #get the floating-ip from openstack and trim result
-    FLOAT_IP=`openstack server show cfy-manager -f value -c addresses|awk -F , '{print $2}'|sed 's/ //g'`
+    FLOAT_IP=`openstack server show cfy-manager-4.3 -f value -c addresses|awk -F , '{print $2}'|sed 's/ //g'`
 else
-    openstack server create  --image "cfy-manager4.2" cfy-manager --key-name default --security-group default --flavor $OS_FLAVOR_CFY --network mgmt
-    while [ `openstack server show cfy-manager -f value -c status` == "BUILD" ]; do
+    #check the fingerprint are equal (will work if not existant)
+    OSKEY_FPRINT=`openstack keypair show cloudify -f value -c fingerprint|| echo "none"`
+    KEY_FRPINT=`(ssh-keygen -E md5 -lf cloudify-key.pub || echo "MD5:false" ) |awk -F " |MD5:" '{print $3}'`
+    if [ "$OSKEY_FPRINT" != "$KEY_FRPINT" ] || [ ! -f cloudify-key ]
+        then
+        #Create a new key upload public and private to cloudify .never put your real private keys on a cloud.
+        rm -rf ./cloudify-key ./cloudify-key.pub
+        ssh-keygen -t ecdsa -b 521 -N "" -C "key for cloudify manager/agents" -f ./cloudify-key
+        openstack keypair delete cloudify || true
+        openstack keypair create --public-key cloudify-key.pub cloudify
+        fi
+    openstack server create  --image $CentOSImageID cfy-manager-4.3 --key-name cloudify --security-group default --flavor $OS_FLAVOR_CFY --network mgmt
+    while [ `openstack server show cfy-manager-4.3 -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
+    # wait for the keys etc to propagate
+    sleep 8
     FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
-    openstack server add floating ip cfy-manager $FLOAT_IP
+    openstack server add floating ip cfy-manager-4.3 $FLOAT_IP
 fi
-until (ssh -o StrictHostKeyChecking=no centos@$FLOAT_IP ping -c 3 cloudify.co); do
+SSH="ssh -t -i cloudify-key -o StrictHostKeyChecking=no centos@$FLOAT_IP"
+until ($SSH ping -c 3 cloudify.co); do
 sleep 4
 echo "waiting the vm to be up"
 done
-## change the default openstack config to use the one currently on.
-envsubst < openstack_configv3.template | ssh -o StrictHostKeyChecking=no centos@$FLOAT_IP sudo tee /etc/cloudify/openstack_config.json
 
+
+### Install from rpm
+$SSH sudo yum install -y openssl-1.0.2k
+$SSH "(rpm -q cloudify-manager-install)|| sudo yum install -y http://repository.cloudifysource.org/cloudify/4.3.2/ga-release/cloudify-manager-install-4.3.2ga.rpm"
+#cfy_manager install [--private-ip <PRIVATE_IP>] [--public-ip <PUBLIC_IP>] [--admin-password <password>] [-v]
+privateip=`openstack server show cfy-manager-4.3 -f value -c addresses|awk -F "=|," '{print $2}'|sed 's/ //g'`
+#Copy the ssh key private key to the manager.
+scp -i cloudify-key -o StrictHostKeyChecking=no ./cloudify-key  centos@$FLOAT_IP:
+$SSH  sudo mv ./cloudify-key /etc/cloudify/ssh_key
+
+## upload a special cloudify config file to skip sanity checks(which fails)
+scp -i cloudify-key -o StrictHostKeyChecking=no config.yaml  centos@$FLOAT_IP:
+$SSH  sudo mv config.yaml /etc/cloudify/
+#$SSH sudo cfy_manager install --private-ip $privateip --public-ip $FLOAT_IP  -v
+$SSH "[ -f /etc/cloudify/.install ] ||sudo cfy_manager install --private-ip $FLOAT_IP --public-ip $FLOAT_IP   -a fortinet  --clean-db"
+# Docker-ce:
+#$SSH sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+#$SSH  sudo yum-config-manager   --add-repo    https://download.docker.com/linux/centos/docker-ce.repo
+#$SSH sudo yum-config-manager --enable docker-ce-edge
+#$SSH    sudo yum install -y docker-ce
+##
+
+# change the default openstack config to use the one currently on.
+envsubst < openstack_configv3.template > openstack_config.json
+scp -i cloudify-key -o StrictHostKeyChecking=no   openstack_config.json centos@$FLOAT_IP:
+$SSH  sudo mv openstack_config.json /etc/cloudify/openstack_config.json
 cfy init -r
 #Colors in the logs
 sed -i 's/colors: false/colors: true/g' $HOME/.cloudify/config.yaml
-cfy profiles use $FLOAT_IP -u admin -p admin -t default_tenant
+cfy profiles use $FLOAT_IP -u admin -p fortinet -t default_tenant
 
-wget -c https://s3-eu-west-1.amazonaws.com/cloudify-release-eu/cloudify/wagons/cloudify-openstack-plugin/2.5.2/cloudify_openstack_plugin-2.5.2-py27-none-linux_x86_64-centos-Core.wgn
-cfy plugins upload cloudify_openstack_plugin-2.5.2-py27-none-linux_x86_64-centos-Core.wgn
-
-wget -c http://repository.cloudifysource.org/cloudify/wagons/cloudify-diamond-plugin/1.3.6/cloudify_diamond_plugin-1.3.6-py26-none-linux_x86_64-centos-Final.wgn
-cfy plugins upload cloudify_diamond_plugin-1.3.6-py26-none-linux_x86_64-centos-Final.wgn
+$SSH sudo cfy plugins  bundle-upload
 
 # adding the openstack credential as secret to ease working with some Cloudify blueprints
 cfy  secret create  keystone_username -s $OS_USERNAME
