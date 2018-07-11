@@ -12,7 +12,7 @@ openstack volume create --size 8 fmg-log1
 
 export OS_FLAVOR="2C-4GB"
 openstack server create --image "FMG 5.6.2" fmg56 --key-name default  --security-group default  \
-           --flavor $OS_FLAVOR --nic net-id=mgmtB,v4-fixed-ip=192.168.1.99
+           --flavor $OS_FLAVOR --nic net-id=mgmt,v4-fixed-ip=192.168.1.99
 openstack server add volume fmg56 fmg-log1 --device /dev/vdb
 ```
 
@@ -45,4 +45,11 @@ edit 1
 #must match your network mtu#        set mtu 1400
 end
 execute lvm start
+```
+You must run the followin cli on FMG to be able to use the API
+```bash
+config system admin user
+edit admin
+set rpc-permit read-write
+end
 ```

@@ -4,5 +4,5 @@ parameters:
   ubimage: "Ubuntu 16.04 Xenial Xerus"
   mgmt_net: "mgmt"
   public_net: "ext-net"
-  vms_flavor: "1C-1GB"
+  vms_flavor: "1C-1GB-10GB"
   ub_nic2_name: "ens4"
