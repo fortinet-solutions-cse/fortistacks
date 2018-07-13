@@ -7,7 +7,23 @@ description: >
   HOT template to create 3 neutron networks, 2 generic VMs a 2 Fortigate VM
   in between and floating ip for everyone.
   Used for HA setup debugging.
-  
+
+## HA conf not creating a vMAC for mgmt
+  #config system ha
+     #    set group-id 12
+     #    set group-name "toto"
+     #    set mode a-p
+     #    set password "toto"
+     #    set ha-mgmt-status enable
+     #    config ha-mgmt-interfaces
+     #        edit 1
+     #            set interface "port1"
+     #            set gateway 192.168.1.1
+     #        next
+     #    end
+     #    set override disable
+     #    set hbdev port4 50
+     #end
 parameters:
  fgtimage:
   type: string
@@ -25,7 +41,14 @@ parameters:
   type: string
   description: External network for floating ips
   default: "ext_net"
-
+ vms_flavor:
+  type: string
+  description: Flavor of the VMs
+  default: "m1.small"
+ ub_nic2_name:
+  type: string
+  description: Name of the second interface on Ubuntu may vary
+  default: "eth1"
 
 resources:
  left_net:
@@ -82,10 +105,10 @@ resources:
  fgta_mgmt_port:
     type: OS::Neutron::Port
     properties:
-      network_id: { get_resource: mgmt_net }
+      network_id: { get_param: mgmt_net }
       port_security_enabled: false
       fixed_ips:
-        - ip_address: "192.168.16.254"
+        - ip_address: "192.168.1.254"
 
  fgta_floating_ip:
     type: OS::Neutron::FloatingIP
@@ -110,7 +133,7 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: fgtimage }
-   flavor: m1.small
+   flavor: { get_param: vms_flavor }
    user_data_format: RAW
    user_data: |
                 config system interface
@@ -160,7 +183,7 @@ resources:
                 end
    name: FGTA
    config_drive: True
-   security_groups: [ default ]
+   #security_groups: [ default ]
    user_data_format: RAW
    personality: {"license": { get_file: FGA.lic }}
    networks:
@@ -174,7 +197,7 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: fgtimage }
-   flavor: m1.small
+   flavor: { get_param: vms_flavor }
    user_data_format: RAW
    user_data: |
                 config system interface
@@ -224,7 +247,7 @@ resources:
                 end
    name: FGTB
    config_drive: True
-   security_groups: [ default ]
+   #security_groups: [ default ]
    user_data_format: RAW
    personality: {"license": { get_file: FGB.lic }}
    networks:
@@ -267,7 +290,7 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: ubimage }
-   flavor: m1.small
+   flavor: { get_param: vms_flavor }
    key_name: "default"
    user_data_format: RAW
    user_data: |
@@ -304,7 +327,7 @@ resources:
   type: OS::Nova::Server
   properties:
    image: { get_param: ubimage }
-   flavor: m1.small
+   flavor: { get_param: vms_flavor }
    key_name: "default"
    user_data_format: RAW
    user_data: |
