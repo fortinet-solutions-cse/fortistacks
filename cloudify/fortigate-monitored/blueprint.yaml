@@ -5,9 +5,11 @@ description: >
   
 
 imports:
-  - http://www.getcloudify.org/spec/cloudify/4.2/types.yaml
-  - http://www.getcloudify.org/spec/openstack-plugin/2.5.2/plugin.yaml
-#  - types/fortigate-types.yaml
+  - http://www.getcloudify.org/spec/cloudify/4.3/types.yaml
+  - plugin:cloudify-openstack-plugin
+  - plugin:cloudify-utilities-plugin
+  - plugin:cloudify-diamond-plugin
+ #  - types/fortigate-types.yaml
 #  - types/openstack-fortigate-types.yaml
 
 plugins:
@@ -38,13 +40,25 @@ inputs:
 
 dsl_definitions:
 
-  openstack_config: &openstack_config
+  #openstack_config: &#openstack_config
 #    username: { get_input: keystone_username }
 #   password: { get_input: keystone_password }
 #  tenant_name: { get_input: keystone_tenant_name }
 # auth_url: { get_input: keystone_url }
 
 node_templates:
+
+  cloudify_host_cloud_config:
+    type: cloudify.nodes.CloudInit.CloudConfig
+    properties:
+      resource_config:
+        users:
+        - name: { get_input: agent_user }
+          groups: sudo
+          shell: /bin/bash
+          sudo: ['ALL=(ALL) NOPASSWD:ALL']
+          ssh-authorized-keys:
+          - { get_input: agent_key_public }
 
 ## Try first the plugin-fortigate-monitor on central agent.
   monitoring_server:
@@ -56,12 +70,13 @@ node_templates:
         key_name: { get_input: key_name }
       agent_config:
         user: ubuntu
-        key: /home/cfyuser/cfy_rsa
+        key: { get_input: agent_key_private }
+        insal
         # be sure to copy your key first it must match default key in openstack
         # should be done by manager on openstack script
         # scp /home/thomas/.ssh/id_rsa centos@77.81.7.7:~/
         # ssh centos@77.81.7.7 sudo chown cfyuser id_rsa
-      openstack_config: *openstack_config
+      #openstack_config: *#openstack_config
       management_network_name: { get_input: mgmt_network_name }
     interfaces:
       cloudify.interfaces.monitoring_agent:
@@ -204,7 +219,7 @@ node_templates:
         key_name: { get_input: key_name }
       agent_config:
         install_method: none # do not install agent
-      openstack_config: *openstack_config
+      #openstack_config: *#openstack_config
       management_network_name: { get_input: mgmt_network_name }
     interfaces:
       cloudify.interfaces.lifecycle:
