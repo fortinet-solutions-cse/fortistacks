@@ -1,7 +1,7 @@
 fos_image: 'fos56'
 fos_flavor: '1C-1GB'
-ub_image: 'Ubuntu 16.04 Xenial Xerus'
+ub_image: 'CentOS 7'
 ub_flavor: '1C-1GB'
 mgmt_network_name: "mgmt"
-key_name: 'cloudify'
+key_name: "cloudify"
 external_network_name: "ext-net"

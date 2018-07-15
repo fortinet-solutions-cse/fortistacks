@@ -26,7 +26,7 @@ inputs:
   fos_flavor:
     default: {}
   key_name:
-    default: {}
+    default: { cloudify}
   ub_image:
      default: {}  
   ub_flavor:
@@ -35,6 +35,10 @@ inputs:
     default: "mgmt"
   external_network_name:
     default: "ext_net"
+  agent_key_private:
+    description: >
+      The content of the agent's private key.
+    default: { get_secret: cloudify-key-private }
 
 
 
@@ -48,18 +52,6 @@ dsl_definitions:
 
 node_templates:
 
-  cloudify_host_cloud_config:
-    type: cloudify.nodes.CloudInit.CloudConfig
-    properties:
-      resource_config:
-        users:
-        - name: { get_input: agent_user }
-          groups: sudo
-          shell: /bin/bash
-          sudo: ['ALL=(ALL) NOPASSWD:ALL']
-          ssh-authorized-keys:
-          - { get_input: agent_key_public }
-
 ## Try first the plugin-fortigate-monitor on central agent.
   monitoring_server:
     type: cloudify.openstack.nodes.Server
@@ -69,9 +61,9 @@ node_templates:
         flavor_name: { get_input: ub_flavor }
         key_name: { get_input: key_name }
       agent_config:
-        user: ubuntu
-        key: { get_input: agent_key_private }
-        insal
+        user: centos
+        key: /etc/cloudify/ssh_key
+        install_method: init_script
         # be sure to copy your key first it must match default key in openstack
         # should be done by manager on openstack script
         # scp /home/thomas/.ssh/id_rsa centos@77.81.7.7:~/
@@ -92,7 +84,7 @@ node_templates:
                 #cloud-config
                 chpasswd:
                   list: |
-                    ubuntu:fortinet
+                    centos:fortinet
                   expire: False
                 package_upgrade: true
                 packages:
@@ -100,6 +92,10 @@ node_templates:
                   - python-pip
                 runcmd:
                   - [ pip , install, --upgrade, pip ]
+                ssh-authorized-keys:
+                  - { get_input: agent_key_public }
+
+
 
   fos_floating_ip:
     type: cloudify.openstack.nodes.FloatingIP

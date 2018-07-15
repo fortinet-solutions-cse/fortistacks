@@ -99,13 +99,13 @@ $SSH "(rpm -q cloudify-manager-install)|| sudo yum install -y http://repository.
 privateip=`openstack server show cfy-manager-4.3 -f value -c addresses|awk -F "=|," '{print $2}'|sed 's/ //g'`
 #Copy the ssh key private key to the manager.
 scp -i cloudify-key -o StrictHostKeyChecking=no ./cloudify-key  centos@$FLOAT_IP:
-$SSH  sudo mv ./cloudify-key /etc/cloudify/ssh_key
-
+$SSH  sudo cp ./cloudify-key /etc/cloudify/ssh_key
 ## upload a special cloudify config file to skip sanity checks(which fails)
 scp -i cloudify-key -o StrictHostKeyChecking=no config.yaml  centos@$FLOAT_IP:
 $SSH  sudo mv config.yaml /etc/cloudify/
 #$SSH sudo cfy_manager install --private-ip $privateip --public-ip $FLOAT_IP  -v
 $SSH "[ -f /etc/cloudify/.install ] ||sudo cfy_manager install --private-ip $FLOAT_IP --public-ip $FLOAT_IP   -a fortinet  --clean-db"
+$SSH sudo chown cfyuser:cfyuser /etc/cloudify/ssh_key
 # Docker-ce:
 #$SSH sudo yum install -y yum-utils device-mapper-persistent-data lvm2
 #$SSH  sudo yum-config-manager   --add-repo    https://download.docker.com/linux/centos/docker-ce.repo
