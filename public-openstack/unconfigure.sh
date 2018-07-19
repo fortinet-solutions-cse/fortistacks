@@ -7,5 +7,5 @@ router remove subnet provider-router mgmt_subnet
 router delete provider-router
 network delete mgmt
 keypair delete default
-keypair delete cfy
+keypair delete cloudify
 EOF
