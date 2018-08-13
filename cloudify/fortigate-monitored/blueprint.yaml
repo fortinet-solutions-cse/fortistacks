@@ -56,7 +56,7 @@ node_templates:
         key_name: { get_input: key_name }
       agent_config:
         user: ubuntu
-        key: /home/cfyuser/cfy_rsa
+        key: /home/cfyuser/cloudify-key
         # be sure to copy your key first it must match default key in openstack
         # should be done by manager on openstack script
         # scp /home/thomas/.ssh/id_rsa centos@77.81.7.7:~/
