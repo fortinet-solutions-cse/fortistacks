@@ -3,5 +3,5 @@ fos_flavor: '1C-1GB'
 ub_image: 'Ubuntu 16.04 Xenial Xerus'
 ub_flavor: '1C-1GB'
 mgmt_network_name: "mgmt"
-key_name: 'cloudify'
+key_name: 'cfy'
 external_network_name: "ext-net"
