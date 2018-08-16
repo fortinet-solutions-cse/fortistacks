@@ -31,7 +31,7 @@ fi
 
 
 #Push image if needed
-openstack image show  fgt56 > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fgt56"  --file fortios.qcow2
+openstack image show  fgt60 > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fgt60"  --file fortios.qcow2
 #find the name of the Ubuntu 16.04 image
 UB_IMAGE=`openstack image list -f value -c Name |grep 16.04`
 
@@ -76,16 +76,16 @@ openstack port show right1 > /dev/null 2>&1 ||openstack port create right1 --net
 LEFTPORT=`openstack port show left1 -c id -f value`
 RIGHTPORT=`openstack port show right1 -c id -f value`
     
-if (openstack server show fgt56  > /dev/null 2>&1 );then
-    echo "fgt56 already installed"
+if (openstack server show fgt60  > /dev/null 2>&1 );then
+    echo "fgt60 already installed"
 else
     #need to provide an example without config_drive
-    openstack server create --image "fgt56" fgt56 --config-drive=true --key-name default  --security-group default  --flavor $OS_FLAVOR  --user-data fgt-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --file license=FGT.lic
+    openstack server create --image "fgt60" fgt60 --config-drive=true --key-name default  --security-group default  --flavor $OS_FLAVOR  --user-data fgt-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --file license=FGT.lic
 
-    while [ `openstack server show fgt56 -f value -c status` == "BUILD" ]; do
+    while [ `openstack server show fgt60 -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
     FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
-    openstack server add floating ip fgt56 $FLOAT_IP
+    openstack server add floating ip fgt60 $FLOAT_IP
 
 fi
