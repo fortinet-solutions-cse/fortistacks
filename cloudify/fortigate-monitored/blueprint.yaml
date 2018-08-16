@@ -5,11 +5,9 @@ description: >
   
 
 imports:
-  - http://www.getcloudify.org/spec/cloudify/4.3/types.yaml
-  - plugin:cloudify-openstack-plugin
-  - plugin:cloudify-utilities-plugin
-  - plugin:cloudify-diamond-plugin
- #  - types/fortigate-types.yaml
+  - http://www.getcloudify.org/spec/cloudify/4.2/types.yaml
+  - http://www.getcloudify.org/spec/openstack-plugin/2.5.2/plugin.yaml
+#  - types/fortigate-types.yaml
 #  - types/openstack-fortigate-types.yaml
 
 plugins:
@@ -26,7 +24,7 @@ inputs:
   fos_flavor:
     default: {}
   key_name:
-    default: { cloudify}
+    default: {}
   ub_image:
      default: {}  
   ub_flavor:
@@ -35,16 +33,12 @@ inputs:
     default: "mgmt"
   external_network_name:
     default: "ext_net"
-  agent_key_private:
-    description: >
-      The content of the agent's private key.
-    default: { get_secret: cloudify-key-private }
 
 
 
 dsl_definitions:
 
-  #openstack_config: &#openstack_config
+  openstack_config: &openstack_config
 #    username: { get_input: keystone_username }
 #   password: { get_input: keystone_password }
 #  tenant_name: { get_input: keystone_tenant_name }
@@ -61,14 +55,13 @@ node_templates:
         flavor_name: { get_input: ub_flavor }
         key_name: { get_input: key_name }
       agent_config:
-        user: centos
-        key: /etc/cloudify/ssh_key
-        install_method: init_script
+        user: ubuntu
+        key: /home/cfyuser/cfy_rsa
         # be sure to copy your key first it must match default key in openstack
         # should be done by manager on openstack script
         # scp /home/thomas/.ssh/id_rsa centos@77.81.7.7:~/
         # ssh centos@77.81.7.7 sudo chown cfyuser id_rsa
-      #openstack_config: *#openstack_config
+      openstack_config: *openstack_config
       management_network_name: { get_input: mgmt_network_name }
     interfaces:
       cloudify.interfaces.monitoring_agent:
@@ -84,7 +77,7 @@ node_templates:
                 #cloud-config
                 chpasswd:
                   list: |
-                    centos:fortinet
+                    ubuntu:fortinet
                   expire: False
                 package_upgrade: true
                 packages:
@@ -92,10 +85,6 @@ node_templates:
                   - python-pip
                 runcmd:
                   - [ pip , install, --upgrade, pip ]
-                ssh-authorized-keys:
-                  - { get_input: agent_key_public }
-
-
 
   fos_floating_ip:
     type: cloudify.openstack.nodes.FloatingIP
@@ -215,7 +204,7 @@ node_templates:
         key_name: { get_input: key_name }
       agent_config:
         install_method: none # do not install agent
-      #openstack_config: *#openstack_config
+      openstack_config: *openstack_config
       management_network_name: { get_input: mgmt_network_name }
     interfaces:
       cloudify.interfaces.lifecycle:
