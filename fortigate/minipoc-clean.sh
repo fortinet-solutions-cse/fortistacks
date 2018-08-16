@@ -25,14 +25,17 @@ if [ -x "$OS_AUTH_URL" ]; then
 fi
 
 
+cat << EOF | openstack
+server delete trafleft
+server delete trafright
+server delete fgt60
 
-openstack server delete trafleft
-openstack server delete trafright
-openstack server delete fgt56
 
+port delete left1
+port delete right1
+network delete left
+network delete right
 
-openstack port delete left1
-openstack port delete right1
-openstack network delete left
-openstack network delete right
-../public-openstack/bleach-floatingips.sh 
+EOF
+
+../public-openstack/bleach-floatingips.sh
