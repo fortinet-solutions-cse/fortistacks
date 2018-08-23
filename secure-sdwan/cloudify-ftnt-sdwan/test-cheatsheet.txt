@@ -1,0 +1,25 @@
+#RAW list of usefull commands while debugging
+
+cfy secret create fgt_license -f ../../fortigate/FGT.lic
+
+
+#all in one
+cfy install  blueprint.yaml -i inputs-citycloud.yaml
+
+
+cfy upload blueprint blueprint.yaml
+cfy deployment create -b cloudify-ftnt-sdwan -i inputs-citycloud.yaml
+cfy deployments update cloudify-ftnt-sdwan -p blueprint.yaml -i inputs-citycloud.yaml
+
+
+
+#Then install works too.
+cfy executions start install -d cloudify-ftnt-sdwan
+
+#Tearing down
+cfy executions start uninstall -d cloudify-ftnt-sdwan
+cfy executions start uninstall -d cloudify-ftnt-sdwan --force -p ignore_failure=true
+cfy deployments delete cloudify-ftnt-sdwan
+cfy deployments delete cloudify-ftnt-sdwan force
+cfy blueprint delete cloudify-ftnt-sdwan
+

@@ -1,0 +1,41 @@
+###########################################################
+# This file containes node type / relationship definitions
+# for installing, configuring and managing an antmedia
+# instance.
+###########################################################
+
+node_types:
+
+  cloudify.nodes.AntMedia:
+    derived_from: cloudify.nodes.ApplicationServer
+    properties:
+      frontend_port:
+        description: The port for antmedia to listen on.
+        type: integer
+        default: 8080
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/antmedia/install-ubuntu.sh
+
+  cloudify.nodes.MonitoredAntmedia:
+    derived_from: cloudify.nodes.AntMedia
+    # interfaces:
+
+    #   ###########################################################
+    #   # Notice that this node defines an additional collector
+    #   # to collect data on the antmedia instance.
+    #   # Also notice that in the URL, port 9000 is used. If you
+    #   # choose to change this port on the antmedia node template,
+    #   # this URL should be updated as well.
+    #   ###########################################################
+
+    #   cloudify.interfaces.monitoring:
+    #       start:
+    #         implementation: diamond.diamond_agent.tasks.add_collectors
+    #         inputs:
+    #           collectors_config:
+    #             default:
+    #               antmediaCollector:
+    #                 config:
+    #                   url: http://127.0.0.1:9000/antmedia_stats;csv
+
