@@ -1,12 +1,13 @@
 tosca_definitions_version: cloudify_dsl_1_3
 
 description: >
-  Deployment of Antmedia and SDWAN rules to fortimanager.
-  $ cfy secret create fgt_license -f ../../fortigate/FGT.lic
+  Deployment of 2 subnets in a net with a VM as a router in the middle.
+  Idea is to be able to have netem and simulate a WAN.
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
   - http://www.getcloudify.org/spec/openstack-plugin/2.9.0/plugin.yaml
+  - plugin:cloudify-utilities-plugin
 
 inputs:
   fos_image:
@@ -19,6 +20,8 @@ inputs:
      default: {}  
   ub_flavor:
      default: {}
+  agent_user:
+      default: "ubuntu"
 
 
   mgmt_network_name:
@@ -42,48 +45,30 @@ dsl_definitions:
 
 node_templates:
 
-  fos_floating_ip:
-    type: cloudify.openstack.nodes.FloatingIP
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              floating_network_name: { get_input: external_network_name }
 
-  leftub_floating_ip:
-    type: cloudify.openstack.nodes.FloatingIP
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              floating_network_name: { get_input: external_network_name }
+# networks
+  provider_router:
+    type: cloudify.openstack.nodes.Router
+    properties:
+      resource_id: provider-router
+      use_external_resource: true
 
-  antmedia_floating_ip:
-    type: cloudify.openstack.nodes.FloatingIP
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              floating_network_name: { get_input: external_network_name }
-
-  left_network:
+  wan_network:
     type: cloudify.openstack.nodes.Network
     properties:
-      resource_id: left_network_openstack
+      resource_id: wan_network_openstack
 
-  left_subnet:
+  wan_subnet_north:
     type: cloudify.openstack.nodes.Subnet
     properties:
       ##openstack_config: *openstack_config
-      resource_id: left_subnet_openstack
+      resource_id: wan_subnet_north
       subnet:
         host_routes: [ {"nexthop": "10.40.40.254", "destination": "10.20.20.0/24"} ]
         allocation_pools:
           - start: 10.40.40.3
             end: 10.40.40.140
+        dns_nameservers: [1.1.1.1]
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -91,28 +76,24 @@ node_templates:
             args:
               cidr: 10.40.40.0/24
               ip_version: 4
-              gateway_ip: null
+              gateway_ip: 10.40.40.1
       cloudify.interfaces.validation:
         creation:
           inputs:
             args:
               cidr: 10.40.40.0/24
               ip_version: 4
-              gateway_ip: null
+              gateway_ip: 10.40.40.1
     relationships:
-      - target: left_network
+      - target: wan_network
         type: cloudify.relationships.contained_in
+      - target: provider_router
+        type: cloudify.openstack.subnet_connected_to_router
 
-  right_network:
-    type: cloudify.openstack.nodes.Network
-    properties:
-      ##openstack_config: *openstack_config
-      resource_id: right_network_openstack
-
-  right_subnet:
+  wan_subnet_south:
     type: cloudify.openstack.nodes.Subnet
     properties:
-      resource_id: right_subnet_openstack
+      resource_id: wan_subnet_south
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -129,13 +110,17 @@ node_templates:
               ip_version: 4
               gateway_ip: null
     relationships:
-      - target: right_network
+      - target: wan_network
         type: cloudify.relationships.contained_in
 
-  left_port:
+
+
+
+
+  wan_port_north:
     type: cloudify.openstack.nodes.Port
     properties:
-      resource_id: left_port
+      resource_id: wan_port
       fixed_ip: "10.40.40.254"
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -144,31 +129,109 @@ node_templates:
             args:
               port_security_enabled: False
     relationships:
-      - target: left_network
+      - target: wan_network
         type: cloudify.relationships.contained_in
-      - target: left_subnet
+      - target: wan_subnet_north
         type: cloudify.relationships.depends_on
-        
-  cfy_security_group:
-    type: cloudify.openstack.nodes.SecurityGroup
+
+  wan_port_south:
+    type: cloudify.openstack.nodes.Port
     properties:
-      resource_id: cfy_security_group_openstack
-      rules:
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 8080
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 22
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 80
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 443
-        - remote_ip_prefix: 0.0.0.0/0
-          protocol: icmp
-          port_range_max: null
-          port_range_min: null
+      resource_id: wan_port_south
+      fixed_ip: "10.20.20.254"
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              port_security_enabled: False
+    relationships:
+      - target: wan_network
+        type: cloudify.relationships.contained_in
+      - target: wan_subnet_south
+        type: cloudify.relationships.depends_on
 
 
-  leftubuntu:
+# creating a port on the north subnet as cloudiy seems not catching the north part
+  ub_port_north:
+    type: cloudify.openstack.nodes.Port
+    properties:
+      resource_id: ub_port
+    relationships:
+      - target: wan_network
+        type: cloudify.relationships.contained_in
+      - target: wan_subnet_north
+        type: cloudify.relationships.depends_on
+
+#Wan emulation
+
+  netem_host_cloud_config:
+    type: cloudify.nodes.CloudInit.CloudConfig
+    properties:
+      resource_config:
+        users:
+        - name: { get_input: agent_user }
+          groups: sudo
+          shell: /bin/bash
+          sudo: ['ALL=(ALL) NOPASSWD:ALL']
+          passwd: 'fortinet'
+          ssh-authorized-keys:
+          - { get_secret: agent_key_public }
+        packages:
+          - [python-pip]
+        write_files:
+          - content: |
+              # Enable dhcp on ens4
+              auto ens4
+              iface ens4 inet dhcp
+            path: /etc/network/interfaces.d/51-ens4.cfg
+          - content: |
+              # Make it a router
+              net.ipv4.ip_forward = 1
+            path: /etc/sysctl.conf
+        power_state:
+          delay: "now"
+          mode: reboot
+          message: Rebooting to ensure network conf
+          timeout: 10
+          condition: True
+
+   # on citycloud xenial there python3 only must be installed then
+
+  netem:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: init_script
+        user: { get_input: agent_user }
+        port: 22
+        key: { get_secret: agent_key_private }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              userdata: { get_attribute: [ netem_host_cloud_config, cloud_config ] }
+    relationships:
+      - target: wan_port_north
+        type: cloudify.relationships.connected_to
+      - target: wan_port_south
+        type: cloudify.relationships.connected_to
+
+  north_ub_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: { get_input: external_network_name }
+
+  north_ubuntu:
     type: cloudify.openstack.nodes.Server
     properties:
       server:
@@ -198,10 +261,8 @@ node_templates:
                     path: /etc/network/interfaces.d/51-ens4.cfg
                 package_upgrade: true
                 packages:
-                  - apache2-utils
-                  - apache2
                   - tcpdump
-                  - iperf3
+                  - zile
                 power_state:
                  delay: "now"
                  mode: reboot
@@ -209,26 +270,24 @@ node_templates:
                  timeout: 10
                  condition: True
     relationships:
-      - target: left_network
-        type: cloudify.relationships.connected_to
-      - target: left_subnet
+      - target: ub_port_north
         type: cloudify.relationships.depends_on
-      - target: leftub_floating_ip
+      - target: ub_port_north
+        type: cloudify.relationships.connected_to
+      - target: north_ub_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip
-      - target: cfy_security_group
-        type: cloudify.openstack.server_connected_to_security_group
+#      - target: wan_network
+#        type: cloudify.relationships.connected_to
 
-
-  fortigate:
+  south_ubuntu:
     type: cloudify.openstack.nodes.Server
     properties:
       server:
-        image_name: { get_input: fos_image }
-        flavor_name: { get_input: fos_flavor }
-        #useless key_name for fortinet but mandatory for openstack
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
         key_name: { get_input: key_name }
       agent_config:
-        install_method: none # do not install agent
+        install_method: none # Bug in cloudify agents use internal ip and not floating
       ##openstack_config: *openstack_config
       management_network_name: { get_input: mgmt_network_name }
     interfaces:
@@ -236,83 +295,32 @@ node_templates:
         create:
           inputs:
             args:
-              config_drive: true
               userdata: |
-                #FOS VM Config File
-                config system interface
-                edit port1
-                 set mode dhcp
-                 set allowaccess ping https ssh http snmp fgfm
-                 set defaultgw enable
-                next
-                edit port2
-                set mode dhcp
-                set allowaccess ping
-                 set defaultgw disable
-                next
-                edit port3
-                set mode dhcp
-                set allowaccess ping
-                 set defaultgw disable
-                next
-                end
-                config firewall policy
-                edit 1
-                set name "Allow any any"
-                set srcintf "any"
-                set dstintf "any"
-                set srcaddr "all"
-                set dstaddr "all"
-                set action accept
-                set schedule "always"
-                set service "ALL"
-                set nat enable
-                next
-                end
-              files:
-               license: { get_secret: fgt_license }
+                #cloud-config
+                chpasswd:
+                  list: |
+                    ubuntu:fortinet
+                  expire: False
+                write_files:
+                  - content: |
+                      # Enable dhcp on ens4
+                      auto ens4
+                      iface ens4 inet dhcp
+                    path: /etc/network/interfaces.d/51-ens4.cfg
+                package_upgrade: true
+                packages:
+                  - apache2
+                  - zile
+                power_state:
+                 delay: "now"
+                 mode: reboot
+                 message: Rebooting to ensure network conf
+                 timeout: 10
+                 condition: True
     relationships:
-      - target: fos_floating_ip
-        type: cloudify.openstack.server_connected_to_floating_ip
-      - target: left_port
+      - target: wan_subnet_south
         type: cloudify.relationships.connected_to
-      - target: right_network
+      - target: wan_network
         type: cloudify.relationships.connected_to
-#      - target: right_subnet
-#        type: cloudify.relationships.depends_on
-#      - target: my_security_group
-#        type: cloudify.openstack.server_connected_to_security_group
-#not compatible with portsecurity disabled
-
-  cloudify_host_cloud_config:
-    type: cloudify.nodes.CloudInit.CloudConfig
-    properties:
-      resource_config:
-        users:
-        - name: { get_input: agent_user }
-          groups: sudo
-          shell: /bin/bash
-          sudo: ['ALL=(ALL) NOPASSWD:ALL']
-#          ssh-authorized-keys:
-#          - { get_input: agent_key_public }
-
-  haproxy_host_port:
-    type: cloudify.openstack.nodes.Port
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: public_network
-      - type: cloudify.relationships.depends_on
-        target: public_subnet
-      - type: cloudify.openstack.port_connected_to_security_group
-        target: haproxy_frontend_security_group
-      - type: cloudify.openstack.port_connected_to_floating_ip
-        target: nodecellar_ip
-
-
-  antmedia_frontend_host:
-    type: nodecellar.nodes.MonitoredServer
-    relationships:
-      - target: antmedia_host_port
-        type: cloudify.openstack.server_connected_to_port
-      - type: cloudify.relationships.depends_on
-        target: cloudify_host_cloud_config
+      - target: wan_subnet_south
+        type: cloudify.relationships.depends_on

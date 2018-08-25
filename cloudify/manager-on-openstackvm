@@ -123,6 +123,9 @@ sed -i 's/colors: false/colors: true/g' $HOME/.cloudify/config.yaml
 cfy profiles use $FLOAT_IP -u admin -p fortinet -t default_tenant
 
 $SSH sudo cfy plugins  bundle-upload
+# upload to secret in cloudify used by agents
+cfy secret create agent_key_private -f cloudify-key
+cfy secret create agent_key_public -f cloudify-key.pub
 
 # adding the openstack credential as secret to ease working with some Cloudify blueprints
 cfy  secret create  keystone_username -s $OS_USERNAME

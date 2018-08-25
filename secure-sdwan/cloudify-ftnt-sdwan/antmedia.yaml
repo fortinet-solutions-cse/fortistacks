@@ -64,7 +64,7 @@ node_templates:
       resource_id: { get_input: mgmt_network_name }
       use_external_resource: true
 
-
+#todo: adapt to antmedia protocols
   antmedia_security_group:
     type: cloudify.openstack.nodes.SecurityGroup
     properties:

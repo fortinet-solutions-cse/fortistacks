@@ -1,9 +1,9 @@
 #!/bin/bash -x 
 
 #Tearing down
+[ -z "$1" ] && myblueprint="cloudify-ftnt-sdwan" || myblueprint=$1
 
-cfy executions start uninstall -d cloudify-ftnt-sdwan --force -p ignore_failure=true
-cfy deployments delete cloudify-ftnt-sdwan
-cfy deployments delete cloudify-ftnt-sdwan force
-cfy blueprint delete cloudify-ftnt-sdwan
+cfy executions start uninstall -d $myblueprint --force -p ignore_failure=true
+cfy deployments delete $myblueprint
+cfy blueprint delete $myblueprint
 
