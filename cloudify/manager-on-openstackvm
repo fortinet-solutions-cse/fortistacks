@@ -95,6 +95,7 @@ done
 ### Install from rpm
 $SSH sudo yum install -y openssl-1.0.2k
 $SSH "(rpm -q cloudify-manager-install)|| sudo yum install -y http://repository.cloudifysource.org/cloudify/4.3.2/ga-release/cloudify-manager-install-4.3.2ga.rpm"
+# newer version # http://repository.cloudifysource.org/cloudify/4.4.0/ga-release/cloudify-manager-install-4.4ga.rpm
 #cfy_manager install [--private-ip <PRIVATE_IP>] [--public-ip <PUBLIC_IP>] [--admin-password <password>] [-v]
 privateip=`openstack server show cfy-manager-4.3 -f value -c addresses|awk -F "=|," '{print $2}'|sed 's/ //g'`
 #Copy the ssh key private key to the manager.
