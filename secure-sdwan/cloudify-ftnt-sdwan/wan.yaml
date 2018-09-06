@@ -1,7 +1,7 @@
 tosca_definitions_version: cloudify_dsl_1_3
 
 description: >
-  Deployment of 2 subnets in a net with a VM as a router in the middle.
+  Deployment of 2 networks  with a VM as a router in the middle.
   Idea is to be able to have netem and simulate a WAN.
 
 imports:
@@ -58,11 +58,17 @@ node_templates:
     properties:
       resource_id: wan_network_openstack
 
-  wan_subnet_north:
+  branches_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      resource_id: branches_network_openstack
+
+
+  wan_subnet:
     type: cloudify.openstack.nodes.Subnet
     properties:
       ##openstack_config: *openstack_config
-      resource_id: wan_subnet_north
+      resource_id: wan_subnet
       subnet:
         host_routes: [ {"nexthop": "10.40.40.254", "destination": "10.20.20.0/24"} ]
         allocation_pools:
@@ -90,10 +96,12 @@ node_templates:
       - target: provider_router
         type: cloudify.openstack.subnet_connected_to_router
 
-  wan_subnet_south:
+  branches_subnet:
     type: cloudify.openstack.nodes.Subnet
     properties:
-      resource_id: wan_subnet_south
+      resource_id: branches_subnet
+      subnet:
+        host_routes: [ {"nexthop": "10.20.20.254", "destination": "10.40.40.0/24"} ]
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -110,14 +118,14 @@ node_templates:
               ip_version: 4
               gateway_ip: null
     relationships:
-      - target: wan_network
+      - target: branches_network
         type: cloudify.relationships.contained_in
 
 
 
 
 
-  wan_port_north:
+  wan_port:
     type: cloudify.openstack.nodes.Port
     properties:
       resource_id: wan_port
@@ -131,13 +139,13 @@ node_templates:
     relationships:
       - target: wan_network
         type: cloudify.relationships.contained_in
-      - target: wan_subnet_north
+      - target: wan_subnet
         type: cloudify.relationships.depends_on
 
-  wan_port_south:
+  branches_port:
     type: cloudify.openstack.nodes.Port
     properties:
-      resource_id: wan_port_south
+      resource_id: branches_port
       fixed_ip: "10.20.20.254"
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -146,21 +154,21 @@ node_templates:
             args:
               port_security_enabled: False
     relationships:
-      - target: wan_network
+      - target: branches_network
         type: cloudify.relationships.contained_in
-      - target: wan_subnet_south
+      - target: branches_subnet
         type: cloudify.relationships.depends_on
 
 
 # creating a port on the north subnet as cloudiy seems not catching the north part
-  ub_port_north:
+  ub_port:
     type: cloudify.openstack.nodes.Port
     properties:
       resource_id: ub_port
     relationships:
       - target: wan_network
         type: cloudify.relationships.contained_in
-      - target: wan_subnet_north
+      - target: wan_subnet
         type: cloudify.relationships.depends_on
 
 #Wan emulation
@@ -189,6 +197,16 @@ node_templates:
               # Make it a router
               net.ipv4.ip_forward = 1
             path: /etc/sysctl.conf
+          - content: |
+              #!/bin/sh -e
+              for nic in ens3 ens4
+              do
+               tc qdisc add dev $nic root netem delay 50ms 10ms distribution normal loss 0.15% 25%
+              done
+
+              exit 0
+            path: /etc/rc.local
+            permissions: '0755'
         power_state:
           delay: "now"
           mode: reboot
@@ -217,9 +235,9 @@ node_templates:
             args:
               userdata: { get_attribute: [ netem_host_cloud_config, cloud_config ] }
     relationships:
-      - target: wan_port_north
+      - target: wan_port
         type: cloudify.relationships.connected_to
-      - target: wan_port_south
+      - target: branches_port
         type: cloudify.relationships.connected_to
 
   north_ub_floating_ip:
@@ -270,9 +288,9 @@ node_templates:
                  timeout: 10
                  condition: True
     relationships:
-      - target: ub_port_north
+      - target: ub_port
         type: cloudify.relationships.depends_on
-      - target: ub_port_north
+      - target: ub_port
         type: cloudify.relationships.connected_to
       - target: north_ub_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip
@@ -309,7 +327,7 @@ node_templates:
                     path: /etc/network/interfaces.d/51-ens4.cfg
                 package_upgrade: true
                 packages:
-                  - apache2
+                  - traceroute
                   - zile
                 power_state:
                  delay: "now"
@@ -318,9 +336,7 @@ node_templates:
                  timeout: 10
                  condition: True
     relationships:
-      - target: wan_subnet_south
+      - target: branches_network
         type: cloudify.relationships.connected_to
-      - target: wan_network
-        type: cloudify.relationships.connected_to
-      - target: wan_subnet_south
+      - target: branches_subnet
         type: cloudify.relationships.depends_on
