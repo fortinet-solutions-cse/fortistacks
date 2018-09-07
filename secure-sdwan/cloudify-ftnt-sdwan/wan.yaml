@@ -240,7 +240,7 @@ node_templates:
       - target: branches_port
         type: cloudify.relationships.connected_to
 
-  north_ub_floating_ip:
+  branche_ub_floating_ip:
     type: cloudify.openstack.nodes.FloatingIP
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -292,10 +292,6 @@ node_templates:
         type: cloudify.relationships.depends_on
       - target: ub_port
         type: cloudify.relationships.connected_to
-      - target: north_ub_floating_ip
-        type: cloudify.openstack.server_connected_to_floating_ip
-#      - target: wan_network
-#        type: cloudify.relationships.connected_to
 
   south_ubuntu:
     type: cloudify.openstack.nodes.Server
@@ -340,3 +336,18 @@ node_templates:
         type: cloudify.relationships.connected_to
       - target: branches_subnet
         type: cloudify.relationships.depends_on
+      - target: branche_ub_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+
+# creating output for easing the testing:
+outputs:
+    ubuntu_on_branche:
+        description: ip to connect to the VM in the branch network
+        value:
+            ip: { get_attribute: [branche_ub_floating_ip, floating_ip_address ] }
+
+    wan_server:
+        description: ip of the server on the wan side
+        value:
+            ip: { get_attribute: [north_ubuntu, networks ] }

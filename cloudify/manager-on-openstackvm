@@ -52,18 +52,17 @@ export LC_ALL=C
 PKGS=" python-pip python-virtualenv wget git"
 dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
 # if already install do nothing
-[ -f cloudify-cli-4.3.2ga.deb ] || wget -c http://repository.cloudifysource.org/cloudify/4.3.2/ga-release/cloudify-cli-4.3.2ga.deb
+[ -f cloudify-cli-community-18.7.23.deb ] || wget -c http://repository.cloudifysource.org/cloudify/18.7.23/community-release/cloudify-cli-community-18.7.23.deb
  (dpkg -l cloudify >/dev/null)  || sudo dpkg -i cloudify*.deb
 
-# Will now use the Docker image on centos ..
+# Will now use the package rpm on centos ..
 #
 CentOSImageID=`openstack image list --format value -c ID -c Name |grep "CentOS 7"|head -1|awk '{print $1}'`
-#openstack image show  "cfy-manager4.2" > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "cfy-manager4.2"  --file cloudify-manager-4.2ga.qcow2
 
-if (openstack server show cfy-manager-4.3  > /dev/null 2>&1 );then
+if (openstack server show cfy-manager-4.4  > /dev/null 2>&1 );then
     echo "cloudify manager already started"
     #get the floating-ip from openstack and trim result
-    FLOAT_IP=`openstack server show cfy-manager-4.3 -f value -c addresses|awk -F , '{print $2}'|sed 's/ //g'`
+    FLOAT_IP=`openstack server show cfy-manager-4.4 -f value -c addresses|awk -F , '{print $2}'|sed 's/ //g'`
 else
     #check the fingerprint are equal (will work if not existant)
     OSKEY_FPRINT=`openstack keypair show cloudify -f value -c fingerprint|| echo "none"`
@@ -76,14 +75,14 @@ else
         openstack keypair delete cloudify || true
         openstack keypair create --public-key cloudify-key.pub cloudify
         fi
-    openstack server create  --image $CentOSImageID cfy-manager-4.3 --key-name cloudify --security-group default --flavor $OS_FLAVOR_CFY --network mgmt
-    while [ `openstack server show cfy-manager-4.3 -f value -c status` == "BUILD" ]; do
+    openstack server create  --image $CentOSImageID cfy-manager-4.4 --key-name cloudify --security-group default --flavor $OS_FLAVOR_CFY --network mgmt
+    while [ `openstack server show cfy-manager-4.4 -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
     # wait for the keys etc to propagate
     sleep 8
     FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
-    openstack server add floating ip cfy-manager-4.3 $FLOAT_IP
+    openstack server add floating ip cfy-manager-4.4 $FLOAT_IP
 fi
 SSH="ssh -t -i cloudify-key -o StrictHostKeyChecking=no centos@$FLOAT_IP"
 until ($SSH ping -c 3 cloudify.co); do
@@ -94,25 +93,18 @@ done
 
 ### Install from rpm
 $SSH sudo yum install -y openssl-1.0.2k
-$SSH "(rpm -q cloudify-manager-install)|| sudo yum install -y http://repository.cloudifysource.org/cloudify/4.3.2/ga-release/cloudify-manager-install-4.3.2ga.rpm"
-# newer version # http://repository.cloudifysource.org/cloudify/4.4.0/ga-release/cloudify-manager-install-4.4ga.rpm
-#cfy_manager install [--private-ip <PRIVATE_IP>] [--public-ip <PUBLIC_IP>] [--admin-password <password>] [-v]
-privateip=`openstack server show cfy-manager-4.3 -f value -c addresses|awk -F "=|," '{print $2}'|sed 's/ //g'`
+$SSH "(rpm -q cloudify-manager-install)|| sudo yum install -y http://repository.cloudifysource.org/cloudify/4.4.0/ga-release/cloudify-manager-install-4.4ga.rpm"
+
+privateip=`openstack server show cfy-manager-4.4 -f value -c addresses|awk -F "=|," '{print $2}'|sed 's/ //g'`
 #Copy the ssh key private key to the manager.
 scp -i cloudify-key -o StrictHostKeyChecking=no ./cloudify-key  centos@$FLOAT_IP:
 $SSH  sudo cp ./cloudify-key /etc/cloudify/ssh_key
-## upload a special cloudify config file to skip sanity checks(which fails)
-scp -i cloudify-key -o StrictHostKeyChecking=no config.yaml  centos@$FLOAT_IP:
-$SSH  sudo mv config.yaml /etc/cloudify/
-#$SSH sudo cfy_manager install --private-ip $privateip --public-ip $FLOAT_IP  -v
-$SSH "[ -f /etc/cloudify/.install ] ||sudo cfy_manager install --private-ip $FLOAT_IP --public-ip $FLOAT_IP   -a fortinet  --clean-db"
+## disable validation and sanity that fails
+$SSH " sudo sed -i -e 's/skip_validations: false/skip_validations: true/' /etc/cloudify/config.yaml"
+$SSH " sudo sed -i -e 's/skip_sanity: false/skip_sanity: true/' /etc/cloudify/config.yaml"
+$SSH "[ -f /etc/cloudify/.install ] ||sudo cfy_manager install --private-ip $FLOAT_IP --public-ip $FLOAT_IP   -a fortinet --clean-db"
 $SSH sudo chown cfyuser:cfyuser /etc/cloudify/ssh_key
-# Docker-ce:
-#$SSH sudo yum install -y yum-utils device-mapper-persistent-data lvm2
-#$SSH  sudo yum-config-manager   --add-repo    https://download.docker.com/linux/centos/docker-ce.repo
-#$SSH sudo yum-config-manager --enable docker-ce-edge
-#$SSH    sudo yum install -y docker-ce
-##
+# todo setup multiple networks for agents to use mgmt IPs
 
 # change the default openstack config to use the one currently on.
 envsubst < openstack_configv3.template > openstack_config.json
@@ -125,6 +117,8 @@ cfy profiles use $FLOAT_IP -u admin -p fortinet -t default_tenant
 
 $SSH sudo cfy plugins  bundle-upload
 # upload to secret in cloudify used by agents
+cfy status
+echo "if any of the following fails it means you already set it up, ignore"
 cfy secret create agent_key_private -f cloudify-key
 cfy secret create agent_key_public -f cloudify-key.pub
 
