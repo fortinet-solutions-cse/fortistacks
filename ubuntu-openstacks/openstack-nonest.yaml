@@ -17,7 +17,8 @@ applications:
     num_units: 2
     options: 
       "osd-devices": /srv/osd
-      "osd-reformat": "yes"
+#      "osd-reformat": "yes"
+      "ignore-device-errors": true
       "use-direct-io": false
     annotations: 
       "gui-x": "1000"
