@@ -5,5 +5,6 @@
 
 cfy executions start uninstall -d $myblueprint --force -p ignore_failure=true
 cfy deployments delete $myblueprint
+sleep 12
 cfy blueprint delete $myblueprint
 
