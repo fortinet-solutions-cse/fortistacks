@@ -120,7 +120,6 @@ node_templates:
       - type: cloudify.openstack.port_connected_to_floating_ip
         target: antmedia_floating_ip
 
-
   antmedia_frontend_host:
     type: nodecellar.nodes.MonitoredServer
     relationships:
