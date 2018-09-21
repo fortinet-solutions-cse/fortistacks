@@ -23,6 +23,17 @@ dsl_definitions:
 
 node_templates:
 
+  dc_router:
+    type: cloudify.openstack.nodes.Router
+    properties:
+      resource_id: dc-router
+      external_network: { get_input: external_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            route: [ 10.4.4.0/24, 10.40.40.254 ]
+
 
 # networks
   provider_router:
@@ -71,7 +82,7 @@ node_templates:
     relationships:
       - target: wan_network
         type: cloudify.relationships.contained_in
-      - target: provider_router
+      - target: dc_router
         type: cloudify.openstack.subnet_connected_to_router
 
   isp_subnet:
@@ -87,18 +98,19 @@ node_templates:
             args:
               cidr: 10.20.20.0/24
               ip_version: 4
-              gateway_ip: null
+              gateway_ip: 10.20.20.1
       cloudify.interfaces.validation:
         creation:
           inputs:
             args:
               cidr: 10.20.20.0/24
               ip_version: 4
-              gateway_ip: null
+              gateway_ip: 10.20.20.1
     relationships:
       - target: isp_network
         type: cloudify.relationships.contained_in
-
+      - target: provider_router
+        type: cloudify.openstack.subnet_connected_to_router
 
 
 
@@ -213,8 +225,8 @@ node_templates:
             args:
               userdata: { get_attribute: [ netem_host_cloud_config, cloud_config ] }
     relationships:
-      - target: wan_port
-        type: cloudify.relationships.connected_to
       - target: isp_port
+        type: cloudify.relationships.connected_to
+      - target: wan_port
         type: cloudify.relationships.connected_to
 
