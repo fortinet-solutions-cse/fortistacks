@@ -30,12 +30,22 @@ node_templates:
       external_network: { get_input: external_network_name }
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
+        start:
           inputs:
-            route: [ 10.4.4.0/24, 10.40.40.254 ]
+            args:
+              route:
+              - destination: 10.20.20.0/24
+                gateway: 10.40.40.254
+      cloudify.interfaces.lifecycle:
+        delete:
+          inputs:
+            update_args:
+              routes: []
+### Tried several ways to set the route on a router but FAILED
+#workaround: openstack router set dc-router --route destination=10.20.20.0/24,gateway=10.40.40.254
+#    TODO reach out to Cloudify
 
-
-# networks
+    # networks
   provider_router:
     type: cloudify.openstack.nodes.Router
     properties:
@@ -59,7 +69,7 @@ node_templates:
       ##openstack_config: *openstack_config
       resource_id: wan_subnet
       subnet:
-        host_routes: [ {"nexthop": "10.40.40.254", "destination": "10.20.20.0/24"} ]
+        host_routes: [ {"nexthop": "10.40.40.254", "destination": "10.20.20.0/24"} , {"nexthop": "10.40.40.1", "destination": "172.27.40.0/24"} ]
         allocation_pools:
           - start: 10.40.40.3
             end: 10.40.40.140
@@ -90,7 +100,7 @@ node_templates:
     properties:
       resource_id: isp_subnet
       subnet:
-        host_routes: [ {"nexthop": "10.20.20.254", "destination": "10.40.40.0/24"} ]
+        host_routes: [ {"nexthop": "10.20.20.254", "destination": "10.40.40.0/24"}  ]
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -205,6 +215,14 @@ node_templates:
           condition: True
 
    # on citycloud xenial there python3 only must be installed then
+  netem_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: { get_input: external_network_name }
 
   netem:
     type: cloudify.openstack.nodes.Server
@@ -229,4 +247,6 @@ node_templates:
         type: cloudify.relationships.connected_to
       - target: wan_port
         type: cloudify.relationships.connected_to
+      - target: netem_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
 

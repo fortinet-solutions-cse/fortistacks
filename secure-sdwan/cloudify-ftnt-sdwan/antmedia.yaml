@@ -48,6 +48,57 @@ dsl_definitions:
 
 node_templates:
 
+dc_ubuntu:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: init_script
+        user: { get_input: agent_user }
+        port: 22
+        key: { get_secret: agent_key_private }
+          #network: mgmt_network
+            ##
+      ##openstack_config: *openstack_config
+      management_network_name: { get_input: mgmt_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              userdata: |
+                #cloud-config
+                chpasswd:
+                  list: |
+                    ubuntu:fortinet
+                  expire: False
+                write_files:
+                  - content: |
+                      # Enable dhcp on ens4
+                      auto ens4
+                      iface ens4 inet dhcp
+                    path: /etc/network/interfaces.d/51-ens4.cfg
+                package_upgrade: true
+                packages:
+                  - python-pip
+                  - tcpdump
+                  - zile
+                power_state:
+                 delay: "now"
+                 mode: reboot
+                 message: Rebooting to ensure network conf
+                 timeout: 10
+                 condition: True
+    relationships:
+      - target: dc_network
+        type: cloudify.relationships.depends_on
+      - target: dc_subnet
+        type: cloudify.relationships.connected_to
+      - target: antmedia_floating_ip
+        type: cloudify.relationships.connected_to
 
   antmedia_floating_ip:
     type: cloudify.openstack.nodes.FloatingIP
@@ -58,11 +109,11 @@ node_templates:
             args:
               floating_network_name: { get_input: external_network_name }
 
-  mgmt_network:
-    type: cloudify.openstack.nodes.Network
-    properties:
-      resource_id: { get_input: mgmt_network_name }
-      use_external_resource: true
+  antmedia:
+    type: cloudify.nodes.MonitoredAntmedia
+    relationships:
+      - target: dc_ubuntu
+        type: cloudify.relationships.contained_in
 
 #todo: adapt to antmedia protocols
   antmedia_security_group:
@@ -85,51 +136,3 @@ node_templates:
 
 
 
-  cloudify_host_cloud_config:
-    type: cloudify.nodes.CloudInit.CloudConfig
-    properties:
-      resource_config:
-        users:
-        - name: { get_input: agent_user }
-          groups: sudo
-          shell: /bin/bash
-          sudo: ['ALL=(ALL) NOPASSWD:ALL']
-          passwd: 'fortinet'
-          ssh-authorized-keys:
-          - { get_secret: agent_key_public }
-        packages:
-          - [python-pip]
-# on citycloud xenial there python3 only must be installed then
-
-  antmedia_host_port:
-    type: cloudify.openstack.nodes.Port
-    properties:
-      resource_id: antmedia_host_port
-#      fixed_ip: "192.168.1.253"
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              port_security_enabled: False
-    relationships:
-      - target: mgmt_network
-        type: cloudify.relationships.contained_in
-#      - type: cloudify.openstack.port_connected_to_security_group
-#        target: antmedia_security_group
-      - type: cloudify.openstack.port_connected_to_floating_ip
-        target: antmedia_floating_ip
-
-  antmedia_frontend_host:
-    type: nodecellar.nodes.MonitoredServer
-    relationships:
-      - target: antmedia_host_port
-        type: cloudify.openstack.server_connected_to_port
-      - type: cloudify.relationships.depends_on
-        target: cloudify_host_cloud_config
-
-  antmedia:
-    type: cloudify.nodes.MonitoredAntmedia
-    relationships:
-      - target: antmedia_frontend_host
-        type: cloudify.relationships.contained_in
