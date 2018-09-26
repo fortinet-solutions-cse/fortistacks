@@ -70,7 +70,36 @@ node_templates:
             args:
               floating_network_name: { get_input: external_network_name }
 
-  dc_ubuntu:
+# src: https://github.com/ant-media/Ant-Media-Server/wiki/Getting-Started
+  antmedia_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      resource_id: antmedia_security_group_openstack
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 5080
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 443
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 1935
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 5443
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 5554
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: icmp
+          port_range_max: null
+          port_range_min: null
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: udp
+          port_range_min: 5000
+          port_range_max: 65000
+
+  antmedia_ubuntu:
     type: cloudify.openstack.nodes.Server
     properties:
       server:
@@ -127,39 +156,9 @@ node_templates:
   antmedia:
     type: cloudify.nodes.MonitoredAntmedia
     relationships:
-      - target: dc_ubuntu
+      - target: antmedia_ubuntu
         type: cloudify.relationships.contained_in
 
-# src: https://github.com/ant-media/Ant-Media-Server/wiki/Getting-Started
-  antmedia_security_group:
-    type: cloudify.openstack.nodes.SecurityGroup
-    properties:
-      resource_id: antmedia_security_group
-      rules:
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 22
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 5080
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 80
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 443
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 1935
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 5080
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 5443
-        - remote_ip_prefix: 0.0.0.0/0
-          port: 5554
-        - remote_ip_prefix: 0.0.0.0/0
-          protocol: icmp
-          port_range_max: null
-          port_range_min: null
-        - remote_ip_prefix: 0.0.0.0/0
-          protocol: udp
-          port_range_min: 5000
-          port_range_max: 65000
 
 
 
