@@ -9,10 +9,11 @@ node_types:
   cloudify.nodes.AntMedia:
     derived_from: cloudify.nodes.ApplicationServer
     properties:
-      frontend_port:
-        description: The port for antmedia to listen on.
-        type: integer
-        default: 8080
+      install_url:
+        description: The url where to find antmedia
+        type: string
+        default: "https://github.com/ant-media/Ant-Media-Server/releases/download/ams-v1.4.1/ant-media-server-community-1.4.1-180813_1533.zip
+"
     interfaces:
       cloudify.interfaces.lifecycle:
         create: scripts/antmedia/install-ubuntu.sh

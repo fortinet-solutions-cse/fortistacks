@@ -126,7 +126,7 @@ node_templates:
       ##openstack_config: *openstack_config
       resource_id: branchea_subnet_openstack
       subnet:
-        host_routes: [ {"nexthop": "192.168.12.254", "destination": "10.0.0.0/8"} ]
+        host_routes: [ {"nexthop": "192.168.12.254", "destination": "10.0.0.0/8"}, {"nexthop": "192.168.12.254", "destination": "172.27.40.0/24"} ]
         cidr: 192.168.12.0/24
         allocation_pools:
         - start: 192.168.12.3
@@ -279,40 +279,7 @@ node_templates:
             args:
               floating_network_name: { get_input: external_network_name }
 
-  dc_ubuntu:
-    type: cloudify.openstack.nodes.Server
-    properties:
-      server:
-        image_name: { get_input: ub_image }
-        flavor_name: { get_input: ub_flavor }
-        key_name: { get_input: key_name }
-      agent_config:
-        install_method: none # Bug in cloudify agents use internal ip and not floating
-      ##openstack_config: *openstack_config
-#      management_network_name: { get_input: mgmt_network_name }
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              userdata: |
-                #cloud-config
-                chpasswd:
-                  list: |
-                    ubuntu:fortinet
-                  expire: False
-                package_upgrade: true
-                packages:
-                  - tcpdump
-                  - zile
-                  - apache2
-    relationships:
-      - target: dc_network
-        type: cloudify.relationships.depends_on
-      - target: dc_subnet
-        type: cloudify.relationships.connected_to
-      - target: fosa_floating_ip
-        type: cloudify.openstack.server_connected_to_floating_ip
+
 
   breanchea_ubuntu:
     type: cloudify.openstack.nodes.Server
@@ -346,6 +313,7 @@ node_templates:
                 packages:
                   - traceroute
                   - zile
+                  - ubuntu-desktop
                 power_state:
                  delay: "now"
                  mode: reboot
@@ -368,4 +336,4 @@ outputs:
     dc_server:
         description: ip of the server on the wan side
         value:
-            ip: { get_attribute: [dc_ubuntu, networks ] }
+            ip: { get_attribute: [breanchea_ubuntu, networks ] }

@@ -61,7 +61,8 @@ sudo apt-get -y install wget
 # create a temporary directory and cd to it.
 TMPDIR=`mktemp -d`
 cd $TMPDIR
-ctx logger info "Download package"
+install_url=$(ctx instance runtime-properties install_url) || true
+ctx logger info "Download package url passed is:  $install_url"
 wget https://github.com/ant-media/Ant-Media-Server/releases/download/ams-v1.4.1/ant-media-server-community-1.4.1-180813_1533.zip
 ctx logger info "Install as a service"
 wget https://raw.githubusercontent.com/ant-media/Scripts/master/install_ant-media-server.sh

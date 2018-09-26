@@ -36,7 +36,6 @@ node_templates:
               route:
               - destination: 10.20.20.0/24
                 gateway: 10.40.40.254
-      cloudify.interfaces.lifecycle:
         delete:
           inputs:
             update_args:
@@ -201,7 +200,7 @@ node_templates:
               #!/bin/sh -e
               for nic in ens3 ens4
               do
-               tc qdisc add dev $nic root netem delay 50ms 10ms distribution normal loss 0.15% 25%
+               tc qdisc add dev $nic root netem delay 50ms 10ms distribution normal loss 0.15% 25% rate 712kbit
               done
 
               exit 0
@@ -229,7 +228,8 @@ node_templates:
     properties:
       server:
         image_name: { get_input: ub_image }
-        flavor_name: { get_input: ub_flavor }
+        flavor_name: { get_input: fos_flavor }
+# Warning pushing a small flvor for that one only
         key_name: { get_input: key_name }
       agent_config:
         install_method: init_script
