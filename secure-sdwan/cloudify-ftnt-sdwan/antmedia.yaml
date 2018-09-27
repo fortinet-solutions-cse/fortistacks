@@ -71,6 +71,7 @@ node_templates:
               floating_network_name: { get_input: external_network_name }
 
 # src: https://github.com/ant-media/Ant-Media-Server/wiki/Getting-Started
+# TODO the ipv6 rules
   antmedia_security_group:
     type: cloudify.openstack.nodes.SecurityGroup
     properties:
