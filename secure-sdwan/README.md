@@ -13,6 +13,35 @@ The goal is to deliver a automated deployment of:
  Presented that way SDWAN rules must be changed on the time of the broadcast for video delivery and resumed to business critical apps at the end of it.
  
  
+ ##Quick start
+ 
+ You must have a Cloudify manager installed and configured.
+ 
+ The easiest is to run : cloudify/manager-on-openstackvm on a configured openstack (mgmt netwrok with floating ips)
+
+ Then upload fortigate images and be sure to point to Ubuntu 16.04 images (input-citycloud.yaml as example)
+ 
+  Then 
+  ```bash
+ $ cd cloudify-ftnt-sdwan
+ $ cfy install -b dcplus dc-plus-wans.yaml -i inputs-citycloud.yaml
+ $ cfy install -b antmedia antmedia.yaml -i inputs-citycloud.yaml 
+``` 
+ ## VLC access from MAC
+
+On a x11 started session:
+
+```
+    gsettings set  org.gnome.Vino enabled true
+      #   for broken clients like rdp/Macos
+     gsettings set  org.gnome.Vino  require-encryption false
+     gsettings set  org.gnome.Vino vnc-password Zm9ydGluZXQ=
+     gsettings set org.gnome.Vino use-upnp true
+     gsettings set org.gnome.Vino notify-on-connect false
+     gsettings set org.gnome.Vino prompt-enabled false
+     gsettings set org.gnome.Vino authentication-methods  "['vnc']"
+```
+
  ## Steaming
  
  Using OBS and do those settings
@@ -34,3 +63,6 @@ src: https://stackoverflow.com/questions/40428837/broadcasting-to-youtube-live-v
  
  As the VOD usually buffer the file hence the network lag are not visibles
  Broadasting and viewing from same pc overflow the bandwidth
+ 
+ SDWAN videos on youtube : 
+ https://www.youtube.com/watch?v=CgkbewuLEys  https://www.youtube.com/watch?v=jaNZiFFg-38  https://www.youtube.com/watch?v=SYyCJS-hE5I
