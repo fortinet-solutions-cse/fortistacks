@@ -25,6 +25,7 @@ The goal is to deliver a automated deployment of:
   ```bash
  $ cd cloudify-ftnt-sdwan
  $ cfy install -b dcplus dc-plus-wans.yaml -i inputs-citycloud.yaml
+ $  openstack router set dc-router --route destination=10.20.20.0/24,gateway=10.40.40.254
  $ cfy install -b antmedia antmedia.yaml -i inputs-citycloud.yaml 
 ``` 
  ## VLC access from MAC
