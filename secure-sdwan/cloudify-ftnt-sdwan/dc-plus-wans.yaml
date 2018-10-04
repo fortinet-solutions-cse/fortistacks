@@ -258,15 +258,6 @@ node_templates:
                               next
                           end
                       next
-                      edit "slow"
-                          set server "172.27.40.7"
-                          set members 2
-                          config sla
-                              edit 1
-                                  set latency-threshold 120
-                              next
-                          end
-                      next
                   end
                   config service
                       edit 1
