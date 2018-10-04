@@ -99,6 +99,38 @@ node_templates:
           protocol: udp
           port_range_min: 5000
           port_range_max: 65000
+#same in ipv6
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 22
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 5080
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 80
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 443
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 1935
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 5443
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 5554
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          protocol: icmp
+          port_range_max: null
+          port_range_min: null
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          protocol: udp
+          port_range_min: 5000
+          port_range_max: 65000
 
   antmedia_ubuntu:
     type: cloudify.openstack.nodes.Server

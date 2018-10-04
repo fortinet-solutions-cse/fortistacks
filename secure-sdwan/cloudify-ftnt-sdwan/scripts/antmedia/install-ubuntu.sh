@@ -81,7 +81,7 @@ sudo iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-port 5443
 
 ctx logger info "Use a predefined db login is: secsdwan/secsdwan"
 sudo service antmedia stop
-#TODO understand backup restore better this does not work.
+
 
 echo "$SERVERDBCONFZIP" | base64 --decode | gzip -d | sudo tee /usr/local/antmedia/server.db
 sudo chown antmedia:antmedia /usr/local/antmedia/server.db
