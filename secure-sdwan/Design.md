@@ -17,6 +17,8 @@ It is opensource, available, easy to install on Linux as a service. Supports Web
 https://wiki.linuxfoundation.org/networking/netem to simulate a WAN with a linux VM.
 
 ## Config from claudio demo as examples:
+
+```bash
 config system interface
     edit "wan1"
         set vdom "root"
@@ -149,3 +151,4 @@ config system virtual-wan-link
     end
 end
 
+```
