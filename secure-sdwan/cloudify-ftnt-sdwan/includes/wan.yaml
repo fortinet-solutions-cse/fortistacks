@@ -4,7 +4,8 @@ tosca_definitions_version: cloudify_dsl_1_3
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
-  - plugin:cloudify-openstack-plugin
+  - http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
+#  - plugin:cloudify-openstack-plugin:2.5.2
   - plugin:cloudify-utilities-plugin
 
 
@@ -54,12 +55,12 @@ node_templates:
   wan_network:
     type: cloudify.openstack.nodes.Network
     properties:
-      resource_id: wan_network_openstack
+      resource_id: wan_network
 
   isp_network:
     type: cloudify.openstack.nodes.Network
     properties:
-      resource_id: isp_network_openstack
+      resource_id: isp_network
 
 
   wan_subnet:
@@ -139,7 +140,7 @@ node_templates:
       - target: wan_network
         type: cloudify.relationships.contained_in
       - target: wan_subnet
-        type: cloudify.relationships.depends_on
+        type: cloudify.relationships.connected_to
 
   isp_port:
     type: cloudify.openstack.nodes.Port
@@ -156,19 +157,9 @@ node_templates:
       - target: isp_network
         type: cloudify.relationships.contained_in
       - target: isp_subnet
-        type: cloudify.relationships.depends_on
+        type: cloudify.relationships.connected_to
 
 
-# creating a port on the north subnet as cloudiy seems not catching the north part
-  ub_port:
-    type: cloudify.openstack.nodes.Port
-    properties:
-      resource_id: ub_port
-    relationships:
-      - target: wan_network
-        type: cloudify.relationships.contained_in
-      - target: wan_subnet
-        type: cloudify.relationships.depends_on
 
 #Wan emulation
 
@@ -247,6 +238,10 @@ node_templates:
         type: cloudify.relationships.connected_to
       - target: wan_port
         type: cloudify.relationships.connected_to
+      - target: isp_port
+        type: cloudify.relationships.depends_on
+      - target: wan_port
+        type: cloudify.relationships.depends_on
       - target: netem_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip
 

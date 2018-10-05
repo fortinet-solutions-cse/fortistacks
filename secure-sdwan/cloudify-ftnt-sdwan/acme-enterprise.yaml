@@ -2,11 +2,13 @@ tosca_definitions_version: cloudify_dsl_1_3
 
 description: >
   Deployment of 2 networks  with a VM as a router in the middle.
-  Idea is to be able to have netem and simulate a WAN.
+  On the router VM netem simulate a WAN. MPLS is a normal network.
+  To be run before deployment:
   $ cfy secret create fgt_license -f ../../fortigate/FGT.lic
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
-  - plugin:cloudify-openstack-plugin
+  - http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
+#NUG in ports in 2.11#  - plugin:cloudify-openstack-plugin
   - plugin:cloudify-utilities-plugin
   - includes/wan.yaml
 
@@ -54,7 +56,7 @@ node_templates:
   dc_network:
     type: cloudify.openstack.nodes.Network
     properties:
-      resource_id: dc_network_openstack
+      resource_id: dc_network
 
   dc_subnet:
     type: cloudify.openstack.nodes.Subnet
@@ -93,13 +95,13 @@ node_templates:
   mpls_network:
     type: cloudify.openstack.nodes.Network
     properties:
-      resource_id: mpls_network_openstack
+      resource_id: mpls_network
 
   mpls_subnet:
     type: cloudify.openstack.nodes.Subnet
     properties:
       ##openstack_config: *openstack_config
-      resource_id: mpls_subnet_openstack
+      resource_id: mpls_subnet
       subnet:
         host_routes: [ {"nexthop": "10.30.30.1", "destination": "172.27.40.0/24"} ]
         cidr: 10.30.30.0/24
@@ -124,7 +126,7 @@ node_templates:
     type: cloudify.openstack.nodes.Subnet
     properties:
       ##openstack_config: *openstack_config
-      resource_id: branchea_subnet_openstack
+      resource_id: branchea_subnet
       subnet:
         host_routes: [ {"nexthop": "192.168.12.254", "destination": "10.0.0.0/8"}, {"nexthop": "192.168.12.254", "destination": "172.27.40.0/24"} ]
         cidr: 192.168.12.0/24
@@ -153,7 +155,9 @@ node_templates:
       - target: branchea_lan
         type: cloudify.relationships.contained_in
       - target: branchea_subnet
-        type: cloudify.relationships.depends_on
+        type: cloudify.relationships.connected_to
+#      - target: branchea_subnet
+#        type: cloudify.relationships.depends_on
 
   fosa_floating_ip:
     type: cloudify.openstack.nodes.FloatingIP
@@ -288,8 +292,6 @@ node_templates:
       - target: fosa_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip
       - target: brancheA_port
-        type: cloudify.relationships.connected_to
-      - target: brancheA_port
         type: cloudify.relationships.depends_on
       - target: mpls_network
         type: cloudify.relationships.connected_to
@@ -299,11 +301,10 @@ node_templates:
         type: cloudify.relationships.connected_to
       - target: isp_subnet
         type: cloudify.relationships.depends_on
-#      - target: right_subnet
-#        type: cloudify.relationships.depends_on
-#      - target: my_security_group
-#        type: cloudify.openstack.server_connected_to_security_group
-#not compatible with portsecurity disabled
+      - target: brancheA_port
+        type: cloudify.relationships.connected_to
+      - target: brancheA_port
+        type: cloudify.relationships.depends_on
 
   branchea_ub_floating_ip:
     type: cloudify.openstack.nodes.FloatingIP
@@ -353,11 +354,23 @@ node_templates:
                       auto ens4
                       iface ens4 inet dhcp
                     path: /etc/network/interfaces.d/51-ens4.cfg
+                  - content: |
+                      # Enable vnc access from mac native
+                      gsettings set  org.gnome.Vino enabled true
+                      gsettings set  org.gnome.Vino  require-encryption false
+                      gsettings set  org.gnome.Vino vnc-password Zm9ydGluZXQ=
+                      gsettings set org.gnome.Vino use-upnp true
+                      gsettings set org.gnome.Vino notify-on-connect false
+                      gsettings set org.gnome.Vino prompt-enabled false
+                      gsettings set org.gnome.Vino authentication-methods  "['vnc']"
+                    path: /home/ubuntu/vnconmac.sh
+                    owner: ubuntu:ubuntu
                 package_upgrade: true
                 packages:
                   - traceroute
                   - zile
                   - ubuntu-desktop
+                  - vlc
                 power_state:
                  delay: "now"
                  mode: reboot

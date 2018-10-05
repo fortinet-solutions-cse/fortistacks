@@ -7,13 +7,13 @@ The goal is to deliver a automated deployment of:
     * guaranteed network like MPLS.
  - 2 simulated branches with Fortigate SDWAN firewalls.
  
- ## Scenario
+## Scenario
  
  Entreprise A want to organize a live broadcasted townhall. The IT must rapidely deploy a media server and ensure proper bandwidth and latency to ensure smooth upload and broadcasts.
  Presented that way SDWAN rules must be changed on the time of the broadcast for video delivery and resumed to business critical apps at the end of it.
  
  
- ##Quick start
+## Quick start
  
  You must have a Cloudify manager installed and configured.
  
@@ -28,7 +28,7 @@ The goal is to deliver a automated deployment of:
  $  openstack router set dc-router --route destination=10.20.20.0/24,gateway=10.40.40.254
  $ cfy install -b antmedia antmedia.yaml -i inputs-citycloud.yaml 
 ``` 
- ## VLC access from MAC
+## VLC access from MAC
 
 On a x11 started session:
 
@@ -58,12 +58,16 @@ On a x11 started session:
 Embeded player is available here:
 http://<SERVER_NAME>:5080/LiveApp/play.html?name=<STREAM_ID> 
 
-For demos might want to broadcast a file with vlc:
- cvlc  -vvv FILE016.MP4 --sout '#transcode{vcodec=h264,scale=Auto,width=1280,height=720,acodec=mp3,ab=128,channels=2,samplerate=44100}:std{access=rtmp,mux=ffmpeg{mux=flv},dst=rtmp://a.rtmp.youtube.com/live2/stream-name}'
-src: https://stackoverflow.com/questions/40428837/broadcasting-to-youtube-live-via-rtmp-using-vlc-from-terminal
- 
- As the VOD usually buffer the file hence the network lag are not visibles
- Broadasting and viewing from same pc overflow the bandwidth
- 
- SDWAN videos on youtube : 
+OBS/antmedia allow to broadcast on a non predefine stream and name it.
+
+In OBS setting streams server :
+  rtmp://<SERVER_NAME>/LiveApp/   stream: townhall
+
+Will broadcast even if not predefined.
+
+Frotinet SDWAN videos on youtube (broadcast sources):
  https://www.youtube.com/watch?v=CgkbewuLEys  https://www.youtube.com/watch?v=jaNZiFFg-38  https://www.youtube.com/watch?v=SYyCJS-hE5I
+
+# show the bandwidth usage on Ubuntu:
+
+speedometer -r ens4 -t ens4 -s

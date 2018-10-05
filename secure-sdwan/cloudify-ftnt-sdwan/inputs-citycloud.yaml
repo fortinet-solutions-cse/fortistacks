@@ -1,7 +1,7 @@
 fos_image: 'fgt60'
-fos_flavor: '1C-1GB'
+fos_flavor: '1C-1GB-50GB'
 ub_image: 'Ubuntu 16.04 Xenial Xerus'
-ub_flavor: '2C-4GB'
+ub_flavor: '2C-4GB-50GB'
 mgmt_network_name: "mgmt"
 key_name: 'cloudify'
 external_network_name: "ext-net"

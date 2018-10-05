@@ -51,7 +51,7 @@ node_templates:
   dc_network:
     type: cloudify.openstack.nodes.Network
     properties:
-      resource_id: dc_network_openstack
+      resource_id: dc_network
       use_external_resource: true
 
   dc_subnet:
@@ -75,7 +75,7 @@ node_templates:
   antmedia_security_group:
     type: cloudify.openstack.nodes.SecurityGroup
     properties:
-      resource_id: antmedia_security_group_openstack
+      resource_id: antmedia_security_group
       rules:
         - remote_ip_prefix: 0.0.0.0/0
           port: 22
