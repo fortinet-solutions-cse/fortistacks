@@ -7,7 +7,8 @@ description: >
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
-  - plugin:cloudify-openstack-plugin
+  - http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
+#NUG in ports in 2.11#  - plugin:cloudify-openstack-plugin
   - plugin:cloudify-diamond-plugin
   - plugin:cloudify-utilities-plugin
   - types/antmedia.yaml
@@ -26,6 +27,8 @@ inputs:
      default: {}
   agent_user:
       default: "ubuntu"
+  fmg_ip:
+    default: {}
 
   mgmt_network_name:
     default: "mgmt"

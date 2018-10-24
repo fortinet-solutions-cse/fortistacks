@@ -11,6 +11,8 @@ imports:
 #NUG in ports in 2.11#  - plugin:cloudify-openstack-plugin
   - plugin:cloudify-utilities-plugin
   - includes/wan.yaml
+  - plugins/cloudify-fortimanager-plugin/plugin.yaml
+#  cfy secret create fmg_password -s X
 
 
 inputs:
@@ -26,6 +28,8 @@ inputs:
      default: {}
   agent_user:
       default: "ubuntu"
+  fmg_ip:
+    default: {}
 
 
   mgmt_network_name:
@@ -385,6 +389,32 @@ node_templates:
       - target: branchea_ub_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip
 
+  add-fortigate-tofmg:
+    type: cloudify.fortinet.fortimanager
+    properties:
+      host: { get_input: fmg_ip }
+      username: "admin"
+      password: { get_secret: fmg_password }
+      use_ssl: True
+      verify_ssl: False
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          inputs:
+            template_file: templates/add-fortigate.yaml
+            params:
+              fgt_password: "fortinet"
+              fgt_ip: { get_attribute: [branchea_fortigate, ip ] }
+              fgt_user: "admin"
+              fgt_name: "branchea_fortigate"
+        stop:
+          inputs:
+            template_file: templates/remove-fortigate.yaml
+            params:
+              fgt_name: "branchea_fortigate"
+    relationships:
+      - target:  branchea_fortigate
+        type: cloudify.relationships.depends_on
 
 
 # creating output for easing the testing:
@@ -393,4 +423,11 @@ outputs:
     dc_server:
         description: ip of the server on the wan side
         value:
-            ip: { get_attribute: [breanchea_ubuntu, networks ] }
+            ip: { get_attribute: [breanchea_ubuntu, networks, mgmt, 0 ] }
+
+    FGT:
+        description: ips of the fortigate
+        value:
+            ip: { get_attribute: [branchea_fortigate, ip ] }
+            networks: { get_attribute: [branchea_fortigate, networks ] }
+            mgmt: { get_attribute: [branchea_fortigate, networks,mgmt ] }

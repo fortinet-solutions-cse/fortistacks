@@ -1,0 +1,32 @@
+api_calls:
+  # first call
+  - path: /dvm/cmd/discover/device
+    method: EXECUTE
+    data:
+      adom: root
+      device:
+        adm_pass: "{{fgt_password}}"
+        adm_usr: "{{fgt_user}}"
+        ip: "{{fgt_ip}}"
+    recoverable_code: [ -20042 ]
+    nonrecoverable_code:
+    response_translation: "response1"
+
+  - path: /dvm/cmd/add/device
+    method: EXECUTE
+    data:
+      adom: root
+      flags: [ "create_task", "blocking" ]
+      device:
+        adm_pass: "{{fgt_password}}"
+        adm_usr: "{{fgt_user}}"
+        desc: "Real FortiGate device"
+        ip: "{{fgt_ip}}"
+        meta fields:
+          "Company/Organization": "Fortinet"
+          "Country": "France"
+        name: "{{fgt_name}}"
+        mgmt_mode: "fmg"
+    recoverable_code:
+    nonrecoverable_code:
+    response_translation: "response1"
