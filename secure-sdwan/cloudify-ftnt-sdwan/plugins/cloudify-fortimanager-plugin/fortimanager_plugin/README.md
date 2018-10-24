@@ -1,4 +1,2 @@
 # Cloudify Fortimanager Plugin
 
-
-
