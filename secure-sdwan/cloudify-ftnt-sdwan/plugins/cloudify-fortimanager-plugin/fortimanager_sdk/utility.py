@@ -102,6 +102,10 @@ def _send_request(call):
         code, response = fmg_instance.add(url, **data)
         logger.debug('---> Method: {} \n code: {} \n response: \n {}'.format(method, code, response))
 
+    if method == "UPDATE":
+        code, response = fmg_instance.update(url, **data)
+        logger.debug('---> Method: {} \n code: {} \n response: \n {}'.format(method, code, response))
+
     if method == "DELETE":
         code, response = fmg_instance.delete(url)
         logger.debug('---> Method: {} \n code: {} \n response: \n {}'.format(method, code, response))

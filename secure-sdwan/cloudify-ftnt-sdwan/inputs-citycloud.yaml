@@ -6,4 +6,4 @@ mgmt_network_name: "mgmt"
 key_name: 'cloudify'
 external_network_name: "ext-net"
 agent_user: "ubuntu"
-fmg_ip: "91.106.199.106"
+fmg_ip: "192.168.1.99"
