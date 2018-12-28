@@ -257,7 +257,7 @@ node_templates:
                       next
                   end
                   config health-check
-                      edit "reach it"
+                      edit "ping"
                           set server "172.27.40.1"
                           set failtime 3
                           set members 1
@@ -269,10 +269,10 @@ node_templates:
                   end
                   config service
                       edit 1
-                          set name "best"
+                          set name "streaming"
                           set mode priority
                           set dst "DC"
-                          set health-check "reach it"
+                          set health-check "ping"
                           set priority-members 1 2
                       next
                   end

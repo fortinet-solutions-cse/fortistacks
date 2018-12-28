@@ -80,7 +80,7 @@ if (openstack server show fgt60  > /dev/null 2>&1 );then
     echo "fgt60 already installed"
 else
     #need to provide an example without config_drive
-    openstack server create --image "fgt60" fgt60 --config-drive=true --key-name default  --security-group default  --flavor $OS_FLAVOR  --user-data fgt-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --file license=FGT.lic
+    openstack server create --image "fgt60" fgt60   $OS_FLAVOR  --user-data fgt-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --file license=FGT.lic
 
     while [ `openstack server show fgt60 -f value -c status` == "BUILD" ]; do
 	sleep 4

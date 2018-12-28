@@ -20,13 +20,22 @@ api_calls:
       device:
         adm_pass: "{{fgt_password}}"
         adm_usr: "{{fgt_user}}"
-        desc: "Real FortiGate device"
+        desc: "Branche A Fortigate"
         ip: "{{fgt_ip}}"
         meta fields:
           "Company/Organization": "Fortinet"
           "Country": "France"
         name: "{{fgt_name}}"
         mgmt_mode: "fmg"
+    recoverable_code:
+    nonrecoverable_code:
+    response_translation: "response1"
+
+  - path: /dvmdb/device/{{fgt_name}}
+    method: UPDATE
+    data:
+      adom: root
+      flags: [ "69468160" ]
     recoverable_code:
     nonrecoverable_code:
     response_translation: "response1"

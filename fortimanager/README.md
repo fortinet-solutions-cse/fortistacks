@@ -8,7 +8,7 @@ unzip it.
 
 ```openstack image create --disk-format qcow2 --container-format bare  "FMG 6.0.2"  --file fmg.qcow2
 
-openstack volume create --size 8 fmg-log1
+openstack volume create --size 80 fmg-log1
 
 export OS_FLAVOR="2C-4GB"
 openstack server create --image "FMG 6.0.2" fmg60 --key-name default  --security-group default  \
@@ -24,7 +24,7 @@ openstack server list
 +--------------------------------------+-------+--------+---------------------------------+-----------+--------+
 | ID                                   | Name  | Status | Networks                        | Image     | Flavor |
 +--------------------------------------+-------+--------+---------------------------------+-----------+--------+
-| 42c2fd39-b27a-4111-b6fd-5e7c81626c52 | fmg60 | ACTIVE | mgmt=192.168.16.12, 77.81.7.183 | FMG 6.0.2 | 2C-4GB |
+| 42c2fd39-b27a-4111-b6fd-5e7c81626c52 | fmg60 | ACTIVE | mgmt=192.168.1.99, 77.81.7.183 | FMG 6.0.2 | 2C-4GB |
 +--------------------------------------+-------+--------+---------------------------------+-----------+--------+
 ```
 
