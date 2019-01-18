@@ -52,17 +52,19 @@ export LC_ALL=C
 PKGS=" python-pip python-virtualenv wget git"
 dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
 # if already install do nothing
-[ -f cloudify-cli-community-18.7.23.deb ] || wget -c http://repository.cloudifysource.org/cloudify/18.7.23/community-release/cloudify-cli-community-18.7.23.deb
- (dpkg -l cloudify >/dev/null)  || sudo dpkg -i cloudify*.deb
+CFY_VERSION="18.10.4"
+#[ -f cloudify-cli-community-18.7.23.deb ] || wget -c http://repository.cloudifysource.org/cloudify/18.7.23/community-release/cloudify-cli-community-18.7.23.deb
+[ -f cloudify-cli-community-$CFY_VERSION.deb ] || wget -c http://repository.cloudifysource.org/cloudify/18.10.4/community-release/cloudify-cli-community-$CFY_VERSION.deb
+ (dpkg -l cloudify >/dev/null)  || sudo dpkg -i cloudify-cli-community-$CFY_VERSION.deb
 
 # Will now use the package rpm on centos ..
 #
 CentOSImageID=`openstack image list --format value -c ID -c Name |grep "CentOS 7"|head -1|awk '{print $1}'`
 
-if (openstack server show cfy-manager-4.4  > /dev/null 2>&1 );then
+if (openstack server show cfy-manager-$CFY_VERSION  > /dev/null 2>&1 );then
     echo "cloudify manager already started"
     #get the floating-ip from openstack and trim result
-    FLOAT_IP=`openstack server show cfy-manager-4.4 -f value -c addresses|awk -F , '{print $2}'|sed 's/ //g'`
+    FLOAT_IP=`openstack server show cfy-manager-$CFY_VERSION -f value -c addresses|awk -F , '{print $2}'|sed 's/ //g'`
 else
     #check the fingerprint are equal (will work if not existant)
     OSKEY_FPRINT=`openstack keypair show cloudify -f value -c fingerprint|| echo "none"`
@@ -75,14 +77,14 @@ else
         openstack keypair delete cloudify || true
         openstack keypair create --public-key cloudify-key.pub cloudify
         fi
-    openstack server create  --image $CentOSImageID cfy-manager-4.4 --key-name cloudify --security-group default --flavor $OS_FLAVOR_CFY --network mgmt
-    while [ `openstack server show cfy-manager-4.4 -f value -c status` == "BUILD" ]; do
+    openstack server create  --image $CentOSImageID cfy-manager-$CFY_VERSION --key-name cloudify --security-group default --flavor $OS_FLAVOR_CFY --network mgmt
+    while [ `openstack server show cfy-manager-$CFY_VERSION -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
     # wait for the keys etc to propagate
     sleep 8
     FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
-    openstack server add floating ip cfy-manager-4.4 $FLOAT_IP
+    openstack server add floating ip cfy-manager-$CFY_VERSION $FLOAT_IP
 fi
 SSH="ssh -t -i cloudify-key -o StrictHostKeyChecking=no centos@$FLOAT_IP"
 until ($SSH ping -c 3 cloudify.co); do
@@ -93,17 +95,19 @@ done
 
 ### Install from rpm
 $SSH sudo yum install -y openssl-1.0.2k
-$SSH "(rpm -q cloudify-manager-install)|| sudo yum install -y http://repository.cloudifysource.org/cloudify/4.4.0/ga-release/cloudify-manager-install-4.4ga.rpm"
+$SSH sudo yum upgrade -y
+$SSH "(rpm -q cloudify-manager-install)|| sudo yum install -y http://repository.cloudifysource.org/cloudify/$CFY_VERSION/community-release/cloudify-manager-install-community-$CFY_VERSION.rpm"
 
-privateip=`openstack server show cfy-manager-4.4 -f value -c addresses|awk -F "=|," '{print $2}'|sed 's/ //g'`
+privateip=`openstack server show cfy-manager-$CFY_VERSION -f value -c addresses|awk -F "=|," '{print $2}'|sed 's/ //g'`
 #Copy the ssh key private key to the manager.
 scp -i cloudify-key -o StrictHostKeyChecking=no ./cloudify-key  centos@$FLOAT_IP:
 $SSH  sudo cp ./cloudify-key /etc/cloudify/ssh_key
 ## disable validation and sanity that fails
-$SSH " sudo sed -i -e 's/skip_validations: false/skip_validations: true/' /etc/cloudify/config.yaml"
-$SSH " sudo sed -i -e 's/skip_sanity: false/skip_sanity: true/' /etc/cloudify/config.yaml"
-$SSH "[ -f /etc/cloudify/.install ] ||sudo cfy_manager install --private-ip $FLOAT_IP --public-ip $FLOAT_IP   -a fortinet --clean-db"
-$SSH sudo chown cfyuser:cfyuser /etc/cloudify/ssh_key
+#$SSH " sudo sed -i -e 's/skip_validations: false/skip_validations: true/' /etc/cloudify/config.yaml"
+#$SSH " sudo sed -i -e 's/skip_sanity: false/skip_sanity: true/' /etc/cloudify/config.yaml"
+
+$SSH "[ -f /etc/cloudify/.install ] ||sudo -i cfy_manager install --private-ip $privateip --public-ip $FLOAT_IP   -a fortinet --clean-db"
+#$SSH sudo chown cfyuser:cfyuser /etc/cloudify/ssh_key
 # todo setup multiple networks for agents to use mgmt IPs
 
 # change the default openstack config to use the one currently on.

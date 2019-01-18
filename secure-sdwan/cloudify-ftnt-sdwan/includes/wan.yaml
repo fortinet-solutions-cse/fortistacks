@@ -4,8 +4,8 @@ tosca_definitions_version: cloudify_dsl_1_3
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
-  - http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
-#  - plugin:cloudify-openstack-plugin:2.5.2
+ # - http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
+  - plugin:cloudify-openstack-plugin
   - plugin:cloudify-utilities-plugin
 
 

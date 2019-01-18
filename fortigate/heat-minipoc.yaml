@@ -34,6 +34,14 @@ parameters:
   type: string
   description: Name of the second interface on Ubuntu may vary
   default: "eth1"
+ fgt_license:
+   type: string
+   default: |
+       -----BEGIN FGT VM LICENSE-----
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXA
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXA
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdE
+       -----END FGT VM LICENSE-----
 
   
 resources:
@@ -42,6 +50,10 @@ resources:
   properties:
     group: ungrouped
     config: |
+      config system admin
+      edit "admin"
+      set password fortinet
+      end
       config system interface
       edit port1
       set mode dhcp
@@ -72,25 +84,23 @@ resources:
       set nat enable
       next
       end
-      
- fgt_license:
+      config system global
+      set vdom-admin enable
+      end
+
+
+ fgt_license_file:
   type: OS::Heat::SoftwareConfig
   properties:
     group: ungrouped
-    config: |
-       -----BEGIN FGT VM LICENSE-----
-       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXA
-       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXA
-       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdE
-       -----END FGT VM LICENSE-----
-
+    config:  {get_param: fgt_license}
 
  fgt_init:
   type: OS::Heat::MultipartMime
   properties:
     parts:
+     - config: {get_resource: fgt_license_file}
      - config: {get_resource: fgt_config}
-     - config: {get_resource: fgt_license}
 
  ub_config:
   type: OS::Heat::SoftwareConfig
@@ -178,29 +188,28 @@ resources:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network: { get_param: public_net }
-
+      port_id: { get_resource: fgt_mgmt_port }
 
  fgt:
   type: OS::Nova::Server
   properties:
    image: { get_param: fgtimage }
    flavor: { get_param: vms_flavor }
-   user_data: { get_resource: fgt_config }
-   config_drive: True
+   user_data: { get_resource: fgt_init }
+#   config_drive: True
    name: FGT
    user_data_format: RAW
-   personality: {"license": { get_attr: [fgt_license, config] }}
+#   personality: {"license": { get_attr: [fgt_license, config] }}
    networks:
     - port: { get_resource: fgt_mgmt_port }
     - port:  { get_resource: fgt_left_port }
     - subnet:  { get_resource: right_subnet }
 #    - port:  { get_resource: right_port }
 
- association_fgt:
-    type: OS::Nova::FloatingIPAssociation
-    properties:
-      floating_ip: { get_resource: fgt_floating_ip }
-      server_id: { get_resource: fgt }
+# association_fgt:
+#   type: OS::Nova::FloatingIPAssociation
+#    properties:
+#      floating_ip: { get_resource: fgt_floating_ip }
 
 # association:
 #   type: OS::Neutron::FloatingIPAssociation
@@ -211,6 +220,7 @@ resources:
     type: OS::Neutron::FloatingIP
     properties:
       floating_network: { get_param: public_net }
+      port_id: { get_resource: fgt_mgmt_port }
 
  ubr_floating_ip:
     type: OS::Neutron::FloatingIP
