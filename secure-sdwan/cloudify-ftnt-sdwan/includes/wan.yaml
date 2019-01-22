@@ -29,21 +29,23 @@ node_templates:
     properties:
       resource_id: dc-router
       external_network: { get_input: external_network_name }
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        start:
-          inputs:
-            args:
-              route:
-              - destination: 10.20.20.0/24
-                gateway: 10.40.40.254
-        delete:
-          inputs:
-            update_args:
-              routes: []
-### Tried several ways to set the route on a router but FAILED
-#workaround: openstack router set dc-router --route destination=10.20.20.0/24,gateway=10.40.40.254
-#    TODO reach out to Cloudify
+
+  routes_wan:
+    type: cloudify.openstack.nodes.Routes
+    properties:
+      routes:
+        - destination: 10.20.20.0/24
+          nexthop: 10.40.40.254
+#      openstack_config: *openstack_config
+    relationships:
+      - target: dc_router
+        type: cloudify.openstack.route_connected_to_router
+      - target: wan_subnet
+        type: cloudify.relationships.depends_on
+      # you must have the subnet connected to router to allow route dest
+      - target: netem
+        type: cloudify.relationships.depends_on
+
 
     # networks
   provider_router:
@@ -240,7 +242,9 @@ node_templates:
         type: cloudify.relationships.connected_to
       - target: isp_port
         type: cloudify.relationships.depends_on
-      - target: wan_port
+      - target: wan_subnet
+        type: cloudify.relationships.depends_on
+      - target: isp_subnet
         type: cloudify.relationships.depends_on
       - target: netem_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip

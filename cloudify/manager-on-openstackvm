@@ -53,7 +53,6 @@ PKGS=" python-pip python-virtualenv wget git"
 dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
 # if already install do nothing
 CFY_VERSION="18.10.4"
-#[ -f cloudify-cli-community-18.7.23.deb ] || wget -c http://repository.cloudifysource.org/cloudify/18.7.23/community-release/cloudify-cli-community-18.7.23.deb
 [ -f cloudify-cli-community-$CFY_VERSION.deb ] || wget -c http://repository.cloudifysource.org/cloudify/18.10.4/community-release/cloudify-cli-community-$CFY_VERSION.deb
  (dpkg -l cloudify >/dev/null)  || sudo dpkg -i cloudify-cli-community-$CFY_VERSION.deb
 
@@ -103,10 +102,11 @@ privateip=`openstack server show cfy-manager-$CFY_VERSION -f value -c addresses|
 scp -i cloudify-key -o StrictHostKeyChecking=no ./cloudify-key  centos@$FLOAT_IP:
 $SSH  sudo cp ./cloudify-key /etc/cloudify/ssh_key
 ## disable validation and sanity that fails
-#$SSH " sudo sed -i -e 's/skip_validations: false/skip_validations: true/' /etc/cloudify/config.yaml"
+$SSH " sudo sed -i -e 's/skip_validations: false/skip_validations: true/' /etc/cloudify/config.yaml"
 #$SSH " sudo sed -i -e 's/skip_sanity: false/skip_sanity: true/' /etc/cloudify/config.yaml"
 
-$SSH "[ -f /etc/cloudify/.install ] ||sudo -i cfy_manager install --private-ip $privateip --public-ip $FLOAT_IP   -a fortinet --clean-db"
+#$SSH "[ -f /etc/cloudify/.install ] ||sudo -i cfy_manager install --private-ip $privateip --public-ip $FLOAT_IP   -a fortinet --clean-db"
+$SSH "[ -f /etc/cloudify/.install ] ||sudo -i cfy_manager install --private-ip $FLOAT_IP --public-ip $FLOAT_IP   -a fortinet --clean-db"
 #$SSH sudo chown cfyuser:cfyuser /etc/cloudify/ssh_key
 # todo setup multiple networks for agents to use mgmt IPs
 
@@ -122,9 +122,9 @@ cfy profiles use $FLOAT_IP -u admin -p fortinet -t default_tenant
 $SSH sudo cfy plugins  bundle-upload
 # upload to secret in cloudify used by agents
 # workaround as last version of openstack plugin do not handle port correctly
-wget -c http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
-wget -c https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.9.6/cloudify_openstack_plugin-2.9.6-py27-none-linux_x86_64-centos-Core.wgn
-cfy plugin upload cloudify_openstack_plugin-2.9.6-py27-none-linux_x86_64-centos-Core.wgn -y plugin.yaml
+#wget -c http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
+#wget -c https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.9.6/cloudify_openstack_plugin-2.9.6-py27-none-linux_x86_64-centos-Core.wgn
+#cfy plugin upload cloudify_openstack_plugin-2.9.6-py27-none-linux_x86_64-centos-Core.wgn -y plugin.yaml
 cfy status
 echo "if any of the following fails it means you already set it up, ignore"
 cfy secret create agent_key_private -f cloudify-key

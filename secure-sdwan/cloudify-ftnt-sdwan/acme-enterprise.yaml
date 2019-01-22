@@ -5,6 +5,7 @@ description: >
   On the router VM netem simulate a WAN. MPLS is a normal network.
   To be run before deployment:
   $ cfy secret create fgt_license -f ../../fortigate/FGT.lic
+  $ cfy secret create fmg_password -s XXXX
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
   #- http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
