@@ -7,8 +7,7 @@ description: >
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
-  - http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
-#NUG in ports in 2.11#  - plugin:cloudify-openstack-plugin
+  - plugin:cloudify-openstack-plugin
   - plugin:cloudify-diamond-plugin
   - plugin:cloudify-utilities-plugin
   - types/antmedia.yaml
@@ -135,6 +134,21 @@ node_templates:
           port_range_min: 5000
           port_range_max: 65000
 
+  antmedia_host_cloud_config:
+    type: cloudify.nodes.CloudInit.CloudConfig
+    properties:
+      resource_config:
+        users:
+        - name: { get_input: agent_user }
+          groups: sudo
+          shell: /bin/bash
+          sudo: ['ALL=(ALL) NOPASSWD:ALL']
+          passwd: 'fortinet'
+          ssh-authorized-keys:
+          - { get_secret: agent_key_public }
+        packages:
+          - [python-pip]
+
   antmedia_ubuntu:
     type: cloudify.openstack.nodes.Server
     properties:
@@ -155,29 +169,7 @@ node_templates:
         create:
           inputs:
             args:
-              userdata: |
-                #cloud-config
-                chpasswd:
-                  list: |
-                    ubuntu:fortinet
-                  expire: False
-                write_files:
-                  - content: |
-                      # Enable dhcp on ens4
-                      auto ens4
-                      iface ens4 inet dhcp
-                    path: /etc/network/interfaces.d/51-ens4.cfg
-                package_upgrade: true
-                packages:
-                  - python-pip
-                  - tcpdump
-                  - zile
-                power_state:
-                 delay: "now"
-                 mode: reboot
-                 message: Rebooting to ensure network conf
-                 timeout: 10
-                 condition: True
+              userdata: { get_attribute: [ antmedia_host_cloud_config, cloud_config ] }
     relationships:
       - target: dc_network
         type: cloudify.relationships.depends_on
