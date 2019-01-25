@@ -1,0 +1,20 @@
+api_calls:
+
+  # first call
+  - path: /dvmdb/device/
+    method: GET
+    recoverable_code:
+    nonrecoverable_code:
+    response_translation: "response1"
+
+  # first call
+  - path: /dvm/cmd/del/device
+    method: EXECUTE
+    data:
+      adom: root
+      flags: [ "create_task", "nonblocking" ]
+      device: "{{fgt_name}}"
+### not enough need to be able to get the device id somewhere.
+    recoverable_code:
+    nonrecoverable_code:
+    response_translation: "response2"

@@ -1,0 +1,14 @@
+api_calls:
+  - path: /cli/global/system/admin/setting
+    method: GET
+    data:
+    recoverable_code: ['access-banner', 0]
+    nonrecoverable_code: ['access-banner', 1]
+  response_translation:
+
+  - path: /cli/global/system/admin/profile
+    method: GET
+    data:
+    recoverable_codes: []
+    nonrecoverable_codes: []
+    response_translation:

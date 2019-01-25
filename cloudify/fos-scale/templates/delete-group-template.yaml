@@ -1,0 +1,8 @@
+api_calls:
+  # first call
+  - path: /dvmdb/adom/root/group/{{DEVICE_GROUP_NAME}}
+    method: DELETE
+    data:
+    recoverable_code:
+    nonrecoverable_code:
+    response_translation: "response2"
