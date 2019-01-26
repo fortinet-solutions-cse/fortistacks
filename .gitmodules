@@ -4,3 +4,6 @@
 [submodule "fos-scale/cloudify-fortimanager-plugin"]
         path = fos-scale/plugins/cloudify-fortimanager-plugin
         url = git@github.com:fortinet-solutions-cse/cloudify-fortimanager-plugin.git
+[submodule "cloudify/fos-scale/plugins/cloudify-fortimanager-plugin"]
+	path = cloudify/fos-scale/plugins/cloudify-fortimanager-plugin
+	url = git@github.com:fortinet-solutions-cse/cloudify-fortimanager-plugin.git
