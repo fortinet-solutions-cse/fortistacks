@@ -8,8 +8,6 @@ description: >
   $ cfy secret create fmg_password -s XXXX
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.5.5/types.yaml
-  #- http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
-#NUG in ports in 2.11#
   - plugin:cloudify-openstack-plugin
   - plugin:cloudify-utilities-plugin
   - includes/wan.yaml
