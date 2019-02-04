@@ -229,10 +229,8 @@ node_templates:
         type: cloudify.relationships.connected_to
       - target: branchea_subnet
         type: cloudify.relationships.depends_on
-#      - target: fos_floating_ip
-#        type: cloudify.openstack.server_connected_to_floating_ip
-#      - target: fortimanager
-#        type: device_in_fmg
+      - target: fos_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
 
 
   fortimanager:

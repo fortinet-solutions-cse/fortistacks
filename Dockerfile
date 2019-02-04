@@ -9,7 +9,7 @@ MAINTAINER Nicolas Thomas <nthomas@fortinet.com>
 #Update the Ubuntu software repository inside the dockerfile with the 'RUN' command.
 RUN apt-get update && apt-get -y upgrade
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt -y install git python-pip wget zile byobu bash sudo python-virtualenv wget git cloud-image-utils python-openstackclient sudo
+RUN apt -y install git python-pip wget zile byobu bash sudo python-virtualenv wget git cloud-image-utils python-openstackclient sudo python-heatclient
 RUN apt clean
 
 RUN groupadd -r ubuntu && useradd  -g ubuntu -G adm,sudo ubuntu -m -p fortinet -s /bin/bash && \

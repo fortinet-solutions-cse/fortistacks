@@ -183,6 +183,7 @@ resources:
       security_groups: [ default ]
       fixed_ips:
         - subnet_id: "mgmt_subnet"
+# TODO remove hardcoded
 
  fgt_floating_ip:
     type: OS::Neutron::FloatingIP
@@ -196,15 +197,12 @@ resources:
    image: { get_param: fgtimage }
    flavor: { get_param: vms_flavor }
    user_data: { get_resource: fgt_init }
-#   config_drive: True
    name: FGT
    user_data_format: RAW
-#   personality: {"license": { get_attr: [fgt_license, config] }}
    networks:
     - port: { get_resource: fgt_mgmt_port }
     - port:  { get_resource: fgt_left_port }
     - subnet:  { get_resource: right_subnet }
-#    - port:  { get_resource: right_port }
 
 # association_fgt:
 #   type: OS::Nova::FloatingIPAssociation
@@ -222,16 +220,6 @@ resources:
       floating_network: { get_param: public_net }
       port_id: { get_resource: fgt_mgmt_port }
 
- ubr_floating_ip:
-    type: OS::Neutron::FloatingIP
-    properties:
-      floating_network: { get_param: public_net }
-
- ubl_floating_ip:
-    type: OS::Neutron::FloatingIP
-    properties:
-      floating_network: { get_param: public_net }
-
 
  ubleft:
   type: OS::Nova::Server
@@ -245,7 +233,14 @@ resources:
    security_groups: [ default ]
    networks:
     - network: { get_param: mgmt_net }
-    - subnet:  { get_resource: left_subnet }
+    - network:  { get_resource: left_net }
+
+ ubl_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_net }
+      port_id: {get_attr: [ubleft, addresses, {get_param: mgmt_net}, 0, port]}
+    # explicit port association
 
  association_left:
     type: OS::Nova::FloatingIPAssociation
@@ -266,6 +261,14 @@ resources:
    networks:
     - network: { get_param: mgmt_net }
     - subnet:  { get_resource: right_subnet }
+
+ ubr_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: public_net }
+#      port_id: {get_attr: [ubright, first_address,port_id]}
+#      port_id: {get_attr: [ubright, networks, 0, port_id]}
+      port_id: {get_attr: [ubright, addresses, {get_param: mgmt_net}, 0, port]}
 
 
  association_right:
