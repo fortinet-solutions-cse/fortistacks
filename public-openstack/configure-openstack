@@ -27,7 +27,7 @@ echo "This script configure any openstack to be close to the one deployed by for
 
 
 NEUTRON_EXT_NET_NAME="ext-net" 
-NEUTRON_FIXED_NET_CIDR="192.168.16.0/22"
+NEUTRON_FIXED_NET_CIDR="192.168.1.0/24"
 NEUTRON_DNS="8.8.8.8"
 
 # Determine the tenant id for the configured tenant name.
