@@ -7,21 +7,15 @@ To achieve this we propose here a tested public openstack with CityCloud or a pe
 Then using the mini-poc concept of 2 VMs, 2 network 1 fortigate we build examples in script, heat, 
 Cloudify or OSM/Rift.io formats.
 
-The scripts are supposed to run on an Ubuntu with root access.
+This version 2 also provide more advanced demo for secure sdwan and scalability.
+
+To correctly get the referenced submodules please use the --recursive option of git clone like this:
+```bash
+git clone https://github.com/fortinet-solutions-cse/fortistacks.git --recursive
+```
+
+The scripts are supposed to run on an Ubuntu with sudo access.
 See the README Dockerclient for running on external Openstack on any client.
-
-## Videos
-
-Fortistacks1.2 on Public openstack : https://youtu.be/Zp6CCEbJiUU
-
-If you want to install your own openstack and use the same (on 1 machine) refer to 
- Fortistacks1.1  https://youtu.be/0y38B61FTSk the video applies to version 1.2.
-
-## Previous versions
-For stable versions of this project refer to :
-
-https://github.com/fortinet-solutions-cse/fortistacks/releases to find
-the release you like. The master branch can contain work in progress.
 
 ## What you will find here
 
@@ -85,4 +79,17 @@ As described here:
 
 The goal is to offer an easy access to all parts and being able to experiment with Fortinet products on Openstack.
 
+
+## Videos
+
+Fortistacks1.2 on Public openstack : https://youtu.be/Zp6CCEbJiUU
+
+If you want to install your own openstack and use the same (on 1 machine) refer to 
+ Fortistacks1.1  https://youtu.be/0y38B61FTSk the video applies to version 1.2.
+
+## Previous versions
+For stable versions of this project refer to :
+
+https://github.com/fortinet-solutions-cse/fortistacks/releases to find
+the release you like. The master branch can contain work in progress.
 
