@@ -1,0 +1,258 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  Scaling (group with FOS)
+  Ideally Diamond include, MUST have Fortimanager with PAYG points.
+  $ cfy secret create fmg_password -s XXXX
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.5.5/types.yaml
+  - plugin:cloudify-openstack-plugin
+  - plugin:cloudify-utilities-plugin
+  - plugins/cloudify-fortimanager-plugin/plugin.yaml
+  - plugin:cloudify-diamond-plugin
+
+#  cfy secret create fmg_password -s X
+
+
+inputs:
+  fos_image:
+    default: {}
+  fos_flavor:
+    default: {}
+  key_name:
+    default: {}
+  ub_image:
+     default: {}  
+  ub_flavor:
+     default: {}
+  agent_user:
+      default: "ubuntu"
+  fmg_ip:
+    default: {}
+
+
+  mgmt_network_name:
+    default: "mgmt"
+  external_network_name:
+    default: "ext_net"
+
+
+
+dsl_definitions:
+
+# The configuration of openstack access is in the file /etc/cloudify/openstack_config.json
+# For simplicity of blueprint reading.
+
+#  ##openstack_config: &openstack_config
+#    username: { get_secret: keystone_username }
+#    password: { get_secret: keystone_password }
+#    tenant_name: { get_secret: keystone_tenant_name }
+#    auth_url: { get_secret: keystone_url }
+#    region: { get_secret: region }
+
+node_templates:
+
+
+# networks
+
+
+# networks
+
+  mpls_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      resource_id: mpls_network
+
+  mpls_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      ##openstack_config: *openstack_config
+      resource_id: mpls_subnet
+      subnet:
+        host_routes: [ {"nexthop": "10.30.30.1", "destination": "172.27.40.0/24"} ]
+        cidr: 10.30.30.0/24
+        allocation_pools:
+        - start: 10.30.30.3
+          end: 10.30.30.140
+        ip_version: 4
+        gateway_ip: 10.30.30.1
+    relationships:
+    - target: mpls_network
+      type: cloudify.relationships.contained_in
+
+#
+  branchea_lan:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      resource_id: branchea_lan
+
+  branchea_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      ##openstack_config: *openstack_config
+      resource_id: branchea_subnet
+      subnet:
+        host_routes: [ {"nexthop": "192.168.12.254", "destination": "10.0.0.0/8"}, {"nexthop": "192.168.12.254", "destination": "172.27.40.0/24"} ]
+        cidr: 192.168.12.0/24
+        allocation_pools:
+        - start: 192.168.12.3
+          end: 192.168.12.140
+        ip_version: 4
+        gateway_ip: null
+    relationships:
+    - target: branchea_lan
+      type: cloudify.relationships.contained_in
+
+
+  brancheA_port:
+    type: cloudify.openstack.nodes.Port
+    properties:
+      resource_id: brancheA_port
+      fixed_ip: "192.168.12.254"
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              port_security_enabled: False
+    relationships:
+      - target: branchea_lan
+        type: cloudify.relationships.contained_in
+      - target: branchea_subnet
+        type: cloudify.relationships.connected_to
+#      - target: branchea_subnet
+#        type: cloudify.relationships.depends_on
+
+  fos_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    capabilities:
+      scalable:
+        properties:
+          default_instances: 1
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: { get_input: external_network_name }
+
+  fortios:
+    type: cloudify.openstack.nodes.Server
+    capabilities:
+      scalable:
+        properties:
+          default_instances: 1
+    properties:
+      server:
+        image_name: { get_input: fos_image }
+        flavor_name: { get_input: fos_flavor }
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: none # do not install agent
+      ##openstack_config: *openstack_config
+      management_network_name: { get_input: mgmt_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              userdata: |
+                config system admin
+                    edit "admin"
+                        set password fortinet
+                    next
+                end
+                #FOS VM Config File
+                config system interface
+                edit port1
+                 set alias "mgmt"
+                 set mode dhcp
+                 set allowaccess ping https ssh http snmp fgfm
+                 set defaultgw enable
+                next
+                edit port2
+                  set alias "mpls"
+                  set role wan
+                  set mode dhcp
+                  set allowaccess ping
+                  set defaultgw disable
+                next
+                edit port3
+                set alias "lan"
+                set role lan
+                set mode dhcp
+                set allowaccess ping
+                 set defaultgw disable
+                next
+                end
+                config router static
+                    edit 1
+                        set dst 172.27.40.0 255.255.255.0
+                        set gateway 10.20.20.254
+                        set device "port3"
+                    next
+                    edit 2
+                        set dst 172.27.40.0 255.255.255.0
+                        set gateway 10.30.30.1
+                        set device "port2"
+                    next
+                end
+                config firewall policy
+                edit 1
+                  set name "LAN to SDWAN"
+                  set srcintf "port4"
+                  set dstintf "virtual-wan-link"
+                  set srcaddr "all"
+                  set dstaddr "all"
+                  set action accept
+                  set schedule "always"
+                  set service "ALL"
+                  set nat enable
+                next
+                end
+                config system central-management
+                 set include-default-servers disable
+                 set type fortimanager
+                 set fmg 192.168.1.99
+                 config server-list
+                  edit 1
+                  set server-type update rating
+                  set server-address 192.168.1.99
+                  end
+                end
+    relationships:
+      - target: mpls_network
+        type: cloudify.relationships.connected_to
+      - target: mpls_subnet
+        type: cloudify.relationships.depends_on
+      - target: branchea_lan
+        type: cloudify.relationships.connected_to
+      - target: branchea_subnet
+        type: cloudify.relationships.depends_on
+      - target: fos_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+
+  fortimanager:
+    type: cloudify.fortinet.fortimanager
+    properties:
+      host: { get_input: fmg_ip }
+      username: "admin"
+      password: { get_secret: fmg_password }
+      use_ssl: True
+      verify_ssl: False
+    relationships:
+      - target: fortios
+        type: device_in_fmg
+
+
+groups:
+  fos_fips:
+    members: [fortios, fos_floating_ip]
+# creating output for easing the testing:
+policies:
+  scale_policy1:
+    type: cloudify.policies.scaling
+    properties:
+      default_instances: 1
+    targets: [fos_fips]

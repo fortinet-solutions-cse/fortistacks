@@ -34,10 +34,10 @@
                 config system central-management
                 set include-default-servers disable
                 set type fortimanager
-                set fmg 172.22.28.40
+                set fmg 192.168.1.99
                 config server-list
                 edit 1
                 set server-type update rating
-                set server-address 172.22.28.40
+                set server-address 192.168.1.99
                 end
                 end

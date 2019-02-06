@@ -24,14 +24,18 @@ if [ -x "$OS_AUTH_URL" ]; then
   . ~/nova.rc
 fi
 
+cat << EOF | openstack
+server delete trafleft
+server delete trafright
+server delete fos56
+server delete fos60
 
 
-openstack server delete trafleft
-openstack server delete trafright
-openstack server delete fos56
+port delete left1
+port delete right1
+network delete left
+network delete right
+
+EOF
 
 
-openstack port delete left1
-openstack port delete right1
-openstack network delete left
-openstack network delete right

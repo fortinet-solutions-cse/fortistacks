@@ -1,0 +1,12 @@
+api_calls:
+  # first call
+  - path: /dvmdb/adom/root/group/{{DEVICE_GROUP_NAME}}
+    method: ADD
+    data:
+      name: "{{DEVICE_GROUP_NAME}}"
+      desc: "{{DEVICE_GROUP_DESCRIPTION}}"
+      os_type: "fos"
+      type: "normal"
+    recoverable_code:
+    nonrecoverable_code:
+    response_translation: "response1"
