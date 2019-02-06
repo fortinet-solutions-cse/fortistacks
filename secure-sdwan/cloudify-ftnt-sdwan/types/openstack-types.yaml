@@ -1,0 +1,80 @@
+
+node_types:
+
+  ###########################################################
+  # We define a type that inherits openstack's default
+  # server, and adds monitoring capabillities on top of it.
+  ###########################################################
+
+  nodecellar.nodes.MonitoredServer:
+    derived_from: cloudify.openstack.nodes.Server
+    properties:
+      agent_config:
+        default:
+          install_method: init_script
+          user: { get_input: agent_user }
+          port: 22
+          key: { get_secret: agent_key_private }
+          #network: mgmt_network
+          ##
+      server:
+        default:
+          key_name: 'cloudify'
+          image_name: { get_input: ub_image }
+          flavor_name: { get_input: ub_flavor }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: openstack.nova_plugin.server.create
+          inputs:
+            args:
+              default:
+                image: { get_input: ub_image }
+                flavor: { get_input: ub_flavor }
+                userdata: { get_attribute: [ cloudify_host_cloud_config, cloud_config ] }
+
+      ###########################################################
+      # We are infact telling cloudify to install a diamond
+      # monitoring agent on the server.
+      #
+      # (see https://github.com/BrightcoveOS/Diamond)
+      ###########################################################
+
+      cloudify.interfaces.monitoring_agent:
+          install:
+            implementation: diamond.diamond_agent.tasks.install
+            inputs:
+              diamond_config:
+                default:
+                  interval: 1
+          start: diamond.diamond_agent.tasks.start
+          stop: diamond.diamond_agent.tasks.stop
+          uninstall: diamond.diamond_agent.tasks.uninstall
+
+      ###########################################################
+      # Adding some collectors. These collectors are necessary
+      # for the Cloudify UI to display the deafult metrics.
+      ###########################################################
+
+      cloudify.interfaces.monitoring:
+          start:
+            implementation: diamond.diamond_agent.tasks.add_collectors
+            inputs:
+              collectors_config:
+                default:
+                  CPUCollector: {}
+                  MemoryCollector: {}
+                  LoadAverageCollector: {}
+                  DiskUsageCollector:
+                    config:
+                      devices: x?vd[a-z]+[0-9]*$
+                  NetworkCollector: {}
+                  ProcessResourcesCollector:
+                    config:
+                      enabled: true
+                      unit: B
+                      measure_collector_time: true
+                      cpu_interval: 0.5
+                      process:
+                        node:
+                          name: node

@@ -1,0 +1,75 @@
+plugins:
+
+  fortinet:
+    executor: central_deployment_agent
+    package_name: cloudify-fortimanager-plugin
+    source: cloudify-fortimanager-plugin
+    package_version: '0.0.0.1'
+
+node_types:
+
+  cloudify.fortinet.fortimanager:
+    derived_from: cloudify.nodes.Root
+    properties:
+      host:
+        description: >
+          Fortimanager hostname or IP addresses
+        default: ""
+      username:
+        description: >
+          Fortimanager username
+        default: ""
+      password:
+        description: >
+          Fortimanager password
+        default: ""
+      use_ssl:
+        description: >
+          http or https
+        type: boolean
+        default: false
+      verify_ssl:
+        description: >
+          A boolean which controls whether we verify
+          the server's TLS certificate.
+        type: boolean
+        default: true
+
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: fortinet.fortimanager_plugin.tasks.execute
+          inputs:
+            params:
+              default: {}
+            template_file:
+              default: ''
+        configure:
+          implementation: fortinet.fortimanager_plugin.tasks.execute
+          inputs:
+            params:
+              default: {}
+            template_file:
+              default: ''
+        start:
+          implementation: fortinet.fortimanager_plugin.tasks.execute
+          inputs:
+            params:
+              default: {}
+            template_file:
+              default: ''
+        stop:
+          implementation: fortinet.fortimanager_plugin.tasks.execute
+          inputs:
+            params:
+              default: {}
+            template_file:
+              default: ''
+        delete:
+          implementation: fortinet.fortimanager_plugin.tasks.execute
+          inputs:
+            params:
+              default: {}
+            template_file:
+              default: ''
+

@@ -1,0 +1,435 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  Deployment of 2 networks  with a VM as a router in the middle.
+  On the router VM netem simulate a WAN. MPLS is a normal network.
+  To be run before deployment:
+  $ cfy secret create fgt_license -f ../../fortigate/FGT.lic
+  $ cfy secret create fmg_password -s XXXX
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
+  #- http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
+#NUG in ports in 2.11#
+  - plugin:cloudify-openstack-plugin
+  - plugin:cloudify-utilities-plugin
+  - includes/wan.yaml
+  - plugins/cloudify-fortimanager-plugin/plugin.yaml
+#  cfy secret create fmg_password -s X
+
+
+inputs:
+  fos_image:
+    default: {}
+  fos_flavor:
+    default: {}
+  key_name:
+    default: {}
+  ub_image:
+     default: {}  
+  ub_flavor:
+     default: {}
+  agent_user:
+      default: "ubuntu"
+  fmg_ip:
+    default: {}
+
+
+  mgmt_network_name:
+    default: "mgmt"
+  external_network_name:
+    default: "ext_net"
+
+
+
+dsl_definitions:
+
+# The configuration of openstack access is in the file /etc/cloudify/openstack_config.json
+# For simplicity of blueprint reading.
+
+#  ##openstack_config: &openstack_config
+#    username: { get_secret: keystone_username }
+#    password: { get_secret: keystone_password }
+#    tenant_name: { get_secret: keystone_tenant_name }
+#    auth_url: { get_secret: keystone_url }
+#    region: { get_secret: region }
+
+node_templates:
+
+
+# networks
+
+
+  dc_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      resource_id: dc_network
+
+  dc_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      ##openstack_config: *openstack_config
+      resource_id: dc_subnet
+      subnet:
+        host_routes: [ {"nexthop": "10.40.40.254", "destination": "10.20.20.0/24"} ]
+        allocation_pools:
+          - start: 172.27.40.3
+            end: 172.27.40.140
+        dns_nameservers: [1.1.1.1]
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              cidr: 172.27.40.0/24
+              ip_version: 4
+              gateway_ip: 172.27.40.1
+      cloudify.interfaces.validation:
+        creation:
+          inputs:
+            args:
+              cidr: 172.27.40.0/24
+              ip_version: 4
+              gateway_ip: 172.27.40.1
+    relationships:
+      - target: dc_network
+        type: cloudify.relationships.contained_in
+      - target: dc_router
+        type: cloudify.openstack.subnet_connected_to_router
+
+# networks
+
+  mpls_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      resource_id: mpls_network
+
+  mpls_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      ##openstack_config: *openstack_config
+      resource_id: mpls_subnet
+      subnet:
+        host_routes: [ {"nexthop": "10.30.30.1", "destination": "172.27.40.0/24"} ]
+        cidr: 10.30.30.0/24
+        allocation_pools:
+        - start: 10.30.30.3
+          end: 10.30.30.140
+        ip_version: 4
+        gateway_ip: 10.30.30.1
+    relationships:
+    - target: mpls_network
+      type: cloudify.relationships.contained_in
+    - target: dc_router
+      type: cloudify.openstack.subnet_connected_to_router
+
+#
+  branchea_lan:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      resource_id: branchea_lan
+
+  branchea_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      ##openstack_config: *openstack_config
+      resource_id: branchea_subnet
+      subnet:
+        host_routes: [ {"nexthop": "192.168.12.254", "destination": "10.0.0.0/8"}, {"nexthop": "192.168.12.254", "destination": "172.27.40.0/24"} ]
+        cidr: 192.168.12.0/24
+        allocation_pools:
+        - start: 192.168.12.3
+          end: 192.168.12.140
+        ip_version: 4
+        gateway_ip: null
+    relationships:
+    - target: branchea_lan
+      type: cloudify.relationships.contained_in
+
+
+  brancheA_port:
+    type: cloudify.openstack.nodes.Port
+    properties:
+      resource_id: brancheA_port
+      fixed_ip: "192.168.12.254"
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              port_security_enabled: False
+    relationships:
+      - target: branchea_lan
+        type: cloudify.relationships.contained_in
+      - target: branchea_subnet
+        type: cloudify.relationships.connected_to
+#      - target: branchea_subnet
+#        type: cloudify.relationships.depends_on
+
+  fosa_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: { get_input: external_network_name }
+
+  branchea_fortigate:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: fos_image }
+        flavor_name: { get_input: fos_flavor }
+        #useless key_name for fortinet but mandatory for openstack
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: none # do not install agent
+      ##openstack_config: *openstack_config
+      management_network_name: { get_input: mgmt_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              config_drive: true
+              userdata: |
+                config system admin
+                    edit "admin"
+                        set password fortinet
+                    next
+                end
+                #FOS VM Config File
+                config system interface
+                edit port1
+                 set alias "mgmt"
+                 set mode dhcp
+                 set allowaccess ping https ssh http snmp fgfm
+                 set defaultgw enable
+                next
+                edit port2
+                  set alias "mpls"
+                  set role wan
+                  set mode dhcp
+                  set allowaccess ping
+                  set defaultgw disable
+                next
+                edit port3
+                set alias "isp"
+                set role wan
+                set mode dhcp
+                set allowaccess ping
+                 set defaultgw disable
+                next
+                edit port4
+                  set alias "lan"
+                  set role lan
+                  set mode dhcp
+                  set allowaccess ping
+                   set defaultgw disable
+                  next
+                end
+                config router static
+                    edit 1
+                        set dst 172.27.40.0 255.255.255.0
+                        set gateway 10.20.20.254
+                        set device "port3"
+                    next
+                    edit 2
+                        set dst 172.27.40.0 255.255.255.0
+                        set gateway 10.30.30.1
+                        set device "port2"
+                    next
+                end
+                config firewall address
+                    edit "DC"
+                        set color 6
+                        set subnet 172.27.40.0 255.255.255.0
+                    next
+                end
+                config system virtual-wan-link
+                  set status enable
+                  set load-balance-mode source-dest-ip-based
+                  config members
+                      edit 1
+                          set interface "port2"
+                      next
+                      edit 2
+                          set interface "port3"
+                          set gateway 10.40.40.254
+                      next
+                  end
+                  config health-check
+                      edit "ping"
+                          set server "172.27.40.1"
+                          set failtime 3
+                          set members 1
+                          config sla
+                              edit 1
+                              next
+                          end
+                      next
+                  end
+                  config service
+                      edit 1
+                          set name "streaming"
+                          set mode priority
+                          set dst "DC"
+                          set health-check "ping"
+                          set priority-members 1 2
+                      next
+                  end
+                end
+                config firewall policy
+                edit 1
+                  set name "LAN to SDWAN"
+                  set srcintf "port4"
+                  set dstintf "virtual-wan-link"
+                  set srcaddr "all"
+                  set dstaddr "all"
+                  set action accept
+                  set schedule "always"
+                  set service "ALL"
+                  set nat enable
+                next
+                end
+              files:
+               license: { get_secret: fgt_license }
+    relationships:
+      - target: fosa_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+      - target: brancheA_port
+        type: cloudify.relationships.depends_on
+      - target: mpls_network
+        type: cloudify.relationships.connected_to
+      - target: mpls_subnet
+        type: cloudify.relationships.depends_on
+      - target: isp_network
+        type: cloudify.relationships.connected_to
+      - target: isp_subnet
+        type: cloudify.relationships.depends_on
+      - target: brancheA_port
+        type: cloudify.relationships.connected_to
+      - target: brancheA_port
+        type: cloudify.relationships.depends_on
+
+  branchea_ub_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: { get_input: external_network_name }
+
+  dc_ub_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: { get_input: external_network_name }
+
+
+
+  breanchea_ubuntu:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: none # Bug in cloudify agents use internal ip and not floating
+      ##openstack_config: *openstack_config
+      management_network_name: { get_input: mgmt_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              userdata: |
+                #cloud-config
+                chpasswd:
+                  list: |
+                    ubuntu:fortinet
+                  expire: False
+                write_files:
+                  - content: |
+                      # Enable dhcp on ens4
+                      auto ens4
+                      iface ens4 inet dhcp
+                    path: /etc/network/interfaces.d/51-ens4.cfg
+                  - content: |
+                      # Enable vnc access from mac native
+                      gsettings set  org.gnome.Vino enabled true
+                      gsettings set  org.gnome.Vino  require-encryption false
+                      gsettings set  org.gnome.Vino vnc-password Zm9ydGluZXQ=
+                      gsettings set org.gnome.Vino use-upnp true
+                      gsettings set org.gnome.Vino notify-on-connect false
+                      gsettings set org.gnome.Vino prompt-enabled false
+                      gsettings set org.gnome.Vino authentication-methods  "['vnc']"
+                    owner: 1000:1000
+                    path: /usr/local/bin/vnconmac.sh
+                package_upgrade: true
+                packages:
+                  - traceroute
+                  - zile
+                  - ubuntu-desktop
+                  - vlc
+                power_state:
+                 delay: "now"
+                 mode: reboot
+                 message: Rebooting to ensure network conf
+                 timeout: 10
+                 condition: True
+    relationships:
+      - target:  branchea_lan
+        type: cloudify.relationships.connected_to
+      - target:  branchea_subnet
+        type: cloudify.relationships.depends_on
+      - target: branchea_ub_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+  add-fortigate-tofmg:
+    type: cloudify.fortinet.fortimanager
+    properties:
+      host: { get_input: fmg_ip }
+      username: "admin"
+      password: { get_secret: fmg_password }
+      use_ssl: True
+      verify_ssl: False
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          inputs:
+            template_file: templates/add-fortigate.yaml
+            params:
+              fgt_password: "fortinet"
+              fgt_ip: { get_attribute: [branchea_fortigate, ip ] }
+              fgt_user: "admin"
+              fgt_name: "branchea_fortigate"
+        stop:
+          inputs:
+            template_file: templates/remove-fortigate.yaml
+            params:
+              fgt_name: "branchea_fortigate"
+    relationships:
+      - target:  branchea_fortigate
+        type: cloudify.relationships.depends_on
+
+
+# creating output for easing the testing:
+outputs:
+
+    dc_server:
+        description: ip of the server on the wan side
+        value:
+            ip: { get_attribute: [breanchea_ubuntu, networks, mgmt, 0 ] }
+
+    FGT:
+        description: ips of the fortigate
+        value:
+            ip: { get_attribute: [branchea_fortigate, ip ] }
+            networks: { get_attribute: [branchea_fortigate, networks ] }
+            mgmt: { get_attribute: [branchea_fortigate, networks,mgmt ] }

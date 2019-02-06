@@ -1,0 +1,192 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  Deployment of Antmedia and SDWAN rules to fortimanager.
+  $ cfy secret create agent_key_private -f ../../cloudify/cloudify-key
+  $ cfy secret create agent_key_public -f ../../cloudify/cloudify-key.pub
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
+  - plugin:cloudify-openstack-plugin
+  - plugin:cloudify-diamond-plugin
+  - plugin:cloudify-utilities-plugin
+  - types/antmedia.yaml
+  - types/openstack-types.yaml
+
+inputs:
+  fos_image:
+    default: {}
+  fos_flavor:
+    default: {}
+  key_name:
+    default: {}
+  ub_image:
+     default: {}  
+  ub_flavor:
+     default: {}
+  agent_user:
+      default: "ubuntu"
+  fmg_ip:
+    default: {}
+
+  mgmt_network_name:
+    default: "mgmt"
+  external_network_name:
+    default: "ext_net"
+
+
+
+dsl_definitions:
+
+# The configuration of openstack access is in the file /etc/cloudify/openstack_config.json
+# For simplicity of blueprint reading.
+
+#  ##openstack_config: &openstack_config
+#    username: { get_secret: keystone_username }
+#    password: { get_secret: keystone_password }
+#    tenant_name: { get_secret: keystone_tenant_name }
+#    auth_url: { get_secret: keystone_url }
+#    region: { get_secret: region }
+
+node_templates:
+
+  dc_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      resource_id: dc_network
+      use_external_resource: true
+
+  dc_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      ##openstack_config: *openstack_config
+      resource_id: dc_subnet
+      use_external_resource: true
+
+  antmedia_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: { get_input: external_network_name }
+
+# src: https://github.com/ant-media/Ant-Media-Server/wiki/Getting-Started
+# TODO the ipv6 rules
+  antmedia_security_group:
+    type: cloudify.openstack.nodes.SecurityGroup
+    properties:
+      resource_id: antmedia_security_group
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 5080
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 80
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 443
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 1935
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 5443
+        - remote_ip_prefix: 0.0.0.0/0
+          port: 5554
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: icmp
+          port_range_max: null
+          port_range_min: null
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: udp
+          port_range_min: 5000
+          port_range_max: 65000
+#same in ipv6
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 22
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 5080
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 80
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 443
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 1935
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 5443
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          port: 5554
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          protocol: icmp
+          port_range_max: null
+          port_range_min: null
+        - remote_ip_prefix: ::/0
+          ethertype: IPv6
+          protocol: udp
+          port_range_min: 5000
+          port_range_max: 65000
+
+  antmedia_host_cloud_config:
+    type: cloudify.nodes.CloudInit.CloudConfig
+    properties:
+      resource_config:
+        users:
+        - name: { get_input: agent_user }
+          groups: sudo
+          shell: /bin/bash
+          sudo: ['ALL=(ALL) NOPASSWD:ALL']
+          passwd: 'fortinet'
+          ssh-authorized-keys:
+          - { get_secret: agent_key_public }
+        packages:
+          - [python-pip]
+
+  antmedia_ubuntu:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: init_script
+        user: { get_input: agent_user }
+        port: 22
+        key: { get_secret: agent_key_private }
+          #network: mgmt_network
+            ##
+      ##openstack_config: *openstack_config
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              userdata: { get_attribute: [ antmedia_host_cloud_config, cloud_config ] }
+    relationships:
+      - target: dc_network
+        type: cloudify.relationships.depends_on
+      - target: dc_subnet
+        type: cloudify.relationships.connected_to
+      - target: antmedia_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+      - target: antmedia_security_group
+        type: cloudify.openstack.server_connected_to_security_group
+
+
+  antmedia:
+    type: cloudify.nodes.MonitoredAntmedia
+    relationships:
+      - target: antmedia_ubuntu
+        type: cloudify.relationships.contained_in
+
+
+
+

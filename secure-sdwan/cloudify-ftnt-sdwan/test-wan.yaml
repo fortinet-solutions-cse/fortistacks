@@ -1,0 +1,348 @@
+tosca_definitions_version: cloudify_dsl_1_3
+
+description: >
+  Deployment of 2 networks  with a VM as a router in the middle.
+  Idea is to be able to have netem and simulate a WAN.
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
+  - plugin:cloudify-openstack-plugin
+  - plugin:cloudify-utilities-plugin
+  - includes/wan.yaml
+
+inputs:
+  fos_image:
+    default: {}
+  fos_flavor:
+    default: {}
+  key_name:
+    default: {}
+  ub_image:
+     default: {}  
+  ub_flavor:
+     default: {}
+  agent_user:
+      default: "ubuntu"
+
+
+  mgmt_network_name:
+    default: "mgmt"
+  external_network_name:
+    default: "ext_net"
+
+
+
+dsl_definitions:
+
+# The configuration of openstack access is in the file /etc/cloudify/openstack_config.json
+# For simplicity of blueprint reading.
+
+#  ##openstack_config: &openstack_config
+#    username: { get_secret: keystone_username }
+#    password: { get_secret: keystone_password }
+#    tenant_name: { get_secret: keystone_tenant_name }
+#    auth_url: { get_secret: keystone_url }
+#    region: { get_secret: region }
+
+node_templates:
+
+
+# networks
+  dc_router:
+    type: cloudify.openstack.nodes.Router
+    properties:
+      resource_id: dc-router
+
+
+  dc_network:
+    type: cloudify.openstack.nodes.Network
+    properties:
+      resource_id: dc_network_openstack
+
+  dc_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      ##openstack_config: *openstack_config
+      resource_id: dc_subnet
+      subnet:
+        host_routes: [ {"nexthop": "10.40.40.254", "destination": "10.20.20.0/24"} ]
+        allocation_pools:
+          - start: 10.40.40.3
+            end: 10.40.40.140
+        dns_nameservers: [1.1.1.1]
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              cidr: 10.40.40.0/24
+              ip_version: 4
+              gateway_ip: 10.40.40.1
+      cloudify.interfaces.validation:
+        creation:
+          inputs:
+            args:
+              cidr: 10.40.40.0/24
+              ip_version: 4
+              gateway_ip: 10.40.40.1
+    relationships:
+      - target: wan_network
+        type: cloudify.relationships.contained_in
+      - target: provider_router
+        type: cloudify.openstack.subnet_connected_to_router
+
+  branches_subnet:
+    type: cloudify.openstack.nodes.Subnet
+    properties:
+      resource_id: branches_subnet
+      subnet:
+        host_routes: [ {"nexthop": "10.20.20.254", "destination": "10.40.40.0/24"} ]
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              cidr: 10.20.20.0/24
+              ip_version: 4
+              gateway_ip: null
+      cloudify.interfaces.validation:
+        creation:
+          inputs:
+            args:
+              cidr: 10.20.20.0/24
+              ip_version: 4
+              gateway_ip: null
+    relationships:
+      - target: branches_network
+        type: cloudify.relationships.contained_in
+
+
+
+
+
+  wan_port:
+    type: cloudify.openstack.nodes.Port
+    properties:
+      resource_id: wan_port
+      fixed_ip: "10.40.40.254"
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              port_security_enabled: False
+    relationships:
+      - target: wan_network
+        type: cloudify.relationships.contained_in
+      - target: wan_subnet
+        type: cloudify.relationships.depends_on
+
+  branches_port:
+    type: cloudify.openstack.nodes.Port
+    properties:
+      resource_id: branches_port
+      fixed_ip: "10.20.20.254"
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              port_security_enabled: False
+    relationships:
+      - target: branches_network
+        type: cloudify.relationships.contained_in
+      - target: branches_subnet
+        type: cloudify.relationships.depends_on
+
+
+# creating a port on the north subnet as cloudiy seems not catching the north part
+  ub_port:
+    type: cloudify.openstack.nodes.Port
+    properties:
+      resource_id: ub_port
+    relationships:
+      - target: wan_network
+        type: cloudify.relationships.contained_in
+      - target: wan_subnet
+        type: cloudify.relationships.depends_on
+
+#Wan emulation
+
+  netem_host_cloud_config:
+    type: cloudify.nodes.CloudInit.CloudConfig
+    properties:
+      resource_config:
+        users:
+        - name: { get_input: agent_user }
+          groups: sudo
+          shell: /bin/bash
+          sudo: ['ALL=(ALL) NOPASSWD:ALL']
+          passwd: 'fortinet'
+          ssh-authorized-keys:
+          - { get_secret: agent_key_public }
+        packages:
+          - [python-pip]
+        write_files:
+          - content: |
+              # Enable dhcp on ens4
+              auto ens4
+              iface ens4 inet dhcp
+            path: /etc/network/interfaces.d/51-ens4.cfg
+          - content: |
+              # Make it a router
+              net.ipv4.ip_forward = 1
+            path: /etc/sysctl.conf
+          - content: |
+              #!/bin/sh -e
+              for nic in ens3 ens4
+              do
+               tc qdisc add dev $nic root netem delay 50ms 10ms distribution normal loss 0.15% 25%
+              done
+
+              exit 0
+            path: /etc/rc.local
+            permissions: '0755'
+        power_state:
+          delay: "now"
+          mode: reboot
+          message: Rebooting to ensure network conf
+          timeout: 10
+          condition: True
+
+   # on citycloud xenial there python3 only must be installed then
+
+  netem:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: init_script
+        user: { get_input: agent_user }
+        port: 22
+        key: { get_secret: agent_key_private }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              userdata: { get_attribute: [ netem_host_cloud_config, cloud_config ] }
+    relationships:
+      - target: wan_port
+        type: cloudify.relationships.connected_to
+      - target: branches_port
+        type: cloudify.relationships.connected_to
+
+  branche_ub_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: { get_input: external_network_name }
+
+  north_ubuntu:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: none # Bug in cloudify agents use internal ip and not floating
+      ##openstack_config: *openstack_config
+      management_network_name: { get_input: mgmt_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              userdata: |
+                #cloud-config
+                chpasswd:
+                  list: |
+                    ubuntu:fortinet
+                  expire: False
+                write_files:
+                  - content: |
+                      # Enable dhcp on ens4
+                      auto ens4
+                      iface ens4 inet dhcp
+                    path: /etc/network/interfaces.d/51-ens4.cfg
+                package_upgrade: true
+                packages:
+                  - tcpdump
+                  - zile
+                power_state:
+                 delay: "now"
+                 mode: reboot
+                 message: Rebooting to ensure network conf
+                 timeout: 10
+                 condition: True
+    relationships:
+      - target: ub_port
+        type: cloudify.relationships.depends_on
+      - target: ub_port
+        type: cloudify.relationships.connected_to
+
+  south_ubuntu:
+    type: cloudify.openstack.nodes.Server
+    properties:
+      server:
+        image_name: { get_input: ub_image }
+        flavor_name: { get_input: ub_flavor }
+        key_name: { get_input: key_name }
+      agent_config:
+        install_method: none # Bug in cloudify agents use internal ip and not floating
+      ##openstack_config: *openstack_config
+      management_network_name: { get_input: mgmt_network_name }
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              userdata: |
+                #cloud-config
+                chpasswd:
+                  list: |
+                    ubuntu:fortinet
+                  expire: False
+                write_files:
+                  - content: |
+                      # Enable dhcp on ens4
+                      auto ens4
+                      iface ens4 inet dhcp
+                    path: /etc/network/interfaces.d/51-ens4.cfg
+                package_upgrade: true
+                packages:
+                  - traceroute
+                  - zile
+                power_state:
+                 delay: "now"
+                 mode: reboot
+                 message: Rebooting to ensure network conf
+                 timeout: 10
+                 condition: True
+    relationships:
+      - target: branches_network
+        type: cloudify.relationships.connected_to
+      - target: branches_subnet
+        type: cloudify.relationships.depends_on
+      - target: branche_ub_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
+
+
+# creating output for easing the testing:
+outputs:
+    ubuntu_on_branche:
+        description: ip to connect to the VM in the branch network
+        value:
+            ip: { get_attribute: [branche_ub_floating_ip, floating_ip_address ] }
+
+    wan_server:
+        description: ip of the server on the wan side
+        value:
+            ip: { get_attribute: [north_ubuntu, networks ] }
