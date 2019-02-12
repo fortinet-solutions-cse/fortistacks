@@ -4,7 +4,7 @@ description: >
   Deployment of 2 networks  with a VM as a router in the middle.
   On the router VM netem simulate a WAN. MPLS is a normal network.
   To be run before deployment:
-  $ cfy secret create fgt_license -f ../../fortigate/FGT.lic
+  $ cfy secret create fgt_license -f ../fortigate/FGT.lic
   $ cfy secret create fmg_password -s XXXX
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.5.5/types.yaml
@@ -189,7 +189,6 @@ node_templates:
         create:
           inputs:
             args:
-              config_drive: true
               userdata: |
                 config system admin
                     edit "admin"
@@ -370,17 +369,18 @@ node_templates:
                     owner: 1000:1000
                     path: /usr/local/bin/vnconmac.sh
                 package_upgrade: true
+                package_reboot_if_required: true
                 packages:
                   - traceroute
                   - zile
                   - ubuntu-desktop
                   - vlc
                 power_state:
-                 delay: "now"
-                 mode: reboot
-                 message: Rebooting to ensure network conf
-                 timeout: 10
-                 condition: True
+                  delay: now
+                  mode: reboot
+                  message: "Rebooting to ensure network conf"
+                  timeout: 20
+                  condition: true
     relationships:
       - target:  branchea_lan
         type: cloudify.relationships.connected_to

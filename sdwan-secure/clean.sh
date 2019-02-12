@@ -4,7 +4,7 @@
 [ -z "$1" ] && myblueprint="sdwan-secure" || myblueprint=$1
 #openstack router unset dc-router --route destination=10.20.20.0/24,gateway=10.40.40.254
 cfy executions start uninstall -d $myblueprint --force -p ignore_failure=true
-sleep 6
+sleep 2
 cfy deployments delete $myblueprint
 sleep 2
 cfy blueprint delete $myblueprint

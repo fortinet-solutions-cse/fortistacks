@@ -2,8 +2,8 @@ tosca_definitions_version: cloudify_dsl_1_3
 
 description: >
   Deployment of Antmedia and SDWAN rules to fortimanager.
-  $ cfy secret create agent_key_private -f ../../cloudify/cloudify-key
-  $ cfy secret create agent_key_public -f ../../cloudify/cloudify-key.pub
+  $ cfy secret create agent_key_private -f ../cloudify/cloudify-key
+  $ cfy secret create agent_key_public -f ../cloudify/cloudify-key.pub
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
