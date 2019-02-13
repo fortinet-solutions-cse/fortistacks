@@ -189,8 +189,8 @@ node_templates:
                 next
                 end
                 config firewall policy
-                edit 1
-                  set name "Default all open conectivity checks"
+                edit 2
+                  set name "Default all open for conectivity checks"
                   set srcintf "all"
                   set dstintf "all"
                   set srcaddr "all"

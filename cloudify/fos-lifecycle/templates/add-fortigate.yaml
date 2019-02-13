@@ -31,16 +31,7 @@ api_calls:
     nonrecoverable_code:
     response_translation: "response1"
 
-  - path: /dvmdb/device/{{fgt_name}}
-    method: UPDATE
-    data:
-      adom: root
-      flags: [ "69468160" ]
-    recoverable_code:
-    nonrecoverable_code:
-    response_translation: "response1"
-
-## set the license metering to utm
+## set the license metering
   - path: /dvmdb/device/{{fgt_name}}
     method: SET
     data:
@@ -52,11 +43,24 @@ api_calls:
 
 
 
-
+  - path: /securityconsole/install/package
+    method: EXECUTE
+    data:
+      adom: root
+      dev_rev_comments": "TOSCA package installed by fortimanager"
+      flags: [ "cp_all_objs", "copy_assigned_pkg" ]
+      pkg: "{{fmg_package}}"
+      scope:
+        name: "{{fgt_name}}"
+        vdom: "root"
+    recoverable_code:
+    nonrecoverable_code:
+    response_translation: "response1"
 
   - path: /securityconsole/install/device
     method: EXECUTE
     data:
+      flags: [ "create_task" ]
       dev_rev_comments: "installed by LCM"
       adom: root
       scope:
@@ -65,27 +69,4 @@ api_calls:
     recoverable_code:
     nonrecoverable_code:
     response_translation: "response1"
-
-  - path: /dvm/cmd/update/device
-    method: EXECUTE
-    data:
-      adom: root
-      device: "{{fgt_name}}"
-      flags: [ "create_task" ]
-    recoverable_code:
-    nonrecoverable_code:
-    response_translation: "response1"
-
-  - path: /securityconsole/install/package
-    method: EXECUTE
-    data:
-      adom: root
-      dev_rev_comments": "TOSCA package installed by fortimanager"
-      flags: [ "none" ]
-      pkg: "{{fmg_package}}"
-      scope:
-        name: "{{fgt_name}}"
-        vdom: "root"
-    recoverable_code:
-    nonrecoverable_code:
-    response_translation: "response1"
+#
