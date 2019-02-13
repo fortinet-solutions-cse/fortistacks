@@ -121,6 +121,7 @@ resources:
                  iface $nic2 inet dhcp
                path: /etc/network/interfaces.d/51-$nic2.cfg
            package_upgrade: true
+           package_reboot_if_required: true
            packages:
              - apache2-utils
              - apache2

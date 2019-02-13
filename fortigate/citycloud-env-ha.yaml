@@ -1,0 +1,24 @@
+# usage : openstack stack create --template heat-ha-poc.yaml -e citycloud-env-ha.yaml ha-poc
+parameters:
+  fgtimage: "fgt60"
+  ubimage: "Ubuntu 16.04 Xenial Xerus"
+  mgmt_net: "mgmt"
+  public_net: "ext-net"
+  vms_flavor: "1C-1GB"
+  ub_nic2_name: "ens4"
+  ssh-key-name: "guestcse"
+  fgta_license: |
+          -----BEGIN FGT VM LICENSE-----
+          XXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxX
+          XXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxX
+          XXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxX
+          XXXXxxXXxXXxXXXXxXXXXXXxxXXxXX
+          -----END FGT VM LICENSE-----
+
+  fgtb_license: |
+          -----BEGIN FGT VM LICENSE-----
+          XXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxX
+          XXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxX
+          XXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxXXxXXxXXXXxXXXXXXxxX
+          XXXXxxXXxXXxXXXXxXXXXXXxxXXxXX
+          -----END FGT VM LICENSE-----
