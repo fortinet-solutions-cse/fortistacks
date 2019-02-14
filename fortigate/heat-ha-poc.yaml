@@ -8,22 +8,6 @@ description: >
   in between and floating ip for everyone.
   Used for HA setup debugging.
 
-## HA conf not creating a vMAC for mgmt
-  #config system ha
-     #    set group-id 12
-     #    set group-name "toto"
-     #    set mode a-p
-     #    set password "toto"
-     #    set ha-mgmt-status enable
-     #    config ha-mgmt-interfaces
-     #        edit 1
-     #            set interface "port1"
-     #            set gateway 192.168.1.1
-     #        next
-     #    end
-     #    set override disable
-     #    set hbdev port4 50
-     #end
 parameters:
  fgtimage:
   type: string
@@ -247,6 +231,14 @@ resources:
          set nat enable
          next
          end
+          config system link-monitor
+              edit "ha-link-monitor"
+                  set srcintf "port2"
+                  set server "10.40.40.1"
+                  set failtime 2
+                  set ha-priority 5
+              next
+          end
 
          config system ha
             set group-id 12
@@ -256,6 +248,9 @@ resources:
             set override disable
             set hbdev port4 50
             set session-sync-dev port4
+            set session-pickup enable
+            set monitor "port2" "port3"
+            set pingserver-monitor-interface "port2"
              set unicast-hb enable
              set unicast-hb-peerip 172.27.0.41
           end
@@ -327,6 +322,14 @@ resources:
          set nat enable
          next
          end
+        config system link-monitor
+            edit "ha-link-monitor"
+                set srcintf "port2"
+                set server "10.40.40.1"
+                set failtime 2
+                set ha-priority 5
+            next
+        end
 
          config system ha
             set group-id 12
@@ -336,6 +339,9 @@ resources:
             set override disable
             set hbdev port4 50
             set session-sync-dev port4
+            set session-pickup enable
+            set monitor "port2" "port3"
+              set pingserver-monitor-interface "port2"
              set unicast-hb enable
              set unicast-hb-peerip 172.27.0.40
           end
