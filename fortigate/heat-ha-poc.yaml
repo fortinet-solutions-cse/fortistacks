@@ -1,5 +1,5 @@
 heat_template_version: 2016-04-08
-## cli deploy $ openstack stack create --template heat-ha-minipoc.yaml mini-poc-fgcp
+## cli deploy $ openstack stack create --template heat-ha-poc.yaml mini-poc-fgcp -e env.yaml
 # in ha mode dhcp is disabled (totally)
 # must provide fixed IP port
 
@@ -267,7 +267,7 @@ resources:
    properties:
      group: ungrouped
      config: |
-         config system admin
+      config system admin
           edit "admin"
           set password fortinet
          end
@@ -322,14 +322,14 @@ resources:
          set nat enable
          next
          end
-        config system link-monitor
-            edit "ha-link-monitor"
-                set srcintf "port2"
-                set server "10.40.40.1"
-                set failtime 2
-                set ha-priority 5
-            next
-        end
+          config system link-monitor
+              edit "ha-link-monitor"
+                  set srcintf "port2"
+                  set server "10.40.40.1"
+                  set failtime 2
+                  set ha-priority 5
+              next
+          end
 
          config system ha
             set group-id 12
@@ -487,8 +487,6 @@ resources:
   properties:
    image: { get_param: ubimage }
    flavor: { get_param: vms_flavor }
-   key_name: { get_param: ssh-key-name }
-   user_data_format: RAW
    key_name: { get_param: ssh-key-name }
    user_data_format: RAW
    user_data: { get_resource: ub_config }
