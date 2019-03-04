@@ -400,16 +400,16 @@ resources:
 #    - port:  { get_resource: right_port }
 
  association_fgta:
-    type: OS::Nova::FloatingIPAssociation
+    type: OS::Neutron::FloatingIPAssociation
     properties:
-      floating_ip: { get_resource: fgta_floating_ip }
-      server_id: { get_resource: fgta }
+      floatingip_id: { get_resource: fgta_floating_ip }
+      port_id: { get_resource: fgta_mgmt_port }
       
  association_fgtb:
-    type: OS::Nova::FloatingIPAssociation
+    type: OS::Neutron::FloatingIPAssociation
     properties:
-      floating_ip: { get_resource: fgtb_floating_ip }
-      server_id: { get_resource: fgtb }
+      floatingip_id: { get_resource: fgtb_floating_ip }
+      port_id: { get_resource: fgtb_mgmt_port }
 
 # association:
 #   type: OS::Neutron::FloatingIPAssociation
