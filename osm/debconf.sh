@@ -1,0 +1,13 @@
+LC_ALL=C
+debconf-set-selections <<< "lxd lxd/bridge-empty-error boolean true"
+debconf-set-selections <<< "lxd lxd/bridge-name string lxdbr0"
+debconf-set-selections <<< "lxd lxd/bridge-ipv6 string false"
+debconf-set-selections <<< "lxd lxd/bridge-ipv4 string true"
+debconf-set-selections <<< "lxd lxd/bridge-ipv4-nat string true"
+debconf-set-selections <<< "lxd lxd/bridge-ipv4-dhcp-first string 10.10.10.10"
+debconf-set-selections <<< "lxd lxd/bridge-ipv4-address string 10.10.10.1"
+debconf-set-selections <<< "lxd lxd/bridge-ipv4-dhcp-last string 10.10.11.253"
+debconf-set-selections <<< "lxd lxd/bridge-ipv4-netmask string 23"
+debconf-set-selections <<< "lxd lxd/setup-bridge string true"
+debconf-set-selections <<< "lxd lxd/bridge-ipv4-dhcp-leases string 510"
+debconf-set-selections <<< "lxd lxd/update-profile string false"

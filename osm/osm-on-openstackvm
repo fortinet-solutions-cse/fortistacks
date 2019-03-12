@@ -1,0 +1,130 @@
+#!/bin/bash -ex
+#
+#    fortinet deploy-manager
+#    Copyright (C) 2016 Fortinet  Ltd.
+#
+#    Authors: Nicolas Thomss  <nthomasfortinet.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, version 3 of the License.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# Assume there is a default keypair a mgmt network and floating ip enabled.
+# Assume you have openstack cli and cfy installed.
+
+# checking openstack cli is recent enough using sort -V .
+#Ref: https://osm.etsi.org/wikipub/index.php/OSM_Release_FIVE
+
+OSCLI_VER=`openstack --version 2>&1 | sed -e "s/openstack //g"`
+read -r -d '' VAR << EOM || true
+3.0
+$OSCLI_VER
+EOM
+
+CHECKED_VER=`echo "$VAR" | sort -V|tail -1`
+
+if [ "$CHECKED_VER" == "3.0" ]; then
+    echo "please upgrade python-openstackclient to a newer version"
+    exit 2
+fi
+
+#if nova access not set then get them from nova.rc
+if [ -x $OS_AUTH_URL ]; then
+  echo "get the Openstack access from ~/nova.rc"
+  . ~/nova.rc
+fi
+
+#if EXT_NET variable not set use default (allow to have it as param from the .rc file)
+[ -x $EXT_NET ] && EXT_NET=ext-net
+[ -x $OS_FLAVOR_OSM ] && OS_FLAVOR_OSM=2C-8GB-50GB
+#Follow http://docs.getcloudify.org/
+export LC_ALL=C
+PKGS=" wget"
+dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
+
+
+# Will now start an Ubuntu 16.04 image
+
+UbuntuImageID=`openstack image list --format value -c ID -c Name |grep "16.04"|head -1|awk '{print $1}'`
+OSM_VERSION=5
+
+if (openstack server show osm-v$OSM_VERSION  > /dev/null 2>&1 );then
+    echo "OSM already started"
+    #get the floating-ip from openstack and trim result
+    FLOAT_IP=`openstack server show osm-v$OSM_VERSION -f value -c addresses|awk -F , '{print $2}'|sed 's/ //g'`
+    SSH="ssh -t -o StrictHostKeyChecking=no ubuntu@$FLOAT_IP"
+    NEWinstall="no"
+else
+    openstack server create  --image $UbuntuImageID osm-v$OSM_VERSION --key-name default --security-group default\
+    --flavor $OS_FLAVOR_OSM --network mgmt --wait
+    # wait for the keys etc to propagate
+    sleep 4
+    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
+    openstack server add floating ip   osm-v$OSM_VERSION $FLOAT_IP
+    SSH="ssh -t -o StrictHostKeyChecking=no ubuntu@$FLOAT_IP"
+    until ($SSH ping -c 3 fortiguard.fortinet.com); do
+        sleep 4
+        echo "waiting the vm to be up"
+    done
+    NEWinstall=true
+fi
+
+scp  -o StrictHostKeyChecking=no ../lxd-bridge debconf.sh ubuntu@$FLOAT_IP:
+
+$SSH sudo apt-get  update && sudo apt upgrade -y
+### Install LXD, juju and Docker first (automation) file predifined network 10.10.10.0/23
+
+##from fortistacks script
+$SSH "sudo sed -i 's|^GRUB_CMDLINE_LINUX=.*|GRUB_CMDLINE_LINUX="cgroup_enable=memory swapaccount=1"|' /etc/default/grub "
+$SSH sudo update-grub
+if [ "$NEWinstall" == "true" ]; then
+    # assume lxd as not been setup correctly
+    $SSH sudo bash debconf.sh
+    $SSH debconf-show lxd
+    $SSH sudo cp lxd-bridge /etc/default/
+    $SSH sudo apt-get -y install lxd juju
+    $SSH DEBIAN_FRONTEND=noninteractive sudo dpkg-reconfigure lxd -p high
+    $SSH sudo systemctl restart lxd
+    #openstack server reboot osm-v$OSM_VERSION
+    #
+    #until ($SSH ping -c 3 fortiguard.fortinet.com); do
+    #sleep 4
+    #echo "waiting the vm to be up"
+    #done
+    #
+    ##$SSH  DEBIAN_FRONTEND=noninteractive sudo apt --reinstall install lxd
+    #$SSH sudo bash debconf.sh
+    #$SSH debconf-show lxd
+    #$SSH sudo cp lxd-bridge /etc/default/
+    #$SSH  DEBIAN_FRONTEND=noninteractive sudo dpkg-reconfigure lxd -p high
+    #$SSH sudo systemctl restart lxd
+
+    $SSH  juju bootstrap lxd/localhost osm
+else
+    # verifying juju is up and running
+    $SSH  juju status -m osm:admin/default
+fi
+$SSH  wget -c https://osm-download.etsi.org/ftp/osm-5.0-five/install_osm.sh
+$SSH  chmod +x install_osm.sh
+$SSH ./install_osm.sh --elk_stack --pm_stack --nolxd  --nojuju -y 2>&1 | tee osm_install_log.txt
+
+## install only the client in the shell env to allow remote configuration.
+echo "deb [arch=amd64] https://osm-download.etsi.org/repository/osm/debian/ReleaseFIVE stable osmclient" \
+        | sudo tee  /etc/apt/sources.list.d/osm-client.list
+sudo apt update
+sudo apt-get -y install python-osmclient
+echo "use export OSM_HOSTNAME=$FLOAT_IP "
+export OSM_HOSTNAME=$FLOAT_IP
+osm vim-create --name openstack --user $OS_USERNAME --password $OS_PASSWORD --auth_url $OS_AUTH_URL  \
+    --tenant $OS_TENANT_NAME --account_type openstack  \
+    --config='{use_floating_ip: True, use_existing_flavors: True, security_groups: default, keypair: default}'
+osm user-create --password fortinet fortinet --projects admin
