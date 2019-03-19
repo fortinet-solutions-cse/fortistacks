@@ -34,7 +34,7 @@ Copy your .rc file with the openstack credentials in fortistacks folder.
 
 From fortistacks folder:
 ```shell
-docker run -v $PWD:/fortistacks/ -v $HOME/.ssh:/root/.ssh/ --rm -i  --name fortistacks-cli  -h fortistacks-cli -t thomnico/fortinet-cse:fortistacks-cli-1.2
+docker run -v $PWD:/fortistacks/ -v $HOME/.ssh:/home/ubuntu/.ssh/ --rm -i  --name fortistacks-cli  -h fortistacks-cli -t fortinetsolutioncse/fortistacks-cli
 ```
 Or adapt to your folder layout, check README-DockerClient.md for details on building using it.
 
