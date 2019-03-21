@@ -1,6 +1,6 @@
 #Docker to develop/try Ansible module for Fortigate
 #build cmd:
-# docker build --force-rm -t fortinetsolutioncse/fortistacks-cli:1.3 .
+# docker build --force-rm -t fortinetsolutioncse/fortistacks-cli:2.0 .
 # For "official build" need acces to the docker registry.
 # docker build --force-rm -t fortistacks-cli .
 
