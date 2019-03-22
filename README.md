@@ -22,13 +22,21 @@ cd fortistacks
 docker run -v $PWD:/fortistacks/ -v $HOME/.ssh:/home/ubuntu/.ssh/ --rm -i  --name fortistacks-cli  -h fortistacks-cli -t fortinetsolutioncse/fortistacks-cli
 ```
 
-See the [README-Dockerclient.md] for running on external Openstack on any client.
+See the [README-Dockerclient.md](README-Dockerclient.md) for running on external Openstack on any client.
 
 To achieve this we propose here a tested public openstack with CityCloud or a personnal openstack in a box (Ubuntu)
 
+## Architecture/prerequisites ##
+
+### OpenStack
+
+### Orchestration
+
+### Fortinet image and demo files
+
 ## Mini Proof of Concept ##
 
-Prerequisite: run ```./configure-openstack``` script prior to deploy mini-poc with different methods.
+Prerequisite: run [```./configure-openstack```](public-openstack/configure-openstack) script prior to deploy mini-poc with different methods.
 
 Mini-poc is used to refer to deploying 2 Ubuntu VMs with iperf, Apache, etc.. to be able to generate traffic.
 2 networks left and right.
@@ -68,7 +76,7 @@ This same result is then achieved with different tools: script, heat template, c
 
 In the different directories you will find the following parts, read the README in each folder for details:
 
-- <b>[public-openstack]</b> This section will configure you CityCloud openstack to work with this project. 
+- <b>[public-openstack](public-openstack)</b> This section will configure you CityCloud openstack to work with this project. 
 
 - <b>fortigate/fortios </b> Those are very similar only the fortigate/fortios are highlighted. Target is at least 5.6.3 or 5.4.5 which makes config_drive optionnal. There is script in bash(read it to see the cli) and heat templates
 

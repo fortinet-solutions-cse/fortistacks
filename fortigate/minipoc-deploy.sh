@@ -29,6 +29,7 @@ fi
 [ -x $EXT_NET ] && EXT_NET=ext_net
 [ -x $OS_FLAVOR ] && OS_FLAVOR=m1.small
 
+[ -f fgt-userdata.txt ] || (echo " you must have create a user-data file see README"; exit 2)
 
 #Push image if needed
 openstack image show  fgt60 > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fgt60"  --file fortios.qcow2
@@ -50,10 +51,8 @@ openstack subnet show right_subnet > /dev/null 2>&1 || openstack subnet create r
 if (openstack server show trafleft  > /dev/null 2>&1 );then
     echo "trafleft already installed"
 else
-    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network left
-    while [ `openstack server show trafleft -f value -c status` == "BUILD" ]; do
+    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network left --wait
 	sleep 4
-    done
     FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
     openstack server add floating ip trafleft $FLOAT_IP
 fi
@@ -61,10 +60,8 @@ fi
 if (openstack server show trafright  > /dev/null 2>&1 );then
     echo "trafright already installed"
 else
-    openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network right
-    while [ `openstack server show trafright -f value -c status` == "BUILD" ]; do
+    openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network right --wait
 	sleep 4
-    done
     FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
     openstack server add floating ip trafright $FLOAT_IP
 fi
@@ -80,12 +77,8 @@ if (openstack server show fgt60  > /dev/null 2>&1 );then
     echo "fgt60 already installed"
 else
     #need to provide an example without config_drive
-    openstack server create --image "fgt60" fgt60   --flavor $OS_FLAVOR  --user-data fgt-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --file license=FGT.lic
-
-    while [ `openstack server show fgt60 -f value -c status` == "BUILD" ]; do
+    openstack server create --image "fgt60" fgt60   --flavor $OS_FLAVOR  --user-data fgt-userdata.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --wait
 	sleep 4
-    done
     FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
     openstack server add floating ip fgt60 $FLOAT_IP
-
 fi
