@@ -6,10 +6,11 @@ description: >
   $ cfy secret create fmg_password -s XXXX
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.5.5/types.yaml
-  - plugin:cloudify-openstack-plugin
+  - http://www.getcloudify.org/spec/openstack-plugin/2.14.7/plugin.yaml
+ #   - plugin:cloudify-openstack-plugin
   - plugin:cloudify-utilities-plugin
   - plugins/cloudify-fortimanager-plugin/plugin.yaml
-  - plugin:cloudify-diamond-plugin
+#  - plugin:cloudify-diamond-plugin
 
 
 

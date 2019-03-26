@@ -93,7 +93,7 @@ done
 
 
 ### Install from rpm
-$SSH sudo yum install -y openssl-1.0.2k
+$SSH sudo yum install -y openssl-1.0.2k wget
 $SSH sudo yum upgrade -y
 $SSH "(rpm -q cloudify-manager-install)|| sudo yum install -y http://repository.cloudifysource.org/cloudify/$CFY_VERSION/community-release/cloudify-manager-install-community-$CFY_VERSION.rpm"
 
@@ -122,9 +122,10 @@ cfy profiles use $FLOAT_IP -u admin -p fortinet -t default_tenant
 $SSH sudo cfy plugins  bundle-upload
 # upload to secret in cloudify used by agents
 # workaround as last version of openstack plugin do not handle port correctly
-#wget -c http://www.getcloudify.org/spec/openstack-plugin/2.9.6/plugin.yaml
-#wget -c https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/2.9.6/cloudify_openstack_plugin-2.9.6-py27-none-linux_x86_64-centos-Core.wgn
-#cfy plugin upload cloudify_openstack_plugin-2.9.6-py27-none-linux_x86_64-centos-Core.wgn -y plugin.yaml
+OS_PLUGIN_VER=2.14.7
+$SSH wget -c http://www.getcloudify.org/spec/openstack-plugin/$OS_PLUGIN_VER/plugin.yaml
+$SSH wget -c https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/$OS_PLUGIN_VER/cloudify_openstack_plugin-$OS_PLUGIN_VER-py27-none-linux_x86_64-centos-Core.wgn
+$SSH sudo cfy plugin upload cloudify_openstack_plugin-$OS_PLUGIN_VER-py27-none-linux_x86_64-centos-Core.wgn -y plugin.yaml
 cfy status
 echo "if any of the following fails it means you already set it up, ignore"
 cfy secret create agent_key_private -f cloudify-key
