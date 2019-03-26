@@ -9,7 +9,6 @@ description: >
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.5.5/types.yaml
   - http://www.getcloudify.org/spec/openstack-plugin/2.14.7/plugin.yaml
-     # - plugin:cloudify-openstack-plugin
   - plugin:cloudify-utilities-plugin
   - includes/wan.yaml
   - plugins/cloudify-fortimanager-plugin/plugin.yaml
