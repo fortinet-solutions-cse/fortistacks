@@ -52,9 +52,9 @@ export LC_ALL=C
 PKGS=" python-pip python-virtualenv wget git"
 dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
 # if already install do nothing
-CFY_VERSION="18.10.4"
-[ -f cloudify-cli-community-$CFY_VERSION.deb ] || wget -c http://repository.cloudifysource.org/cloudify/18.10.4/community-release/cloudify-cli-community-$CFY_VERSION.deb
- (dpkg -l cloudify >/dev/null)  || sudo dpkg -i cloudify-cli-community-$CFY_VERSION.deb
+CFY_VERSION="19.01.24"
+[ -f cloudify-cli-community-$CFY_VERSION.deb ] || wget -c http://repository.cloudifysource.org/cloudify/$CFY_VERSION/community-release/cloudify-cli-community-$CFY_VERSION.deb
+sudo dpkg -i cloudify-cli-community-$CFY_VERSION.deb
 
 # Will now use the package rpm on centos ..
 #
@@ -134,8 +134,9 @@ cfy secret create agent_key_public -f cloudify-key.pub
 # adding the openstack credential as secret to ease working with some Cloudify blueprints
 cfy  secret create  keystone_username -s $OS_USERNAME
 cfy  secret create  keystone_password -s $OS_PASSWORD
-cfy  secret create  keystone_tenant_name -s $OS_PROJECT_NAME
+cfy  secret create  keystone_project_name -s $OS_PROJECT_NAME
 cfy  secret create  keystone_url -s $OS_AUTH_URL
+cfy  secret create  keystone_domain -s $OS_PROJECT_DOMAIN_NAME
 cfy  secret create  region -s $OS_REGION_NAME
 cfy secret create cloudify-key-private -f ./cloudify-key
 cfy secret create cloudify-key -f ./cloudify-key.pub
