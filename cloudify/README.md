@@ -1,51 +1,38 @@
 
 # Cloudify 
 
-Source your openstack credentials.
+The goal here is to give you a working and configured Cloudify to be able to use the Fortinet Examples.
+If you already have yours just go straight to the examples in the sub directories.
 
-On your own Fortistacks on Ubuntu
 
-Run ./deploy script and wait a bit. It install Cloudify 4.0 and create a LXC contained cloudify manager, configure it to use openstack.
+## Get Cloudfiy on Openstack.
 
-On public-openstack you must have the Cloudify manager image first.
+Source your openstack credentials
 
-Get the qcow2 image from here: http://repository.cloudifysource.org/cloudify/4.2.0/ga-release/cloudify-manager-4.2ga.qcow2 It is a 5G file.
-
-Either upload manually:
-```shell
-openstack image create cfy-manager4.2 --file cloudify-manager-4.2ga.qcow2 --disk-format qcow2 --container-format bare
+Run 
+```bash
+cd cloudify/
+./manager-on-openstackvm 
 ```
-Or put in cloudify folder before running.
-```shell
-./manager-on-openstackvm
-```
+This script will:
+ * find a Centos image
+ * install the Cloduify CLI in your ubuntu environment (Docker or native)
+ * if needed create a cloudify ssh key for access and push it to manager (for cloudify Agents)
+ * Install and configure Cloudify manager for your environment.
+ * Set the admin password to fortinet
+ 
+Using a browser go to the floatingip of Cloudify manager
 
-Using a browser go to the floatingip (or lxc ip)
-of Cloudify.
-
-## Quick Deploy
+## Quick example
 ```shell
 cd fortigate-mini-poc
 ```
 Add your license:
-```
+```shell
 cfy secret create fgt_license -f ../../fortigate/FGT.lic 
 cfy install  blueprint.yaml -i inputs-citycloud.yaml
 ```
 
-## step by step and tear down:
-```
-cfy blueprint upload blueprint.yaml
-cfy deployment create -b fortigate-mini-poc -i inputs.yaml
-cfy executions start install -d fortigate-mini-poc
-```
-Teardown:
-```
-cfy executions start uninstall -d fortigate-mini-poc
-cfy deployments delete fortigate-mini-poc
-cfy deployments delete fortigate-mini-poc –force
-cfy blueprint delete fortigate-mini-poc
-```
+## More examples
 
-Can do the same with fortios-mini-poc (for PAYG)
-In that case modify blueprint IP adress of the fortimanager for metering if neeeded.
+There is more examples using Clodify in subdirectory in secure-sdwan directory. Check README associated.
