@@ -1,6 +1,3 @@
-[submodule "cloudify/fos-scale/plugins/cloudify-fortimanager-plugin"]
-	path = cloudify/fos-scale/plugins/cloudify-fortimanager-plugin
-	url = https://github.com/fortinet-solutions-cse/cloudify-fortimanager-plugin.git
 [submodule "sdwan-secure/plugins/cloudify-fortimanager-plugin"]
 	path = sdwan-secure/plugins/cloudify-fortimanager-plugin
 	url = https://github.com/fortinet-solutions-cse/cloudify-fortimanager-plugin.git
