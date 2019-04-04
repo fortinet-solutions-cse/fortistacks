@@ -9,6 +9,10 @@ To correctly get the referenced submodules please use the --recursive option of 
 ```bash
 git clone https://github.com/fortinet-solutions-cse/fortistacks.git --recursive
 ```
+When updating to last version use:
+```bash
+git pull --recurse-submodule
+```
 
 The scripts are made to run on an Ubuntu with sudo access. 
 
