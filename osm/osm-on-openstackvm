@@ -118,10 +118,14 @@ $SSH  chmod +x install_osm.sh
 $SSH ./install_osm.sh --elk_stack --pm_stack --nolxd  --nojuju -y 2>&1 | tee osm_install_log.txt
 
 ## install only the client in the shell env to allow remote configuration.
-echo "deb [arch=amd64] https://osm-download.etsi.org/repository/osm/debian/ReleaseFIVE stable osmclient" \
-        | sudo tee  /etc/apt/sources.list.d/osm-client.list
+REPOSITORY_BASE=https://osm-download.etsi.org/repository/osm/debian
+RELEASE=ReleaseFIVE
+REPOSITORY=stable
+wget -qO - $REPOSITORY_BASE/$RELEASE/OSM%20ETSI%20Release%20Key.gpg | sudo apt-key add -
+sudo apt-get -y install software-properties-common
+sudo add-apt-repository -y "deb [arch=amd64] https://osm-download.etsi.org/repository/osm/debian/ReleaseFIVE stable IM osmclient devops"
 sudo apt update
-sudo apt-get -y install python-osmclient
+sudo apt-get -y install python-magic python-osmclient
 echo "use export OSM_HOSTNAME=$FLOAT_IP "
 export OSM_HOSTNAME=$FLOAT_IP
 osm vim-create --name openstack --user $OS_USERNAME --password $OS_PASSWORD --auth_url $OS_AUTH_URL  \
