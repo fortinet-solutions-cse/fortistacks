@@ -31,3 +31,12 @@ sshcmd:
     commands:
       type: string
       description: string with the list of cmd as on the cli off fortios lines can be separated by \n
+overconfig:
+  description: set a rule using ssh
+  params:
+    template:
+      type: file
+      description: File with the Jinja2 template representing the change of configuration
+    keysvalue:
+      type: string
+      description: Key value string key=value separated with commas
