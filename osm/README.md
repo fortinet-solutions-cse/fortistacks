@@ -1,15 +1,13 @@
-# OSM Rel3 installation /usage 
+# OSM Rel5 installation /usage 
 
 Source your openstack credentials files.
 On fortistacks it is in ~/nova.rc
-Then run ./deploy.sh
-wait a bit .. then you should be able to login on
-https://10.10.10.x:8443/
+Then run 
+```bash
+./osm-on-openstackvm
+```
 
-do lxc list and look for the SO-ub (Rift-io) container IP
-is 10.10.10.x 
-
-login admin/admin
+login admin/fortinet
 
 # build the packages
 cd apache_vnf_src ; make

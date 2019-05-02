@@ -123,9 +123,9 @@ $SSH sudo cfy plugins  bundle-upload
 # upload to secret in cloudify used by agents
 # workaround as last version of openstack plugin do not handle port correctly
 OS_PLUGIN_VER=2.14.7
-$SSH wget -c http://www.getcloudify.org/spec/openstack-plugin/$OS_PLUGIN_VER/plugin.yaml
-$SSH wget -c https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/$OS_PLUGIN_VER/cloudify_openstack_plugin-$OS_PLUGIN_VER-py27-none-linux_x86_64-centos-Core.wgn
-$SSH sudo cfy plugin upload cloudify_openstack_plugin-$OS_PLUGIN_VER-py27-none-linux_x86_64-centos-Core.wgn -y plugin.yaml
+# $SSH wget -c http://www.getcloudify.org/spec/openstack-plugin/$OS_PLUGIN_VER/plugin.yaml
+# $SSH wget -c https://github.com/cloudify-cosmo/cloudify-openstack-plugin/releases/download/$OS_PLUGIN_VER/cloudify_openstack_plugin-$OS_PLUGIN_VER-py27-none-linux_x86_64-centos-Core.wgn
+# $SSH sudo cfy plugin upload cloudify_openstack_plugin-$OS_PLUGIN_VER-py27-none-linux_x86_64-centos-Core.wgn -y plugin.yaml
 cfy status
 echo "if any of the following fails it means you already set it up, ignore"
 cfy secret create agent_key_private -f cloudify-key
