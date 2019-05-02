@@ -7,9 +7,8 @@ description: >
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
-  - http://www.getcloudify.org/spec/openstack-plugin/2.14.7/plugin.yaml
-   # - plugin:cloudify-openstack-plugin
-  - plugin:cloudify-diamond-plugin
+  - plugin:cloudify-openstack-plugin
+#  - plugin:cloudify-diamond-plugin
   - plugin:cloudify-utilities-plugin
   - types/antmedia.yaml
   - types/openstack-types.yaml
