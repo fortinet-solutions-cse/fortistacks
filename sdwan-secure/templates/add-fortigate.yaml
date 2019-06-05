@@ -8,7 +8,7 @@ api_calls:
         adm_pass: "{{fgt_password}}"
         adm_usr: "{{fgt_user}}"
         ip: "{{fgt_ip}}"
-    recoverable_code: [ -20042 ]
+    recoverable_code: [ -20042 -20015 ]
     nonrecoverable_code:
     response_translation: "response1"
 
@@ -16,11 +16,11 @@ api_calls:
     method: EXECUTE
     data:
       adom: root
-      flags: [ "create_task", "blocking" ]
+      flags: [ "create_task" ]
       device:
         adm_pass: "{{fgt_password}}"
         adm_usr: "{{fgt_user}}"
-        desc: "Branche A Fortigate"
+        desc: "LCM managed Fortios"
         ip: "{{fgt_ip}}"
         meta fields:
           "Company/Organization": "Fortinet"
@@ -31,11 +31,30 @@ api_calls:
     nonrecoverable_code:
     response_translation: "response1"
 
+## set the license metering
   - path: /dvmdb/device/{{fgt_name}}
-    method: UPDATE
+    method: SET
     data:
-      adom: root
-      flags: [ "69468160" ]
+      foslic_type: "regular"
+      foslic_utm: [ "fw","av", "app", "url",  "ips"]
     recoverable_code:
     nonrecoverable_code:
     response_translation: "response1"
+
+
+
+  - path: /securityconsole/install/package
+    method: EXECUTE
+    data:
+      adom: root
+      dev_rev_comments": "TOSCA package installed by fortimanager"
+      flags: [ "cp_all_objs", "copy_assigned_pkg" ]
+      pkg: "{{fmg_package}}"
+      scope:
+        name: "{{fgt_name}}"
+        vdom: "root"
+    recoverable_code:
+    nonrecoverable_code:
+    response_translation: "response1"
+
+#
