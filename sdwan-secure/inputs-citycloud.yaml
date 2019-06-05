@@ -7,3 +7,4 @@ key_name: 'cloudify'
 external_network_name: "ext-net"
 agent_user: "ubuntu"
 fmg_ip: "192.168.1.99"
+fmg_package: "LCM-Policy"
