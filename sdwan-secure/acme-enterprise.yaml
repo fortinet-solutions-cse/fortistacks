@@ -29,7 +29,8 @@ inputs:
       default: "ubuntu"
   fmg_ip:
     default: {}
-
+  fmg_package:
+    default: {}
 
   mgmt_network_name:
     default: "mgmt"
@@ -388,7 +389,9 @@ node_templates:
       - target: branchea_ub_floating_ip
         type: cloudify.openstack.server_connected_to_floating_ip
 
-  add-fortigate-tofmg:
+
+
+  fortimanager:
     type: cloudify.fortinet.fortimanager
     properties:
       host: { get_input: fmg_ip }
@@ -396,25 +399,9 @@ node_templates:
       password: { get_secret: fmg_password }
       use_ssl: True
       verify_ssl: False
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        start:
-          inputs:
-            template_file: templates/add-fortigate.yaml
-            params:
-              fgt_password: "fortinet"
-              fgt_ip: { get_attribute: [branchea_fortigate, ip ] }
-              fgt_user: "admin"
-              fgt_name: "branchea_fortigate"
-        stop:
-          inputs:
-            template_file: templates/remove-fortigate.yaml
-            params:
-              fgt_name: "branchea_fortigate"
     relationships:
-      - target:  branchea_fortigate
-        type: cloudify.relationships.depends_on
-
+      - target: branchea_fortigate
+        type: device_in_fmg
 
 # creating output for easing the testing:
 outputs:
