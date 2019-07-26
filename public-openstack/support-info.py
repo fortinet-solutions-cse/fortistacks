@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #ref: https://docs.openstack.org/openstacksdk/latest/user/connection.html
+# use export OS_CACERT=/etc/ssl/certs/Fortinet_CA_SSL.pem if using SSL decription
 import openstack
 import pprint
 import json
@@ -27,5 +28,5 @@ for address in addresses:
 ## find subent and networks
 ## block devices
 ## flavor
-## security groups
+## security groups
 ## logs ?
