@@ -261,7 +261,7 @@ resources:
    security_groups: [ default ]
    networks:
     - network: { get_param: mgmt_net }
-    - subnet:  { get_resource: right_subnet }
+    - network: { get_resource: right_net }
 
  ubr_floating_ip:
     type: OS::Neutron::FloatingIP
@@ -272,11 +272,11 @@ resources:
       port_id: {get_attr: [ubright, addresses, {get_param: mgmt_net}, 0, port]}
 
 
- association_right:
-    type: OS::Nova::FloatingIPAssociation
-    properties:
-      floating_ip: { get_resource: ubr_floating_ip }
-      server_id: { get_resource: ubright }
+# association_right:
+#    type: OS::Nova::FloatingIPAssociation
+#    properties:
+#      floating_ip: { get_resource: ubr_floating_ip }
+#      server_id: { get_resource: ubright }
 
       
 outputs:

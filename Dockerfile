@@ -11,7 +11,7 @@ RUN apt-get update && apt-get -y upgrade
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y install git python-pip wget zile byobu bash sudo python-virtualenv wget git cloud-image-utils \
            python-openstackclient sudo python-heatclient software-properties-common apt-transport-https \
-           bash-completion software-properties-common
+           bash-completion software-properties-common vim bash-completion
 RUN apt-get clean
 
 RUN groupadd -r ubuntu && useradd  -g ubuntu -G adm,sudo ubuntu -m -p fortinet -s /bin/bash && \
