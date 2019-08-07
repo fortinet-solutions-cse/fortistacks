@@ -1,0 +1,9 @@
+# mkdocs.yml -- MkDocs configuration, all *.md files relative to docs/
+site_name: Forti Stacks
+theme: readthedocs
+pages:
+- Home: 'index.md'
+- Fortigate: 'Fortigate.md'
+- Tutorials:
+    - 101: 'tutorials/101.md'
+
