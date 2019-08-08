@@ -1,9 +1,26 @@
 # mkdocs.yml -- MkDocs configuration, all *.md files relative to docs/
 site_name: Forti Stacks
+repo_url: 'https://github.com/fortinet-solutions-cse/fortistacks'
+edit_uri: edit/mkdocs/docs/docs
+site_description: 'Multiple ready to use demo examples of automated Fortinet deployments.'
+extra:
+  favicon: 'https://fortinet.com/favicon.ico'
+  social:
+    - type: 'github'
+      link: 'https://github.com/fortinet-solutions-cse/fortistacks'
 theme: readthedocs
 pages:
 - Home: 'index.md'
+- Minipoc: 'mini-poc.md'
+- Fortistacks: 'About.md'
 - Fortigate: 'Fortigate.md'
+- Cloudify: 'Cloudify.md'
+- osm.etsi.org: 'OSM.md'
+- Advanced examples:
+    - Lifecycle Management: 'LCM.md'
+    - SDWAN playground: 'SDWAN'
 - Tutorials:
-    - 101: 'tutorials/101.md'
+    - 101 get started: 'tutorials/101.md'
+    - 102 heat: 'tutorials/102.md'
+    - 103: 'tutorials/103.md'
 

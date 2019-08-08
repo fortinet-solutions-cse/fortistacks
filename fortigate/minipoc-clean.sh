@@ -38,4 +38,4 @@ network delete right
 
 EOF
 
-../public-openstack/bleach-floatingips.sh
+../openstack/bleach-floatingips.sh

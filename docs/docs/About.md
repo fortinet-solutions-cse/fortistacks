@@ -5,6 +5,9 @@ This  project is a collection of solutions examples using Fortinet (mainly Forti
 
 This version 2 also provide more advanced examples for secure sdwan and scalability. Those requires Fortimanager.
 
+This version 2 also provide more advanced examples for secure sdwan, scalability and life cycle managemnt. 
+Those requires Fortimanager.
+
 To correctly get the referenced submodules please use the --recursive option of git clone like this:
 ```bash
 git clone https://github.com/fortinet-solutions-cse/fortistacks.git --recursive
@@ -38,43 +41,6 @@ To achieve this we propose here a tested public openstack with CityCloud or a pe
 
 ### Fortinet image and demo files
 
-## Mini Proof of Concept ##
-
-Prerequisite: run [```./configure-openstack```](public-openstack/configure-openstack) script prior to deploy mini-poc with different methods.
-
-Mini-poc is used to refer to deploying 2 Ubuntu VMs with iperf, Apache, etc.. to be able to generate traffic.
-2 networks left and right.
-1 fortigate or fortios 
-All have floating ips on a predefined mgmt network
-As described here:
-
-
-        ===========================================================
-            |                     |    Management/floating ips   |
-            |                     |                              |
-       .----v-----.               |                              |
-       | trafleft |               |                              |
-       |  Ubuntu  |               |                              |
-       '----------'               |                              |
-             |                    |                              |
-             v                    |                              |
-        .-,(  ),-.          .-----v-----.        .-,(  ),-.      |
-     .-(          )-.       | Fortigate |     .-(          )-.   |
-    (      left      )----->|     vm    |--->(      right      ) |
-     '-(          ).-'      '-----------'     '-(          ).-'  |
-         '-.( ).-'                                '-.( ).-'      |
-                                                      <-------.  |
-                                                              |  v
-                                                        .-----------.
-                                                        | trafright |
-                                                        |   Ubuntu  |
-                                                        '-----------'
-
-
-The goal is to offer an easy access to all parts and being able to experiment with Fortinet products on Openstack.
-There is little explanations are all the code is available. We may put explanations in comments though.
-
-This same result is then achieved with different tools: script, heat template, cloudify blueprint, osm VNFd.
 
 ## What you will find here
 
