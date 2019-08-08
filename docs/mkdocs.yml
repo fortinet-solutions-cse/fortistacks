@@ -13,6 +13,7 @@ pages:
 - Home: 'index.md'
 - Minipoc: 'mini-poc.md'
 - Fortistacks: 'About.md'
+- Public Openstack: 'Citycloud.md'
 - Fortigate: 'Fortigate.md'
 - Heat: 'Heat.md'
 - Cloudify: 'Cloudify.md'
