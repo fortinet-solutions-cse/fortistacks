@@ -1,52 +1,29 @@
-# ABOUT
+# Fortistacks details
 
-This  project is a collection of solutions examples using Fortinet (mainly Fortigate/Fortios) VMs on any stack/cloud etc..
+Please check [Fortistacks 2.0](index.md) for a global explanation.
+
+#Scripts
+
+The fortistacks scripts/examples are built to be indempotent, you can re-run them without duplicating the result. 
+
+The scripts are made to run on an Ubuntu with sudo access. We provide the Docker image for a pre-determined environment.
+You are free to adapt, run on other environement (those are mainly bash/python), but please reproduce with the Docker 
+image before raiing a bug. 
 
 
-This version 2 also provide more advanced examples for secure sdwan and scalability. Those requires Fortimanager.
+See the [Dockerclient](README-Dockerclient.md) for running on external Openstack on any client.
 
-This version 2 also provide more advanced examples for secure sdwan, scalability and life cycle managemnt. 
-Those requires Fortimanager.
+# Working Examples
 
-To correctly get the referenced submodules please use the --recursive option of git clone like this:
-```bash
-git clone https://github.com/fortinet-solutions-cse/fortistacks.git --recursive
-```
-When updating to last version use:
-```bash
-git pull --recurse-submodule
-```
-
-The scripts are made to run on an Ubuntu with sudo access. 
-
-If you don't have a native Ubuntu or want keep things separated use the Docker based CLI:
-
-Copy your .rc file with the openstack credentials in fortistacks folder.
-
-From fortistacks folder:
-```shell
-cd fortistacks
-docker run -v $PWD:/fortistacks/ -v $HOME/.ssh:/home/ubuntu/.ssh/ --rm -i  --name fortistacks-cli  -h fortistacks-cli -t fortinetsolutioncse/fortistacks-cli
-```
-
-See the [README-Dockerclient.md](README-Dockerclient.md) for running on external Openstack on any client.
-
-To achieve this we propose here a tested public openstack with CityCloud or a personnal openstack in a box (Ubuntu)
-
-## Architecture/prerequisites ##
-
-### OpenStack
-
-### Orchestration
-
-### Fortinet image and demo files
+In every folder under the overall project you will find examples you can use directly with your customed build Stack 
+(Openstack and/or MANO). In theory only the parameter file should be changed.
 
 
 ## What you will find here
 
 In the different directories you will find the following parts, read the README in each folder for details:
 
-- <b>[public-openstack](public-openstack)</b> This section will configure you CityCloud openstack to work with this project. 
+- <b>openstack</b> This section will configure you CityCloud openstack to work with this project. 
 
 - <b>fortigate/fortios </b> Those are very similar only the fortigate/fortios are highlighted. Target is at least 5.6.3 or 5.4.5 which makes config_drive optionnal. There is script in bash(read it to see the cli) and heat templates
 
@@ -56,8 +33,6 @@ In the different directories you will find the following parts, read the README 
 
 - <b>fortistacks </b> Script to turn a vanilla Ubuntu with empty partition into a system ready for fortistack. Can be ignored if using public or your own openstack.
 
-- <b>ubuntu-openstack </b> set of scripts to install a fully fonctionnal openstack on 1 machine and use it later as the default VIM. Rely on you running the fortistacks script first. 
- 
 ## What do you need (choices)
 
 - An Openstack:
@@ -74,14 +49,16 @@ This project is opensource and based under Apachev2 license. Every contribution 
 
 ## Videos
 
-Fortistacks1.2 on Public openstack : https://youtu.be/Zp6CCEbJiUU
-
-If you want to install your own openstack and use the same (on 1 machine) refer to 
- Fortistacks1.1  https://youtu.be/0y38B61FTSk the video applies to version 1.2.
+A youtube playlist will contain follow along video to be hands on [Fortistacks](https://www.youtube.com/playlist?list=PL78t125b9Q2YWfB4nre9NRTrerA-awaSo)
 
 ## Previous versions
 For stable versions of this project refer to :
 
 https://github.com/fortinet-solutions-cse/fortistacks/releases to find
-the release you like. The master branch can contain work in progress.
+the release you like. The master branch will evolve continuously.
+
+Fortistacks1.2 on Public openstack : https://youtu.be/Zp6CCEbJiUU
+
+If you want to install your own openstack and use the same (on 1 machine) refer to 
+ Fortistacks1.1  https://youtu.be/0y38B61FTSk the video applies to version 1.2.
 
