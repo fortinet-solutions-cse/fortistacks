@@ -1,23 +1,32 @@
 # Fortigate / Fortios on Openstack
 
+This doc refers to fortigate or fortios folders in the project.
+
 The official documentation for Fortigate fortios is available here: 
 https://docs.fortinet.com/d/fortigate-fortios-vm-openstack-cookbook 
 
 
-# Fortios Differences
+# Fortios
 
 Fortios is a Fortigate (same functionnality) made to be even more cloud native.
 Differences are:
 - No license file but a Fortimanager acting as metering
-- A first port called mgmt and dhcp enabled
-- Native cloud-init support from metadata server in addition to config_drive.
+- A first port called mgmt instead of port1
 
-# Fortigate image
+# Fortigate/Fortios image
 
 Get the image tagged for KVM from [https://support.fortinet.com](https://support.fortinet.com) unzip and put the 
-fortios.qcow2 file in this directory.
+fortios.qcow2 file in this directory. Fortios for metering contact your Fortinet rep.
 
-# Day0
+# Image upload
+If using ```minipoc-deploy.sh``` you can skip this part.
+
+You can upload fortios.qcow2 to Openstack Glance (images) or check the following example
+````bash
+openstack image create --disk-format qcow2 --container-format bare   "fortigate-621"  --file fortios.qcow2
+````
+
+# Cloud-init
 
 In order to use [minipoc-deploy.sh](minipoc-deploy.sh) you must create a fgt-userdata.txt
 
