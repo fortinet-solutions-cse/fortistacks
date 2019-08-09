@@ -1,6 +1,6 @@
 # Fortistacks details
 
-Please check [Fortistacks 2.0](Quickstart.md) for a global explanation.
+Please check [Fortistacks 2.0](quickstart.md) for a global explanation.
 
 #Scripts
 

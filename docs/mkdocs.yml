@@ -9,8 +9,8 @@ extra:
     - type: 'github'
       link: 'https://github.com/fortinet-solutions-cse/fortistacks'
 theme: readthedocs
-nav:
-- Home: 'Quickstart.md'
+pages:
+- Home: 'quickstart.md'
 - Minipoc: 'mini-poc.md'
 - Fortistacks: 'About.md'
 - Public Openstack: 'Citycloud.md'
