@@ -1,7 +1,7 @@
 # mkdocs.yml -- MkDocs configuration, all *.md files relative to docs/
 site_name: Forti Stacks
 repo_url: 'https://github.com/fortinet-solutions-cse/fortistacks'
-edit_uri: edit/master/docs/docs
+edit_uri: edit/master/docs
 site_description: 'Multiple ready to use demo examples of automated Fortinet deployments.'
 extra:
   favicon: 'https://fortinet.com/favicon.ico'
@@ -10,7 +10,7 @@ extra:
       link: 'https://github.com/fortinet-solutions-cse/fortistacks'
 theme: readthedocs
 nav:
-- Home: 'index.md'
+- Home: 'Quickstart.md'
 - Minipoc: 'mini-poc.md'
 - Fortistacks: 'About.md'
 - Public Openstack: 'Citycloud.md'
