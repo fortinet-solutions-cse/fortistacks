@@ -14,15 +14,15 @@ nav:
 - Quickstart: 'quickstart.md'
 - Minipoc: 'mini-poc.md'
 - Fortigate: 'Fortigate.md'
-- Heat: 'Heat.md'
 - Internals:
-    - Fortistacks: 'About.md'
-    - Public Openstack: 'Citycloud.md'
+    - Fortistacks: 'Internals/About.md'
+    - Public Openstack: 'Internals/Citycloud.md'
+    - Docker client: 'README-Dockerclient.md'
 - MANO:
-    - Cloudify: 'Cloudify.md'
-    - osm.etsi.org: 'OSM.md'
+    - Cloudify: 'MANO/Cloudify.md'
+    - osm.etsi.org: 'MANO/OSM.md'
 - Advanced examples:
-    - Lifecycle Management: 'LCM.md'
-    - SDWAN playground: 'SDWAN.md'
+    - Lifecycle Management: 'Advanced examples/LCM.md'
+    - SDWAN playground: 'Advanced examples/SDWAN.md'
 
 
