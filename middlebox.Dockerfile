@@ -1,6 +1,6 @@
 
 #build cmd:
-# docker build -f mitm.Dockerfile --force-rm -t my-fortistacks-cli .
+# docker build -f middlebox.Dockerfile --force-rm -t my-fortistacks-cli .
 
 FROM fortinetsolutioncse/fortistacks-cli
 MAINTAINER Nicolas Thomas <nthomas@fortinet.com>

@@ -20,9 +20,6 @@ pages:
 - osm.etsi.org: 'OSM.md'
 - Advanced examples:
     - Lifecycle Management: 'LCM.md'
-    - SDWAN playground: 'SDWAN'
-- Tutorials:
-    - 101 get started: 'tutorials/101.md'
-    - 102 heat: 'tutorials/102.md'
-    - 103: 'tutorials/103.md'
+    - SDWAN playground: 'SDWAN.md'
+
 
