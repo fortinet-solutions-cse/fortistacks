@@ -22,7 +22,7 @@ nav:
     - Cloudify: 'MANO/Cloudify.md'
     - osm.etsi.org: 'MANO/OSM.md'
 - Advanced examples:
-    - Lifecycle Management: 'Advanced examples/LCM.md'
-    - SDWAN playground: 'Advanced examples/SDWAN.md'
+    - Lifecycle Management: 'Advanced Examples/LCM.md'
+    - SDWAN playground: 'Advanced Examples/SDWAN.md'
 
 
