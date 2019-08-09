@@ -1,4 +1,4 @@
-#  Fortistacks 2.0
+#  Quickstart
 
 Fortistacks is a collection of examples, scripts and documentation to use [Fortinet](http://fortinet.com) products in 
 Clouds/fully automated environments. 

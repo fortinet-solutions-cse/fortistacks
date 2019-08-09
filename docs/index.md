@@ -1,4 +1,4 @@
-# Welcome to Fortistacks
+# Fortistacks 2.0
 
 
 ## Using fortistacks
@@ -9,10 +9,7 @@
 
 ## Advanced examples
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+* [Life Cycle Management](Advanced Examples/LCM.md) - Scalability and complete lifecycle management.
 
 ## Under the hood, adapting.
 * [Docker client](Internals/README-DockerClient.md) - Docker usage explanation.
