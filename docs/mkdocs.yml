@@ -9,7 +9,7 @@ extra:
     - type: 'github'
       link: 'https://github.com/fortinet-solutions-cse/fortistacks'
 theme: readthedocs
-pages:
+nav:
 - Home: 'index.md'
 - Minipoc: 'mini-poc.md'
 - Fortistacks: 'About.md'
