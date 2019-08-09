@@ -6,7 +6,7 @@ If you already have yours just go straight to the examples in the sub directorie
 
 ## Get Cloudfiy on Openstack.
 
-Assume you have a working environment or go to [About](About.md)
+Assume you have a working environment or go to [About](../quickstart.md)
 Run 
 ```bash
 cd cloudify/
