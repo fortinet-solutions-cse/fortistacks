@@ -1,1 +1,1 @@
-../docs/docs/Cloudify.md
+../docs/MANO/Cloudify.md
