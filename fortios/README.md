@@ -1,1 +1,1 @@
-../docs/docs/Fortigate.md
+../docs/Fortigate.md
