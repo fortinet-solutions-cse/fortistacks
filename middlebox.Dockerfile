@@ -1,6 +1,8 @@
 
 #build cmd:
 # docker build -f middlebox.Dockerfile --force-rm -t my-fortistacks-cli .
+# but sure to add:  export OS_CACERT=/usr/local/share/ca-certificates/Fortinet_CA_SSL.crt
+# to your openstack.rc file
 
 FROM fortinetsolutioncse/fortistacks-cli
 MAINTAINER Nicolas Thomas <nthomas@fortinet.com>
