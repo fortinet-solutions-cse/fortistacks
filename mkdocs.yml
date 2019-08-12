@@ -17,7 +17,7 @@ nav:
 - Internals:
     - Fortistacks: 'Internals/About.md'
     - Public Openstack: 'Internals/Citycloud.md'
-    - Docker client: 'Internals/README-Dockerclient.md'
+    - Docker client: 'Internals/README-DockerClient.md'
 - MANO:
     - Cloudify: 'MANO/Cloudify.md'
     - osm.etsi.org: 'MANO/OSM.md'

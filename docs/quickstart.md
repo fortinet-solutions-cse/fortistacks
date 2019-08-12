@@ -5,8 +5,6 @@ Clouds/fully automated environments.
 
 Initial focus is on OpenStack, more to come.
 
-# Quickstart
-
 For those who wants direct hands on, follow me instruction. More explanation in the Fortistacks section.
 
 ## Pre requisite
@@ -20,7 +18,7 @@ For those who wants direct hands on, follow me instruction. More explanation in 
 * git cli
 * an ssh key generated in you home environement (can be done later in Docker)
 
-##
+## Start
 To correctly get the referenced submodules please use the --recursive option of git clone like this:
 ```bash
 git clone https://github.com/fortinet-solutions-cse/fortistacks.git --recursive
