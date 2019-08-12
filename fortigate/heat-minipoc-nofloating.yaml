@@ -20,7 +20,7 @@ parameters:
  fgtimage:
   type: string
   description: Fortios image
-  default: "fgt54"
+  default: "fgt62"
  ubimage:
   type: string
   description: Ubuntu image
@@ -180,14 +180,6 @@ resources:
         - ip_address: "10.40.40.254"
 #https://blueprints.launchpad.net/heat/+spec/add-security-group-to-port may come handy
 # Create a mgmt port to apply security group to it instead of global to the VM
- fgt_mgmt_port:
-    type: OS::Neutron::Port
-    properties:
-      network: { get_param: mgmt_net }
-      security_groups: [ default ]
-      fixed_ips:
-        - subnet_id: "mgmt_subnet"
-# TODO remove hardcoded
 
  fgt:
   type: OS::Nova::Server
@@ -198,7 +190,7 @@ resources:
    name: FGT
    user_data_format: RAW
    networks:
-    - port: { get_resource: fgt_mgmt_port }
+    - network:  {get_param: mgmt_net }
     - port:  { get_resource: fgt_left_port }
     - subnet:  { get_resource: right_subnet }
 
