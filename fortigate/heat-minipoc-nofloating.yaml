@@ -9,9 +9,8 @@ heat_template_version: 2016-04-08
 
 description: >
   HOT template to create 2 neutron networks, 2 generic VMs a Fortios VM
-  in between and floating ip for every server.
+  in between. No floating ip in this one assume you have direct access (or jump server)
   Used for experimenting (actual traffic) of Fortigate in an openstack environment.
-
   
 parameters:
  fgtimage:
@@ -26,10 +25,6 @@ parameters:
   type: string
   description: My private network
   default: "mgmt"
- public_net:
-  type: string
-  description: External network for floating ips
-  default: "ext_net"
  vms_flavor:
   type: string
   description: Flavor of the VMs
@@ -204,12 +199,6 @@ resources:
     - subnet:  { get_resource: right_subnet }
 
 
- fgt_floating_ip:
-    type: OS::Neutron::FloatingIP
-    properties:
-      floating_network: { get_param: public_net }
-      port_id: { get_resource: fgt_mgmt_port }
-
 
  ubleft:
   type: OS::Nova::Server
@@ -225,12 +214,6 @@ resources:
     - network: { get_param: mgmt_net }
     - network:  { get_resource: left_net }
 
- ubl_floating_ip:
-    type: OS::Neutron::FloatingIP
-    properties:
-      floating_network: { get_param: public_net }
-      port_id: {get_attr: [ubleft, addresses, {get_param: mgmt_net}, 0, port]}
-    # explicit port association instead of server
 
 
  ubright:
@@ -247,22 +230,15 @@ resources:
     - network: { get_param: mgmt_net }
     - network: { get_resource: right_net }
 
- ubr_floating_ip:
-    type: OS::Neutron::FloatingIP
-    properties:
-      floating_network: { get_param: public_net }
-      port_id: {get_attr: [ubright, addresses, {get_param: mgmt_net}, 0, port]}
-
-
 
       
 outputs:
  fgt-info:
     description: IP address to access of the FGT
-    value: { get_attr: [ fgt_floating_ip,  floating_ip_address ] }
+    value: { get_attr: [fgt, addresses, {get_param: mgmt_net}, 0, port]}
  left-info:
     description: IP address to access left ubuntu machine 
-    value: { get_attr: [ ubl_floating_ip,  floating_ip_address ] }
+    value: { get_attr: [ubleft, addresses, {get_param: mgmt_net}, 0, port]}
  right-info:
     description: IP address to access right ubuntu machine 
-    value: { get_attr: [ ubr_floating_ip,  floating_ip_address ] }
+    value: { get_attr: [ubright, addresses, {get_param: mgmt_net}, 0, port]}

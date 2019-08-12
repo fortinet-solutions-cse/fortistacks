@@ -1,0 +1,53 @@
+#!/bin/bash
+# #######
+# Copyright (c) 2016 Fortinet All rights reserved
+# Author: Nicolas Thomas nthomas_at_fortinet.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+#    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    * See the License for the specific language governing permissions and
+#    * limitations under the License.
+
+######
+## run this script in shell (not X) on an ubuntu machine to enable screen sharing with the default vnc client on macos
+## pasword is fortinet
+#####
+
+export LC_ALL=C
+## avoid warnings about utf-8 for macusers
+
+
+desktop()
+{
+ #    auto login
+     cat << EOF | sudo tee /etc/lightdm/lightdm.conf.d/50-autolog.conf
+[SeatDefaults]
+autologin-user=$USER
+EOF
+     sudo systemctl restart lightdm.service
+     sleep 12
+     export DISPLAY=:0
+     gsettings set  org.gnome.Vino enabled true
+      #   for broken clients like rdp/Macos
+     gsettings set  org.gnome.Vino  require-encryption false
+     gsettings set  org.gnome.Vino vnc-password Zm9ydGluZXQ=
+     gsettings set org.gnome.Vino use-upnp true
+     gsettings set org.gnome.Vino notify-on-connect false
+     gsettings set org.gnome.Vino prompt-enabled false
+     gsettings set org.gnome.Vino authentication-methods  "['vnc']"
+     sudo systemctl restart lightdm.service
+
+}
+
+
+desktop
+
+
+
