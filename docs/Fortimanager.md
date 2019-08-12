@@ -1,4 +1,4 @@
-# Describe how to start on OpenStack.
+# Frotimanager on Openstack
 
 Ref: https://docs.fortinet.com/d/fortimanager-5.6-vm-install
 
@@ -46,6 +46,8 @@ edit 1
 end
 execute lvm start
 ```
+
+# API access
 You must run the followin cli on FMG to be able to use the API
 ```bash
 config system admin user
