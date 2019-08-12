@@ -21,18 +21,26 @@ parameters:
   type: string
   description: Fortios image
   default: "fgt62"
+  constraints:
+    - custom_constraint: glance.image
  ubimage:
   type: string
   description: Ubuntu image
   default: "Trusty x86_64"
+  constraints:
+    - custom_constraint: glance.image
  mgmt_net:
   type: string
   description: My private network
   default: "mgmt"
+  constraints:
+    - custom_constraint: neutron.network
  vms_flavor:
   type: string
   description: Flavor of the VMs
   default: "m1.small"
+  constraints:
+    - custom_constraint: nova.flavor
  ub_nic2_name:
   type: string
   description: Name of the second interface on Ubuntu may vary
