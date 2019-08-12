@@ -1,1 +1,1 @@
-docs/Internals/About.md
+docs/quickstart.md
