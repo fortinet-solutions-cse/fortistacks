@@ -14,15 +14,17 @@ nav:
 - Quickstart: 'quickstart.md'
 - Minipoc: 'mini-poc.md'
 - Fortigate: 'Fortigate.md'
-- Internals:
-    - Fortistacks: 'Internals/About.md'
-    - Public Openstack: 'Internals/Citycloud.md'
-    - Docker client: 'Internals/README-DockerClient.md'
+- Other Fortinet VMs:
+    - Fortimanager: 'Fortimanager.md'
 - MANO:
     - Cloudify: 'MANO/Cloudify.md'
     - osm.etsi.org: 'MANO/OSM.md'
 - Advanced examples:
     - Lifecycle Management: 'Advanced Examples/LCM.md'
     - SDWAN playground: 'Advanced Examples/SDWAN.md'
+- Internals:
+    - Fortistacks: 'Internals/About.md'
+    - Public Openstack: 'Internals/Citycloud.md'
+    - Docker client: 'Internals/README-DockerClient.md'
 
 
