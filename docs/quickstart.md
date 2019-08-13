@@ -49,7 +49,7 @@ openstack image list
 The list command must return the list of available image. If this is the case your fortistacks cli is ready.
 If not review/debug all the previous points.
 
-##create the default openstack objects.
+## create the default openstack objects.
 ```bash
 cd openstack/
  ./configure-openstack
@@ -58,7 +58,7 @@ cd openstack/
 This will create the mgmt network, a provider-router, upload default ssh key and configure security group.
 The examples in this project relies on this to be available.
 
-##Updating
+## Updating
 To get the latest enhancements: 
 ```bash
 git pull --recurse-submodule
