@@ -1,4 +1,0 @@
-#TODO add OSM IPs in nova.rc to make it easier
-export OSM_HOSTNAME=`lxc list | awk '($2=="SO-ub"){print $6}'`
-export OSM_RO_HOSTNAME=`lxc list | awk '($2=="RO"){print $6}'`
-
