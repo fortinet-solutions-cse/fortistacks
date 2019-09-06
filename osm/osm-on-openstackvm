@@ -22,7 +22,7 @@
 # Assume you have openstack cli and cfy installed.
 
 # checking openstack cli is recent enough using sort -V .
-#Ref: https://osm.etsi.org/wikipub/index.php/OSM_Release_FIVE
+#Ref: https://osm.etsi.org/wikipub/index.php/OSM_Release_SIX
 
 OSCLI_VER=`openstack --version 2>&1 | sed -e "s/openstack //g"`
 read -r -d '' VAR << EOM || true
@@ -54,14 +54,14 @@ dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
 
 # Will now start an Ubuntu 16.04 image
 
-UbuntuImageID=`openstack image list --format value -c ID -c Name |grep "16.04"|head -1|awk '{print $1}'`
-OSM_VERSION=5
+UbuntuImageID=`openstack image list --format value -c ID -c Name |grep "18.04"|head -1|awk '{print $1}'`
+OSM_VERSION=6
 
 if (openstack server show osm-v$OSM_VERSION  > /dev/null 2>&1 );then
     echo "OSM already started"
     #get the floating-ip from openstack and trim result
     FLOAT_IP=`openstack server show osm-v$OSM_VERSION -f value -c addresses|awk -F , '{print $2}'|sed 's/ //g'`
-    SSH="ssh -t -o StrictHostKeyChecking=no ubuntu@$FLOAT_IP"
+    SSH="ssh -o StrictHostKeyChecking=no ubuntu@$FLOAT_IP"
     NEWinstall="no"
 else
     openstack server create  --image $UbuntuImageID osm-v$OSM_VERSION --key-name default --security-group default\
@@ -70,7 +70,7 @@ else
     sleep 4
     FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
     openstack server add floating ip   osm-v$OSM_VERSION $FLOAT_IP
-    SSH="ssh -t -o StrictHostKeyChecking=no ubuntu@$FLOAT_IP"
+    SSH="ssh  -o StrictHostKeyChecking=no ubuntu@$FLOAT_IP"
     until ($SSH ping -c 3 fortiguard.fortinet.com); do
         sleep 4
         echo "waiting the vm to be up"
@@ -91,9 +91,11 @@ if [ "$NEWinstall" == "true" ]; then
     $SSH sudo bash debconf.sh
     $SSH sudo debconf-show lxd
     $SSH sudo cp lxd-bridge /etc/default/
-    $SSH sudo apt-get -y install lxd juju
+    $SSH sudo apt-get -y install lxd
+    $SSH sudo snap install juju --classic
     $SSH sudo DEBIAN_FRONTEND=noninteractive  dpkg-reconfigure lxd -p high
     $SSH sudo systemctl restart lxd
+    $SSH sudo ln -sf /snap/bin/juju /usr/bin/
     #openstack server reboot osm-v$OSM_VERSION
     #
     #until ($SSH ping -c 3 fortiguard.fortinet.com); do
@@ -113,13 +115,13 @@ else
     # verifying juju is up and running
     $SSH  juju status -m osm:admin/default
 fi
-$SSH  wget -c https://osm-download.etsi.org/ftp/osm-5.0-five/install_osm.sh
+$SSH  wget -c https://osm-download.etsi.org/ftp/osm-6.0-six/install_osm.sh
 $SSH  chmod +x install_osm.sh
 $SSH ./install_osm.sh --elk_stack --pm_stack --nolxd  --nojuju -y 2>&1 | tee osm_install_log.txt
 
 ## install only the client in the shell env to allow remote configuration.
 REPOSITORY_BASE=https://osm-download.etsi.org/repository/osm/debian
-RELEASE=ReleaseFIVE
+RELEASE=ReleaseSIX
 REPOSITORY=stable
 wget -qO - $REPOSITORY_BASE/$RELEASE/OSM%20ETSI%20Release%20Key.gpg | sudo apt-key add -
 sudo apt-get -y install software-properties-common
