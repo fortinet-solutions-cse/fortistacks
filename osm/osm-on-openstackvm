@@ -128,9 +128,27 @@ sudo apt-get -y install software-properties-common
 sudo add-apt-repository -y "deb [arch=amd64] $REPOSITORY_BASE/$RELEASE $REPOSITORY IM osmclient devops"
 sudo apt update
 sudo apt-get -y install python-magic python-osmclient
-echo "use export OSM_HOSTNAME=$FLOAT_IP "
+
 export OSM_HOSTNAME=$FLOAT_IP
 osm vim-create --name openstack --user $OS_USERNAME --password $OS_PASSWORD --auth_url $OS_AUTH_URL  \
     --tenant $OS_TENANT_NAME --account_type openstack  \
     --config='{use_floating_ip: True, use_existing_flavors: True, security_groups: default, keypair: default}'
+
+##"use_existing_flavors": "true",                        |
+#|                 |   "vim_network_name": "mgmt",                            |
+#|                 |   "region_name": "Kna1",                                 |
+#|                 |   "user_domain_name": "CCP_Domain_31060",                |
+#|                 |   "use_internal_endpoint": "false",                      |
+#|                 |   "use_floating_ip": "true",                             |
+#|                 |   "APIversion": "3",                                     |
+#|                 |   "keypair": "default",                                  |
+
+#|                 |   "insecure": "false",                                   |
+#|                 |   "security_groups": "default",                          |
+#|                 |   "project_domain_name": "CCP_Domain_31060"
+
 osm user-create --password fortinet fortinet --projects admin
+
+echo "============== OSM Installed and configured ================="
+echo " Access: http://$FLOAT_IP"
+echo "use export OSM_HOSTNAME=$FLOAT_IP  to use the osm cli"
