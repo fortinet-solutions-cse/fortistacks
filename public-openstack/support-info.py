@@ -30,9 +30,10 @@ conn = openstack.connect()
 result = dict()
 
 for vm in args.vms:
+    eprint("collect compute info of " + vm)
     server = conn.compute.find_server(vm)
     server_infos = conn.compute.get_server(server).to_dict()
-    eprint("collect compute info of "+vm)
+
     result[vm]= {'compute':''}
     result[vm]['compute'] = server_infos
 
@@ -58,7 +59,12 @@ for vm in args.vms:
         result[vm]['ports'][port_id] = conn.network.get_port(port_id).to_dict()
         net_id = port.to_dict()['net_id']
         result[vm]['networks'][net_id] = conn.network.get_network(net_id).to_dict()
-        result[vm]['networks'][net_id]['subnets'] ={}
+        ## check if a net_id/subnets aleady exist
+        ## can append if 2 ports are on 2 subnet of same net without check will overide info
+        try:
+            alreadyset = result[vm]['networks'][net_id]['subnets']
+        except KeyError:
+            result[vm]['networks'][net_id]['subnets'] ={}
         for fix_ip in port.to_dict()['fixed_ips']:
             result[vm]['networks'][net_id]['subnets'][fix_ip['subnet_id']] = conn.network.get_subnet(fix_ip['subnet_id']).to_dict()
         result[vm]['ports'][port_id]['security_groups'] = {}
