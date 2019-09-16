@@ -31,6 +31,8 @@ fi
 
 [ -f fgt-userdata.txt ] || (echo " you must have create a user-data file see README"; exit 2)
 
+FGT_USERDATA=fgt-userdata.txt
+
 #Push image if needed
 openstack image show  fgt60 > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fgt60"  --file fortios.qcow2
 #find the name of the Ubuntu 16.04 image
@@ -53,17 +55,12 @@ if (openstack server show trafleft  > /dev/null 2>&1 );then
 else
     openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network left --wait
 	sleep 4
-    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
-    openstack server add floating ip trafleft $FLOAT_IP
 fi
 
 if (openstack server show trafright  > /dev/null 2>&1 );then
     echo "trafright already installed"
 else
     openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network right --wait
-	sleep 4
-    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
-    openstack server add floating ip trafright $FLOAT_IP
 fi
 
 
@@ -77,8 +74,5 @@ if (openstack server show fgt60  > /dev/null 2>&1 );then
     echo "fgt60 already installed"
 else
     #need to provide an example without config_drive
-    openstack server create --image "fgt60" fgt60   --flavor $OS_FLAVOR  --user-data fgt-userdata.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --wait
-	sleep 4
-    FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
-    openstack server add floating ip fgt60 $FLOAT_IP
+    openstack server create --image "fgt60" fgt60   --flavor $OS_FLAVOR  --user-data $FGT_USERDATA --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --wait
 fi
