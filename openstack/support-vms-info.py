@@ -2,60 +2,77 @@
 # ref: https://docs.openstack.org/openstacksdk/latest/user/connection.html
 # use export OS_CACERT=/etc/ssl/certs/Fortinet_CA_SSL.pem if using SSL decription
 # API infos/reference specs: https://docs.openstack.org/openstacksdk/latest/user/proxies/compute.html
+# #######
+# Copyright (c) 2019 Fortinet All rights reserved
+# Author: Nicolas Thomas nthomas_at_fortinet.com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+#    * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    * See the License for the specific language governing permissions and
+#    * limitations under the License.
+
+
 from __future__ import print_function
 import openstack
 import pprint
 
 import sys
 
+
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-## if option to redirect to file
-#sys.stdout = open('file', 'w')
 
 # Initialize and turn on debug logging
 openstack.enable_logging(debug=False)
 import argparse
+
 parser = argparse.ArgumentParser()
-parser.add_argument("--verbosity", help="increase output verbosity")
+parser.add_argument("--verbosity", action='store_true', help="show verbose msg of the openstack-client library")
+parser.add_argument("-o", "--outfile", nargs='?', help=" specify an output file instead of stdout")
 parser.add_argument('vms', metavar='N', type=str, nargs='+',
                     help='names of the VM to collect infos from')
 args = parser.parse_args()
 if args.verbosity:
     openstack.enable_logging(debug=True)
-
+if args.outfile:
+    sys.stdout = open(args.outfile, 'w')
 # Initialize cloud relying on sourcing the auth .rc (envirenment varialbles) file.
 conn = openstack.connect()
-result = dict()
+result = {}
 
 for vm in args.vms:
     eprint("collect compute info of " + vm)
     server = conn.compute.find_server(vm)
     server_infos = conn.compute.get_server(server).to_dict()
 
-    result[vm]= {'compute':''}
+    result[vm] = {'compute': ''}
     result[vm]['compute'] = server_infos
 
     addresses = server_infos['addresses']
     # there is the type Floating in the Addresses.. could find it to get floating info
-    eprint("collect metadata info of "+vm)
+    eprint("collect metadata info of " + vm)
     result[vm]['metadata'] = conn.compute.get_server_metadata(server).to_dict()
-    eprint("collect console output info of "+vm)
+    eprint("collect console output info of " + vm)
     result[vm]['console_output'] = conn.compute.get_server_console_output(server)
-    eprint("collect flavor info of "+vm)
+    eprint("collect flavor info of " + vm)
     result[vm]['flavor'] = conn.compute.get_flavor(server_infos['flavor']['id']).to_dict()
-    eprint("collect image info of "+vm)
+    eprint("collect image info of " + vm)
     result[vm]['image'] = conn.compute.get_image(server_infos['image']['id']).to_dict()
 
-
-    result[vm]['ports']= {}
-    result[vm]['networks']= {}
+    result[vm]['ports'] = {}
+    result[vm]['networks'] = {}
     ## we collect networks /subnet of the ports
     eprint("collect ports, networks and security group info of " + vm)
-    for port  in  conn.compute.server_interfaces(server):
-        port_id =  port.to_dict()['port_id']
-        result[vm].keys().append(port_id)
+    for port in conn.compute.server_interfaces(server):
+        port_id = port.to_dict()['port_id']
         result[vm]['ports'][port_id] = conn.network.get_port(port_id).to_dict()
         net_id = port.to_dict()['net_id']
         result[vm]['networks'][net_id] = conn.network.get_network(net_id).to_dict()
@@ -64,18 +81,20 @@ for vm in args.vms:
         try:
             alreadyset = result[vm]['networks'][net_id]['subnets']
         except KeyError:
-            result[vm]['networks'][net_id]['subnets'] ={}
+            result[vm]['networks'][net_id]['subnets'] = {}
         for fix_ip in port.to_dict()['fixed_ips']:
-            result[vm]['networks'][net_id]['subnets'][fix_ip['subnet_id']] = conn.network.get_subnet(fix_ip['subnet_id']).to_dict()
+            result[vm]['networks'][net_id]['subnets'][fix_ip['subnet_id']] = \
+                conn.network.get_subnet(fix_ip['subnet_id']).to_dict()
         result[vm]['ports'][port_id]['security_groups'] = {}
 
         for sec_group in result[vm]['ports'][port_id]['security_group_ids']:
-            result[vm]['ports'][port_id]['security_groups'][sec_group] = conn.network.get_security_group(sec_group).to_dict()
+            result[vm]['ports'][port_id]['security_groups'][sec_group] = conn.network.get_security_group(
+                sec_group).to_dict()
 
-    result[vm]['volumes']= {}
+    result[vm]['volumes'] = {}
     eprint("collect volume info of " + vm)
     for volume in server_infos['attached_volumes']:
-        result[vm]['volumes'][volume['id']] = conn.compute.get_volume_attachment(volume['id'],server).to_dict()
+        result[vm]['volumes'][volume['id']] = conn.compute.get_volume_attachment(volume['id'], server).to_dict()
 
     # USING THE tYPE IN FLOATING FIND THE ipS THEN THE DEtails
     eprint("collect floating info of " + vm)
@@ -87,4 +106,4 @@ for vm in args.vms:
 
 pprint.pprint(result)
 
-    ## logs (event log can not be found but console_log_output yes).
+## logs (event log can not be found but console_log_output yes).

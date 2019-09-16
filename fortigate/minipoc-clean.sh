@@ -28,7 +28,7 @@ fi
 cat << EOF | openstack
 server delete trafleft
 server delete trafright
-server delete fgt60
+server delete fortigate
 
 
 port delete left1
@@ -37,5 +37,5 @@ network delete left
 network delete right
 
 EOF
-
-../openstack/bleach-floatingips.sh
+# release all floating ip not in use (save $$)
+openstack floating ip list -f value -c "Floating IP Address" --status DOWN |xargs openstack floating ip delete

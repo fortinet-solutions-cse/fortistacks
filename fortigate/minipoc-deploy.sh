@@ -34,7 +34,7 @@ fi
 FGT_USERDATA=fgt-userdata.txt
 
 #Push image if needed
-openstack image show  fgt60 > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fgt60"  --file fortios.qcow2
+openstack image show  fortigate > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fortigate"  --file fortios.qcow2
 #find the name of the Ubuntu 16.04 image
 UB_IMAGE=`openstack image list -f value -c Name |grep 16.04`
 
@@ -70,9 +70,9 @@ openstack port show right1 > /dev/null 2>&1 ||openstack port create right1 --net
 LEFTPORT=`openstack port show left1 -c id -f value`
 RIGHTPORT=`openstack port show right1 -c id -f value`
     
-if (openstack server show fgt60  > /dev/null 2>&1 );then
-    echo "fgt60 already installed"
+if (openstack server show fortigate  > /dev/null 2>&1 );then
+    echo "fortigate already installed"
 else
     #need to provide an example without config_drive
-    openstack server create --image "fgt60" fgt60   --flavor $OS_FLAVOR  --user-data $FGT_USERDATA --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --wait
+    openstack server create --image "fortigate" fortigate   --flavor $OS_FLAVOR  --user-data $FGT_USERDATA --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --wait
 fi
