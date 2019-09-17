@@ -3,7 +3,7 @@
 Exchanging with persons in the field we realize that collecting ALL the ressources related to a VM can be complex/time 
 consuming.
 
-We created this [support-vms-info.py](support-vms-info.py) which works on any openstack VM.
+We created this [support-vms-info.py](https://github.com/fortinet-solutions-cse/fortistacks/blob/master/openstack/support-vms-info.py) which works on any openstack VM.
 
 Syntax
 ```bash
