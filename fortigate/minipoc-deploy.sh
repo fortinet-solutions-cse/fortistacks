@@ -28,13 +28,14 @@ fi
 #if EXT_NET variable not set use default (allow to have it as param from the .rc file)
 [ -x $EXT_NET ] && EXT_NET=ext_net
 [ -x $OS_FLAVOR ] && OS_FLAVOR=m1.small
+[ -x $FGT_IMAGE_NAME ] && FGT_IMAGE_NAME=fortigate
 
 [ -f fgt-userdata.txt ] || (echo " you must have create a user-data file see README"; exit 2)
 
 FGT_USERDATA=fgt-userdata.txt
 
 #Push image if needed
-openstack image show  fortigate > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fortigate"  --file fortios.qcow2
+openstack image show  $FGT_IMAGE_NAME > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "$FGT_IMAGE_NAME"  --file fortios.qcow2
 #find the name of the Ubuntu 16.04 image
 UB_IMAGE=`openstack image list -f value -c Name |grep 16.04`
 
@@ -74,5 +75,5 @@ if (openstack server show fortigate  > /dev/null 2>&1 );then
     echo "fortigate already installed"
 else
     #need to provide an example without config_drive
-    openstack server create --image "fortigate" fortigate   --flavor $OS_FLAVOR  --user-data $FGT_USERDATA --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --wait
+    openstack server create --image "$FGT_IMAGE_NAME" fortigate   --flavor $OS_FLAVOR  --user-data $FGT_USERDATA --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --wait
 fi

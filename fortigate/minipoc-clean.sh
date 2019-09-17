@@ -24,6 +24,8 @@ if [ -x "$OS_AUTH_URL" ]; then
   . ~/nova.rc
 fi
 
+echo "deleting VMs, ports and networks may raise errors (floating for expl)"
+echo "please check if actually cleaning before logging a bug"
 
 cat << EOF | openstack
 server delete trafleft
