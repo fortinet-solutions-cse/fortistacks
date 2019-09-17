@@ -1,0 +1,72 @@
+--- heat-minipoc.yaml	2019-09-17 09:47:13.000000000 +0000
++++ heat-minipoc-floating.yaml	2019-09-17 09:47:13.000000000 +0000
+@@ -3,6 +3,8 @@
+ #$ openstack stack create --template heat-minipoc.yaml mini-poc
+ # on citycloud or with specific inputs file
+ # openstack stack create --template heat-minipoc.yaml mini-poc -e citycloud-env.yaml
++# You can also updte with the floatings
++# openstack stack update --existing --template heat-minipoc-floating.yaml mini-poc -e citycloud-env.yaml
+ ####
+ # to follow execution:
+ # openstack stack event list mini-poc --follow
+@@ -13,10 +15,10 @@
+ 
+ description: >
+   HOT template to create 2 neutron networks, 2 generic VMs a Fortios VM
+-  in between. No floating ip in this one assume you have direct access (or jump server)
++  in between and floating ip for every server.
+   Used for experimenting (actual traffic) of Fortigate in an openstack environment.
+ 
+-
++  
+ parameters:
+  fgtimage:
+   type: string
+@@ -36,6 +38,10 @@
+   default: "mgmt"
+   constraints:
+     - custom_constraint: neutron.network
++ public_net:
++  type: string
++  description: External network for floating ips
++  default: "ext_net"
+  vms_flavor:
+   type: string
+   description: Flavor of the VMs
+@@ -234,15 +240,32 @@
+     - network: { get_param: mgmt_net }
+     - network: { get_resource: right_net }
+ 
++ ubr_floating_ip:
++    type: OS::Neutron::FloatingIP
++    properties:
++      floating_network: { get_param: public_net }
++      port_id: {get_attr: [ubright, addresses, {get_param: mgmt_net}, 0, port]}
++
++ ubl_floating_ip:
++    type: OS::Neutron::FloatingIP
++    properties:
++      floating_network: { get_param: public_net }
++      port_id: {get_attr: [ubleft, addresses, {get_param: mgmt_net}, 0, port]}
++    # explicit port association instead of server
++
++ fgt_floating_ip:
++    type: OS::Neutron::FloatingIP
++    properties:
++      floating_network: { get_param: public_net }
++      port_id: { get_resource: fgt_mgmt_port }
+ 
+-      
+ outputs:
+  fgt-mgmt-ip:
+     description: IP address to access of the FGT
+-    value: { get_attr: [fgt, networks, {get_param: mgmt_net}, 0] }
++    value: { get_attr: [ fgt_floating_ip,  floating_ip_address ] }
+  left-info:
+     description: IP address to access left ubuntu machine 
+-    value: { get_attr: [ubleft, networks, {get_param: mgmt_net}, 0] }
++    value: { get_attr: [ ubl_floating_ip,  floating_ip_address ] }
+  right-info:
+     description: IP address to access right ubuntu machine 
+-    value: { get_attr: [ubright, networks, {get_param: mgmt_net}, 0] }
++    value: { get_attr: [ ubr_floating_ip,  floating_ip_address ] }
