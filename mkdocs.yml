@@ -26,5 +26,5 @@ nav:
     - Fortistacks: 'Internals/About.md'
     - Public Openstack: 'Internals/Citycloud.md'
     - Docker client: 'Internals/README-DockerClient.md'
-
+    - Collect support information: 'Internals/Support-vms-collect.md'
 
