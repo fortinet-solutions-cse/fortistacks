@@ -1,0 +1,28 @@
+#cloud-config for citycloud using new schema ens
+chpasswd:
+  list: |
+    ubuntu:fortinet
+  expire: False
+write_files:
+  - content: |
+        # Config ens4 (mgmt)
+        network:
+            version: 2
+            renderer: networkd
+            ethernets:
+                ens4:
+                    dhcp4: true
+                    dhcp4-overrides:
+                      use-routes: false
+    path: /etc/netplan/60-ens4.yaml
+package_upgrade: true
+packages:
+  - zile
+  - git
+  - byobu
+power_state:
+ delay: "now"
+ mode: reboot
+ message: Rebooting to ensure network conf
+ timeout: 10
+ condition: True

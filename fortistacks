@@ -21,13 +21,6 @@ export LC_ALL=C
 ## avoid warnings about utf-8 for macusers
 
 
-is-root()
-{
-    if [ "$(id -u)" == "0" ]; then
-	echo "This script is to be run by your normal user using sudo for root"
-	exit 77
-    fi
-}
 
 control_c()
 {
@@ -56,23 +49,52 @@ USAGE: install sudoers desktop
 
  Multiples actions can be provided as explained here.
  sudoers - setup sudo passwordless
- desktop - setup ubuntu-desktop and vnc access for old clients (macos, windows)
+ desktop - setup ubuntu-desktop
+ screenshare - access for old clients (macos, windows)
  install - installed the system requirements to be compatible with fortistacks demos/examples
 
 EOF
 exit 0
 }
 
-desktop()
+screenshare()
 {
- #    auto login
-     cat << EOF | sudo tee /etc/lightdm/lightdm.conf.d/50-autolog.conf
-[SeatDefaults]
-autologin-user=$USER
+ #    auto login and enable non-encrypted vnc access password fortinet
+
+
+ ##
+    cat << EOF | sudo tee /etc/gdm3/custom.conf
+# GDM configuration storage
+[daemon]
+# Uncoment the line below to force the login screen to use Xorg
+WaylandEnable=true
+
+# Enabling automatic login
+AutomaticLoginEnable = true
+AutomaticLogin = $USER
+
+[security]
+
+[xdmcp]
+
+[greeter]
+# Only include selected logins in the greeter
+# IncludeAll = false
+# Include = user1,user2
+
+[chooser]
+
+[debug]
+# Uncomment the line below to turn on debugging
+# More verbose logs
+# Additionally lets the X server dump core if it crashes
+#Enable=true
 EOF
-     sudo systemctl restart lightdm.service
+
+     sudo systemctl restart gdm3.service
      sleep 12
      export DISPLAY=:0
+     # require netplan to have renderer NEtworkManager
      gsettings set  org.gnome.Vino enabled true
       #   for broken clients like rdp/Macos
      gsettings set  org.gnome.Vino  require-encryption false
@@ -81,10 +103,18 @@ EOF
      gsettings set org.gnome.Vino notify-on-connect false
      gsettings set org.gnome.Vino prompt-enabled false
      gsettings set org.gnome.Vino authentication-methods  "['vnc']"
-     sudo systemctl restart lightdm.service
+     sudo systemctl restart gdm3.service
 
 }
 
+desktop()
+{
+     #    auto login
+     sudo apt-get -y install ubuntu-desktop
+     # Must replace renderer once desktop is installed in netplan for vino to be happy
+    sudo sed -i 's/renderer: networkd/renderer: NetworkManager/' /etc/netplan/60-ens4.yaml
+    sudo netplan apply
+}
 
 
 sudoers()
@@ -109,7 +139,6 @@ install-packages()
 
 install()
 {
-    is-root
     install-packages
     echo "You are all set it is highly recommended to restart now"
 }

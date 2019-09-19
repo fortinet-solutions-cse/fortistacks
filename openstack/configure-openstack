@@ -55,7 +55,7 @@ openstack security group rule create --ingress  --ethertype IPv6 --remote-ip ::/
 openstack security group rule create --ingress  --ethertype IPv6 --remote-ip ::/0  --protocol udp default|| echo "should have been created already"
 
 
-#Upload a default SSH key
+#Upload a default SSH key (TODO call the key fortistacks to allow both from laptop and form jumphost)
 openstack keypair create  --public-key ~/.ssh/id_rsa.pub default  || echo "asssuming key is already uploaded"
 
 
