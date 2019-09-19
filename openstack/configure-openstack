@@ -19,14 +19,19 @@
 
 set -ex
 
-echo "This script configure any openstack to be close to the one deployed by fortistacks" 
+cat << EOF
+This script configure the following on openstack:
+  - a network and subnet called mgmt
+  - a keypair called default using ~/.ssh/id_rsa.pub
+  - security group called default globally open.
+EOF
+
 
 #PKGS=" python-keystone python-neutronclient python-novaclient python-glanceclient python-openstackclient python-heatclient"
 #dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
 
 
 
-NEUTRON_EXT_NET_NAME="ext-net" 
 NEUTRON_FIXED_NET_CIDR="192.168.1.0/24"
 NEUTRON_DNS="8.8.8.8"
 
@@ -39,19 +44,6 @@ openstack network show mgmt > /dev/null 2>&1 || openstack network create mgmt
 openstack subnet show mgmt_subnet > /dev/null 2>&1 || openstack subnet create mgmt_subnet --network mgmt --subnet-range $NEUTRON_FIXED_NET_CIDR --dns-nameserver $NEUTRON_DNS --dhcp
 SUBNET_ID=$(openstack subnet show mgmt_subnet | grep " id" | awk '{print $4}')
 
-#Create router for external network and mgmt network
-openstack router show provider-router > /dev/null 2>&1 || openstack router create  provider-router
-ROUTER_ID=`openstack router show provider-router -c id -f value`
-
-EXTERNAL_NETWORK_ID=`openstack network show $NEUTRON_EXT_NET_NAME -c id -f value`
-#neutron router gateway-clear provider-router || true
-#neutron router gateway-set $ROUTER_ID $EXTERNAL_NETWORK_ID
-openstack router set --external-gateway  $EXTERNAL_NETWORK_ID provider-router || true
-### make it always ok to have it indempodent.
-#neutron router interface-add $ROUTER_ID $SUBNET_ID || true
-openstack router add subnet provider-router mgmt_subnet  || true
-
-
 #Configure the default security group to allow ICMP and SSH
 openstack security group rule create --proto icmp default || echo "should have been created already"
 
@@ -61,10 +53,6 @@ openstack security group rule create --ingress  --ethertype IPv4 --remote-ip 0.0
 
 openstack security group rule create --ingress  --ethertype IPv6 --remote-ip ::/0  --protocol tcp default|| echo "should have been created already"
 openstack security group rule create --ingress  --ethertype IPv6 --remote-ip ::/0  --protocol udp default|| echo "should have been created already"
-
-
-#openstack security group rule create --proto tcp --dst-port 1:65535  default || echo "should have been created already"
-#openstack security group rule create --proto udp --dst-port 1:65535  default || echo "should have been created already"
 
 
 #Upload a default SSH key

@@ -19,6 +19,7 @@ nav:
 - MANO:
     - Cloudify: 'MANO/Cloudify.md'
     - osm.etsi.org: 'MANO/OSM.md'
+    - Openstack Heat: 'MANO/Openstack-Heat.md'
 - Advanced examples:
     - Lifecycle Management: 'Advanced Examples/LCM.md'
     - SDWAN playground: 'Advanced Examples/SDWAN.md'

@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+#    fortinet-configure-openstack
+#    Copyright (C) 2016 Fortinet  Ltd.
+#
+#    Authors: Nicolas Thomss  <nthomasfortinet.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, version 3 of the License.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+set -ex
+
+
+cat << EOF
+This script configure the following on openstack:
+  - a router between mgmt and external network for floating ip
+EOF
+
+#PKGS=" python-keystone python-neutronclient python-novaclient python-glanceclient python-openstackclient python-heatclient"
+#dpkg -l $PKGS > /dev/null || sudo apt install -y $PKGS
+
+NEUTRON_EXT_NET_NAME="ext-net" 
+
+# Determine the tenant id for the configured tenant name.
+
+
+#Create mgmt network for neutron for tenant VMs
+openstack network show mgmt > /dev/null 2>&1 || (echo "you must have set a mgmt network first"; exit 2)
+
+#Create router for external network and mgmt network
+openstack router show provider-router > /dev/null 2>&1 || openstack router create  provider-router
+ROUTER_ID=`openstack router show provider-router -c id -f value`
+
+EXTERNAL_NETWORK_ID=`openstack network show $NEUTRON_EXT_NET_NAME -c id -f value`
+openstack router set --external-gateway  $EXTERNAL_NETWORK_ID provider-router || true
+### make it always ok to have it indempodent.
+openstack router add subnet provider-router mgmt_subnet  || true
+
+

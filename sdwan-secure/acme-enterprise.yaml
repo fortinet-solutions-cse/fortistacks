@@ -163,14 +163,6 @@ node_templates:
 #      - target: branchea_subnet
 #        type: cloudify.relationships.depends_on
 
-  fosa_floating_ip:
-    type: cloudify.openstack.nodes.FloatingIP
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              floating_network_name: { get_input: external_network_name }
 
   branchea_fortigate:
     type: cloudify.openstack.nodes.Server
@@ -292,8 +284,6 @@ node_templates:
               files:
                license: { get_secret: fgt_license }
     relationships:
-      - target: fosa_floating_ip
-        type: cloudify.openstack.server_connected_to_floating_ip
       - target: brancheA_port
         type: cloudify.relationships.depends_on
       - target: mpls_network
@@ -308,24 +298,6 @@ node_templates:
         type: cloudify.relationships.connected_to
       - target: brancheA_port
         type: cloudify.relationships.depends_on
-
-  branchea_ub_floating_ip:
-    type: cloudify.openstack.nodes.FloatingIP
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              floating_network_name: { get_input: external_network_name }
-
-  dc_ub_floating_ip:
-    type: cloudify.openstack.nodes.FloatingIP
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              floating_network_name: { get_input: external_network_name }
 
 
 
@@ -386,8 +358,6 @@ node_templates:
         type: cloudify.relationships.connected_to
       - target:  branchea_subnet
         type: cloudify.relationships.depends_on
-      - target: branchea_ub_floating_ip
-        type: cloudify.openstack.server_connected_to_floating_ip
 
 
 

@@ -8,13 +8,15 @@ Mini-poc consist of deploying:
 * 2 networks left and right.
 * 1 fortigate or fortios 
 
-All have floating ips on the predefined mgmt network for easy access.
+All have connection to manafement networks, floating ip is optionnal and added volountary in the exmaples.
+The later is to ease the life of the private openstack without floating.
+A VPN or Jumphost is a good alternative to multiple floatings.
 
 ##Illustration
 
 
         ===========================================================
-            |                     |    Management/floating ips   |
+            |                     |    Management   |
             |                     |                              |
        .----v-----.               |                              |
        | trafleft |               |                              |

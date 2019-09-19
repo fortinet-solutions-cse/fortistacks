@@ -65,9 +65,11 @@ else
 fi
 
 
-openstack port show left1 > /dev/null 2>&1 ||openstack port create left1 --network left  --disable-port-security --fixed-ip ip-address=10.40.40.254
-openstack port show right1 > /dev/null 2>&1 ||openstack port create right1 --network right  --disable-port-security --fixed-ip ip-address=10.20.20.254 
- 
+#openstack port show left1 > /dev/null 2>&1 ||openstack port create left1 --network left  --disable-port-security --fixed-ip ip-address=10.40.40.254
+#openstack port show right1 > /dev/null 2>&1 ||openstack port create right1 --network right  --disable-port-security --fixed-ip ip-address=10.20.20.254
+openstack port show left1 > /dev/null 2>&1 ||openstack port create left1  --fixed-ip ip-address=10.40.40.254 --allowed-address ip-address=10.20.20.0/24 --network left
+openstack port show right1 > /dev/null 2>&1 ||openstack port create right1  --fixed-ip ip-address=10.20.20.254 --allowed-address ip-address=10.40.40.0/24 --network right
+
 LEFTPORT=`openstack port show left1 -c id -f value`
 RIGHTPORT=`openstack port show right1 -c id -f value`
     

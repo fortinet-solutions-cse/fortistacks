@@ -206,16 +206,6 @@ node_templates:
           timeout: 10
           condition: True
 
-   # on citycloud xenial there python3 only must be installed then
-  netem_floating_ip:
-    type: cloudify.openstack.nodes.FloatingIP
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          inputs:
-            args:
-              floating_network_name: { get_input: external_network_name }
-
   netem:
     type: cloudify.openstack.nodes.Server
     properties:
@@ -246,6 +236,4 @@ node_templates:
         type: cloudify.relationships.depends_on
       - target: isp_subnet
         type: cloudify.relationships.depends_on
-      - target: netem_floating_ip
-        type: cloudify.openstack.server_connected_to_floating_ip
 

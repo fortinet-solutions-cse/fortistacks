@@ -23,7 +23,7 @@
 
 # checking openstack cli is recent enough using sort -V .
 
-#check the docker image from here:http://repository.cloudifysource.org/cloudify/4.3.2/ga-release/cloudify-docker-manager-4.3.2ga.tar
+#  Last version http://repository.cloudifysource.org/cloudify/19.07.18/community-release/cloudify-cli-community-19.07.18.deb
 
 OSCLI_VER=`openstack --version 2>&1 | sed -e "s/openstack //g"`
 read -r -d '' VAR << EOM || true
@@ -58,7 +58,7 @@ sudo dpkg -i cloudify-cli-community-$CFY_VERSION.deb
 
 # Will now use the package rpm on centos ..
 #
-CentOSImageID=`openstack image list --format value -c ID -c Name |grep "CentOS 7"|head -1|awk '{print $1}'`
+CentOSImageID=`openstack image list --format value -c ID -c Name |grep -i "CentOS 7"|head -1|awk '{print $1}'`
 
 if (openstack server show cfy-manager-$CFY_VERSION  > /dev/null 2>&1 );then
     echo "cloudify manager already started"
