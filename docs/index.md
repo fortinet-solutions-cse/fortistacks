@@ -1,8 +1,8 @@
-# Fortistacks 2.0
+# Fortistacks 
 
 
 Fortistacks is a collection of examples, scripts and documentation to use [Fortinet](http://fortinet.com) products in 
-Clouds/fully automated environments. 
+Clouds/NFV and fully automated environments. 
 
 Initial focus is on OpenStack, more to come.
 
