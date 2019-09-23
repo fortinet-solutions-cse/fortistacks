@@ -10,7 +10,7 @@ THis doc is for those who wants direct hands on, follow me instruction. More exp
 ## Pre requisite
 * Openstack and API access to openstack. You are supposed to have the .rc file corresponding to your environement.
       
-      - We extensibely use private OpenStack, [Citycloud](http://citycloud.com/) (public) and [OVH](https://horizon.cloud.ovh.net)
+      - We extensively use private OpenStack, [Citycloud](http://citycloud.com/) (public) and [OVH](https://horizon.cloud.ovh.net)
       
       - Previous Fortistacks came with an all in one openstack installation. We recommend [OSA](https://docs.openstack.org/openstack-ansible/latest/) if you prefer that.
       
