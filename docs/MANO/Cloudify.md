@@ -12,12 +12,13 @@ Run
 cd cloudify/
 ./manager-on-openstackvm 
 ```
+
 This script will:
- * find a Centos image
- * install the Cloduify CLI in your ubuntu environment (Docker or native)
- * if needed create a cloudify ssh key for access and push it to manager (for cloudify Agents)
- * Install and configure Cloudify manager for your environment.
- * Set the admin password to fortinet
+* find a Centos image
+* install the Cloduify CLI in your ubuntu environment (Docker or native)
+* if needed create a cloudify ssh key for access and push it to manager (for cloudify Agents)
+* Install and configure Cloudify manager for your environment.
+* Set the admin password to fortinet
  
 Using a browser go to the floatingip of Cloudify manager
 

@@ -1,7 +1,6 @@
 # Frotimanager on Openstack
 
-Ref: https://docs.fortinet.com/d/fortimanager-5.6-vm-install
-
+Ref: [docs.fortinet.com](https://docs.fortinet.com/vm/kvm/fortimanager/6.2/fortimanager-vm-on-kvm/6.2.0/681012/about-fortimanager-vm-on-kvm)
 
 Get FMG_VM64_KVM-v6-build0205-FORTINET.out.kvm.zip or later from https://support.fortinet.com
 unzip it
@@ -12,7 +11,7 @@ openstack image create --disk-format qcow2 --container-format bare  "FMG"  --fil
 openstack volume create --size 80 fmg-log1
 
 export OS_FLAVOR="2C-4GB"
-openstack server create --image "FMG 6.0.2" fmg60 --key-name default  --security-group default  \
+openstack server create --image "FMG" fmg60 --key-name default  --security-group default  \
            --flavor $OS_FLAVOR --nic net-id=mgmt,v4-fixed-ip=192.168.1.99 --block-device-mapping vdb=fmg-log1 
 
 ```
@@ -25,7 +24,7 @@ openstack server list
 +--------------------------------------+-------+--------+---------------------------------+-----------+--------+
 | ID                                   | Name  | Status | Networks                        | Image     | Flavor |
 +--------------------------------------+-------+--------+---------------------------------+-----------+--------+
-| 42c2fd39-b27a-4111-b6fd-5e7c81626c52 | fmg60 | ACTIVE | mgmt=192.168.1.99, 77.81.7.183 | FMG 6.0.2 | 2C-4GB |
+| 42c2fd39-b27a-4111-b6fd-5e7c81626c52 | FMG   | ACTIVE | mgmt=192.168.1.99, 77.81.7.183 | FMG 6.0.2 | 2C-4GB |
 +--------------------------------------+-------+--------+---------------------------------+-----------+--------+
 ```
 

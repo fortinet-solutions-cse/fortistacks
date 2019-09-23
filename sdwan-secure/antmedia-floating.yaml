@@ -66,6 +66,15 @@ node_templates:
       resource_id: dc_subnet
       use_external_resource: true
 
+  antmedia_floating_ip:
+    type: cloudify.openstack.nodes.FloatingIP
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          inputs:
+            args:
+              floating_network_name: { get_input: external_network_name }
+
 # src: https://github.com/ant-media/Ant-Media-Server/wiki/Getting-Started
 # TODO the ipv6 rules
   antmedia_security_group:
@@ -169,6 +178,8 @@ node_templates:
         type: cloudify.relationships.depends_on
       - target: dc_subnet
         type: cloudify.relationships.connected_to
+      - target: antmedia_floating_ip
+        type: cloudify.openstack.server_connected_to_floating_ip
       - target: antmedia_security_group
         type: cloudify.openstack.server_connected_to_security_group
 
