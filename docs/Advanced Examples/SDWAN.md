@@ -22,13 +22,29 @@ The goal is to deliver a automated deployment of:
 * Ensure you have fortigate images uploaded 
 * Ubuntu 16.04 images (see input-citycloud.yaml as example)
  
-  Then 
+### Follow me instructions
+Add your fortigate license to cloudify :
+```shell
+cfy secret create fgt_license -f ../../fortigate/FGT.lic 
+```
+Add Fortimanager password to cloudify :
+```shell
+ cfy secret create fmg_password -s XXXX 
+```
+
+Then run the following 
+
  ```bash
- $ cd cloudify-ftnt-sdwan
- $ cfy install -b dcplus dc-plus-wans.yaml -i inputs-citycloud.yaml
- $  openstack router set dc-router --route destination=10.20.20.0/24,gateway=10.40.40.254
- $ cfy install -b antmedia antmedia.yaml -i inputs-citycloud.yaml 
+cfy blueprint upload -b acme acme-enterprise.yaml
+cfy deployment create --skip-plugins-validation acme -b acme -i inputs-citycloud.yaml
+cfy -v executions start -d acme install
 ``` 
+This is the content of ``` ./deploy.sh```
+Be patient it installed several VMs to create a WAN simulation and ubuntu desktop for client simulation.
+ 
+Once this is done you will have a simulated branch with a client Ubuntu desktop.
+
+Pay attention to the SDWAN setup on FMG or Fortigate, you can manually add floating-ips if necessary for you or access directly.
 
 ## VLC access from MAC
 
@@ -45,8 +61,16 @@ On a x11 started session:
      gsettings set org.gnome.Vino authentication-methods  "['vnc']"
 ```
 
- ## Streaming
+ ## Streaming server
  
+ Install Antmedia using:
+ ````shell script
+ cfy install -b antmedia antmedia.yaml -i inputs-citycloud.yaml 
+````
+As usual adapt the input file.
+
+## Streaming source
+
  Using OBS and do those settings
  https://github.com/ant-media/Ant-Media-Server/wiki/Reduce-Latency-in-RTMP-to-HLS-Streaming
  
@@ -70,6 +94,8 @@ Will broadcast even if not predefined.
 Frotinet SDWAN videos on youtube (broadcast sources):
  https://www.youtube.com/watch?v=CgkbewuLEys  https://www.youtube.com/watch?v=jaNZiFFg-38  https://www.youtube.com/watch?v=SYyCJS-hE5I
 
-# show the bandwidth usage on Ubuntu:
+# to see the bandwidth usage on Ubuntu:
 
+```shell script
 speedometer -r ens4 -t ens4 -s
+```
