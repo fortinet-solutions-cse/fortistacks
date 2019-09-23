@@ -7,8 +7,10 @@ description: >
   $ cfy secret create fgt_license -f ../../fortigate/FGT.lic
 
 imports:
-  - http://www.getcloudify.org/spec/cloudify/4.0/types.yaml
-  - http://www.getcloudify.org/spec/openstack-plugin/2.9.0/plugin.yaml
+  - http://www.getcloudify.org/spec/cloudify/4.5.5/types.yaml
+#  - http://www.getcloudify.org/spec/openstack-plugin/2.14.7/plugin.yaml
+  - plugin:cloudify-openstack-plugin
+
 
 inputs:
   fos_image:

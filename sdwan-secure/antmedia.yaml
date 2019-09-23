@@ -28,6 +28,9 @@ inputs:
       default: "ubuntu"
   fmg_ip:
     default: {}
+# not used kept for having 1 input file per cloud
+  fmg_package:
+    default: {}
 
   mgmt_network_name:
     default: "mgmt"

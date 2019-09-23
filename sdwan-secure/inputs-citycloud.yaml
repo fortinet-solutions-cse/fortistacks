@@ -1,4 +1,4 @@
-fos_image: 'fgt60'
+fos_image: 'fortigate'
 fos_flavor: '1C-1GB-50GB'
 ub_image: 'Ubuntu 16.04 Xenial Xerus'
 ub_flavor: '2C-4GB-50GB'
@@ -7,4 +7,4 @@ key_name: 'cloudify'
 external_network_name: "ext-net"
 agent_user: "ubuntu"
 fmg_ip: "192.168.1.99"
-fmg_package: "LCM-Policy"
+fmg_package: "default"

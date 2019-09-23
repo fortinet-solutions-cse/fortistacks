@@ -222,6 +222,8 @@ node_templates:
                         set dst 172.27.40.0 255.255.255.0
                         set gateway 10.20.20.254
                         set device "port3"
+                        set distance 60
+                        set priority 1
                     next
                     edit 2
                         set dst 172.27.40.0 255.255.255.0
@@ -251,9 +253,12 @@ node_templates:
                       edit "ping"
                           set server "172.27.40.1"
                           set failtime 3
-                          set members 1
+                          set members 1 2
                           config sla
                               edit 1
+                                  set latency-threshold 200
+                                  set jitter-threshold 50
+                                  set packetloss-threshold 5
                               next
                           end
                       next
@@ -283,6 +288,7 @@ node_templates:
                 end
               files:
                license: { get_secret: fgt_license }
+              config_drive: true
     relationships:
       - target: brancheA_port
         type: cloudify.relationships.depends_on

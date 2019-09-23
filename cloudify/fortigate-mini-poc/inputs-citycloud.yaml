@@ -1,4 +1,4 @@
-fos_image: 'fgt56'
+fos_image: 'fortigate'
 fos_flavor: '1C-1GB'
 ub_image: 'Ubuntu 16.04 Xenial Xerus'
 ub_flavor: '1C-1GB'

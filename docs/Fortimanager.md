@@ -3,17 +3,18 @@
 Ref: https://docs.fortinet.com/d/fortimanager-5.6-vm-install
 
 
-Get FMG_VM64_KVM-v6-build0205-FORTINET.out.kvm.zip  from https://support.fortinet.com
-unzip it.
+Get FMG_VM64_KVM-v6-build0205-FORTINET.out.kvm.zip or later from https://support.fortinet.com
+unzip it
 
-```openstack image create --disk-format qcow2 --container-format bare  "FMG 6.0.2"  --file fmg.qcow2
+```
+openstack image create --disk-format qcow2 --container-format bare  "FMG"  --file fmg.qcow2
 
 openstack volume create --size 80 fmg-log1
 
 export OS_FLAVOR="2C-4GB"
 openstack server create --image "FMG 6.0.2" fmg60 --key-name default  --security-group default  \
-           --flavor $OS_FLAVOR --nic net-id=mgmt,v4-fixed-ip=192.168.1.99
-openstack server add volume fmg60 fmg-log1 --device /dev/vdb
+           --flavor $OS_FLAVOR --nic net-id=mgmt,v4-fixed-ip=192.168.1.99 --block-device-mapping vdb=fmg-log1 
+
 ```
 
 You should have minimum changes if configuring mgmtB as 192.168.1.0/24 which is the default network Fortimanager is on.
@@ -28,8 +29,9 @@ openstack server list
 +--------------------------------------+-------+--------+---------------------------------+-----------+--------+
 ```
 
-Adapt to your IP and gateway:
+It is up to you to connect or not a floating ip.
 
+Adapt to your IP and gateway:
 
 
 Log to the console (vnc on openstack), user admin  no passwd.
@@ -44,7 +46,6 @@ edit 1
         set gateway 192.168.1.1
 #must match your network mtu#        set mtu 1400
 end
-execute lvm start
 ```
 
 # API access
