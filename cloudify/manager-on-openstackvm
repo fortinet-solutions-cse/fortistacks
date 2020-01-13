@@ -59,7 +59,7 @@ sudo dpkg -i cloudify-cli-community-$CFY_VERSION.deb
 
 # Will now use the package rpm on centos ..
 #
-[ -x $CFY_IMAGE ] && CFY_IMAGE=`openstack image list --format value -c ID -c Name |grep -i "CentOS 7"|head -1|awk '{print $1}'`
+[ -x "$CFY_IMAGE" ] && CFY_IMAGE=`openstack image list --format value -c ID -c Name |grep -i "CentOS 7"|head -1|awk '{print $1}'`
 
 if (openstack server show cfy-manager-$CFY_VERSION  > /dev/null 2>&1 );then
     echo "cloudify manager already started"
@@ -77,7 +77,7 @@ else
         openstack keypair delete cloudify || true
         openstack keypair create --public-key cloudify-key.pub cloudify
         fi
-    openstack server create  --image $CFY_IMAGE cfy-manager-$CFY_VERSION --key-name cloudify --security-group default --flavor $OS_FLAVOR_CFY --network mgmt --wait
+    openstack server create  --image "$CFY_IMAGE" cfy-manager-$CFY_VERSION --key-name cloudify --security-group default --flavor $OS_FLAVOR_CFY --network mgmt --wait
     # wait for the keys etc to propagate
     sleep 8
     FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`

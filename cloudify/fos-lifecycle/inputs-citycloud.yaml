@@ -1,4 +1,4 @@
-fos_image: 'fos603'
+fos_image: 'fortios'
 fos_flavor: '1C-1GB-50GB'
 mgmt_network_name: "mgmt"
 key_name: 'cloudify'
