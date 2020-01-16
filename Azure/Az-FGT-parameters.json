@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+    "parameters": {
+    	"location": { "value":  "westeurope"},
+	    "adminUsername": {	"value": "fgtadmin"      },
+        "adminPassword": {     "value": "FgtAdmin1234"  },
+        "FortiGateName": { "value": "fgtAKS"  },
+        "FortiGateImageSKU": { "value": "fortinet_fg-vm"},
+        "instanceType": {	    "value": "Standard_F1" },
+        "publicIPNewOrExistingOrNone": {  "value": "new"},
+        "publicIPAddressName": { "value": "fgtaz"},
+        "publicIPResourceGroup": {      "value": "my-aks-fortistacks"},
+        "publicIPAddressType": { "value": "Dynamic"},
+         "vnetNewOrExisting": {
+          "value": "new"
+        },
+        "vnetName":  { "value": "FortigateProtectedVnet"  },
+         "vnetResourceGroup": {      "value": "my-aks-fortistacks"},
+          "vnetAddressPrefix": {"value": "10.40.0.0/16" },
+          "Subnet1Name":  { "value": "snet1"  },
+
+           "Subnet1Prefix": {
+          "value": "10.40.1.0/24"
+        },
+           "fortiGateIP1": {"value": "10.40.1.254" },
+          "Subnet2Name":  { "value": "snet2"  },
+           "Subnet2Prefix": {
+          "value": "10.40.2.0/24"
+        },
+        "fortiGateIP2": {"value": "10.40.2.254" },
+       "FortinetTags": { "value": { "provider": "FORTISTACKS-DEMO" }
+        }
+      }
+}    
+
