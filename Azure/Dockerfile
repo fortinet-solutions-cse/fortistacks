@@ -13,7 +13,7 @@ RUN update-ca-certificates
 # add the cert at the end of the python chain
 RUN  cat /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt >> /usr/local/lib/python3.6/site-packages/certifi/cacert.pem
 RUN echo "export PIP_CERT=/etc/ssl/certs/" >> /etc/profile ;  az extension add --name virtual-wan
-RUN az extension add --name aks-preview
+RUN az extension add --name aks-preview ; az aks install-cli
 RUN adduser az -D -s bash;  echo ". /usr/local/bin/az.completion.sh" >> ~az/.bashrc ; echo 'export PS1="\h \$"'>> ~az/.bashrc ; chown az:az  ~az/.bashrc
-USER az
+#USER az
 #CMD ["/bin/bash"]

@@ -6,29 +6,29 @@
 	    "adminUsername": {	"value": "fgtadmin"      },
         "adminPassword": {     "value": "FgtAdmin1234"  },
         "FortiGateName": { "value": "fgtAKS"  },
-        "FortiGateImageSKU": { "value": "fortinet_fg-vm"},
+        "FortiGateImageSKU": { "value": "fortinet_fg-vm_payg"},
         "instanceType": {	    "value": "Standard_F1" },
         "publicIPNewOrExistingOrNone": {  "value": "new"},
         "publicIPAddressName": { "value": "fgtaz"},
-        "publicIPResourceGroup": {      "value": "my-aks-fortistacks"},
+        "publicIPResourceGroup": {      "value": "nthomas-aks-fortistacks"},
         "publicIPAddressType": { "value": "Dynamic"},
          "vnetNewOrExisting": {
           "value": "new"
         },
-        "vnetName":  { "value": "FortigateProtectedVnet"  },
-         "vnetResourceGroup": {      "value": "my-aks-fortistacks"},
-          "vnetAddressPrefix": {"value": "10.40.0.0/16" },
+        "vnetName":  { "value": "nthomas-Vnet"  },
+         "vnetResourceGroup": {      "value": "nthomas-aks-fortistacks"},
+          "vnetAddressPrefix": {"value": "10.0.0.0/8" },
           "Subnet1Name":  { "value": "snet1"  },
 
            "Subnet1Prefix": {
-          "value": "10.40.1.0/24"
+          "value": "10.20.1.0/24"
         },
-           "fortiGateIP1": {"value": "10.40.1.254" },
+           "fortiGateIP1": {"value": "10.20.1.254" },
           "Subnet2Name":  { "value": "snet2"  },
            "Subnet2Prefix": {
-          "value": "10.40.2.0/24"
+          "value": "10.40.0.0/16"
         },
-        "fortiGateIP2": {"value": "10.40.2.254" },
+        "fortiGateIP2": {"value": "10.40.0.254" },
        "FortinetTags": { "value": { "provider": "FORTISTACKS-DEMO" }
         }
       }
