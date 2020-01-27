@@ -37,6 +37,12 @@ az group deployment create --name $DEPLOY_NAME  -g $GROUP_NAME \
 
 SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-name nthomas-Vnet     --query "[1].id" --output tsv`
 
+DEPLOY_NAME=$GROUP_NAME"-FWB"
+az group deployment create --name $DEPLOY_NAME  -g $GROUP_NAME \
+ --template-file FGT-FWB-VMs-2-Subnets/fortiweb.json \
+ --parameters FWB-parameters.json
+
+
 az vm create \
   --resource-group "$GROUP_NAME" \
   --name nthomas-jumphost \
