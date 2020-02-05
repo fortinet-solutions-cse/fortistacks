@@ -43,13 +43,6 @@ az group deployment create --name $DEPLOY_NAME  -g $GROUP_NAME \
  --parameters FWB-parameters.json
 
 
-az vm create \
-  --resource-group "$GROUP_NAME" \
-  --name nthomas-jumphost \
-  --image UbuntuLTS \
-  --admin-username azureuser \
-  --admin-password Fortin3t-aks \
-  --subnet $SNET2  --authentication-type password
 
 
 # Ref https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/use-network-policies.md
@@ -57,6 +50,14 @@ az vm create \
 SP=$(az ad sp create-for-rbac --output json)
 SP_ID=$(echo $SP | jq -r .appId)
 SP_PASSWORD=$(echo $SP | jq -r .password)
+
+az vm create \
+  --resource-group "$GROUP_NAME" \
+  --name nthomas-jumphost \
+  --image UbuntuLTS \
+  --admin-username azureuser \
+  --admin-password Fortin3t-aks \
+  --subnet $SNET2  --authentication-type password
 
 # Wait 15 seconds to make sure that service principal has propagated
 echo "Waiting for service principal to propagate..."
