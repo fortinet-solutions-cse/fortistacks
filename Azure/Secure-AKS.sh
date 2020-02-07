@@ -47,7 +47,11 @@ az group deployment create --name $DEPLOY_NAME  -g $GROUP_NAME \
 
 # Ref https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/use-network-policies.md
 # Create a service principal and read in the application ID
-SP=$(az ad sp create-for-rbac --output json)
+# to find a previously created one :
+# az ad sp list --show-mine --query "[?displayName=='ForSecureAKS'].{id:appId}" -o tsv
+# is the id with the same name
+
+SP=$(az ad sp create-for-rbac --output json  --name ForSecureAKS)
 SP_ID=$(echo $SP | jq -r .appId)
 SP_PASSWORD=$(echo $SP | jq -r .password)
 
