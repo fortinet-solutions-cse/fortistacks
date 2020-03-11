@@ -24,25 +24,48 @@ GROUP_NAME="nthomas-aks-fortistacks"
 REGION="westeurope"
   # see https://docs.microsoft.com/en-gb/azure/aks/private-clusters
 az group create --name "$GROUP_NAME"  --location "$REGION"
-
+#remove ssh keys to ensure proper regeneration see https://docs.microsoft.com/bs-latn-ba/azure/aks/ssh otherwize
+rm -f ~/.ssh/id*
 # To accept terms
 az vm image terms accept --offer fortinet_fortigate-vm_v5 --plan fortinet_fg-vm_payg --publisher fortinet
 az vm image terms accept --offer fortinet_fortigate-vm_v5 --plan fortinet_fg-vm --publisher fortinet
 
 DEPLOY_NAME=$GROUP_NAME"-FGT"
 az group deployment create --name $DEPLOY_NAME  -g $GROUP_NAME \
- --template-file Single-VM-2-NIC-Deployment/azuredeploy.json \
+ --template-file FGT-FWB-VMs-2-Subnets/azuredeploy.json \
  --parameters Az-FGT-parameters.json
+
+SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-name nthomas-Vnet     --query "[1].id" --output tsv`
+
+DEPLOY_NAME=$GROUP_NAME"-FWB"
+az group deployment create --name $DEPLOY_NAME  -g $GROUP_NAME \
+ --template-file FGT-FWB-VMs-2-Subnets/fortiweb.json \
+ --parameters FWB-parameters.json
+
+
+
 
 # Ref https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/use-network-policies.md
 # Create a service principal and read in the application ID
-SP=$(az ad sp create-for-rbac --output json)
+# to find a previously created one :
+# az ad sp list --show-mine --query "[?displayName=='ForSecureAKS'].{id:appId}" -o tsv
+# is the id with the same name
+
+SP=$(az ad sp create-for-rbac --output json  --name ForSecureAKS)
 SP_ID=$(echo $SP | jq -r .appId)
 SP_PASSWORD=$(echo $SP | jq -r .password)
 
+az vm create \
+  --resource-group "$GROUP_NAME" \
+  --name nthomas-jumphost \
+  --image UbuntuLTS \
+  --admin-username azureuser \
+  --admin-password Fortin3t-aks \
+  --subnet $SNET2  --authentication-type password
+
 # Wait 15 seconds to make sure that service principal has propagated
 echo "Waiting for service principal to propagate..."
-sleep 15
+sleep 25
 
 # Get the virtual network resource ID
 VNET_ID=$(az network vnet show --resource-group $GROUP_NAME --name nthomas-Vnet --query id -o tsv)
@@ -55,8 +78,7 @@ SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-
 
 # Install the aks-preview extension
 az extension add --name aks-preview
-#remove ssh keys to ensure proper regeneration see https://docs.microsoft.com/bs-latn-ba/azure/aks/ssh otherwize
-rm -f ~/.ssh/id*
+
 
 az aks create \
     --resource-group "$GROUP_NAME" \
@@ -75,16 +97,4 @@ az aks create \
     --network-policy calico
 # Node count if quota restrictions
 az aks get-credentials --resource-group "$GROUP_NAME"  --name "secure-AKS"
-
-az vm create \
-  --resource-group "$GROUP_NAME" \
-  --name nthomas-jumphost \
-  --image UbuntuLTS \
-  --admin-username azureuser \
-  --admin-password Fortin3t-aks \
-  --subnet $SNET2  --authentication-type password
-
-
-
-
 

@@ -423,7 +423,7 @@
           "computerName": "[variables('compute_VM_fg1_Name')]",
           "adminUsername": "[parameters('adminUsername')]",
           "adminPassword": "[parameters('adminPassword')]",
-          "customData": "[base64(concat('config system interface\n edit port2\n set mode dhcp\n set defaultgw disable end\n config firewall policy\n edit 1\n    set name \"Allow any any\"\n    set srcintf \"any\"\n    set dstintf \"any\"\n    set srcaddr \"all\"\n    set dstaddr \"all\"\n    set action accept\n    set schedule \"always\"\n    set service \"ALL\"\n    set nat enable\n next\nend\n'))]"
+          "customData": "[base64(concat('config system interface\n edit port2\n set mode dhcp\n set defaultgw disable \n end\n config firewall policy\n edit 1\n    set name \"Allow any any\"\n    set srcintf \"any\"\n    set dstintf \"any\"\n    set srcaddr \"all\"\n    set dstaddr \"all\"\n    set action accept\n    set schedule \"always\"\n    set service \"ALL\"\n    set nat enable\n next\nend\n'))]"
         },
         "storageProfile": {
           "imageReference": {

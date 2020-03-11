@@ -1,0 +1,23 @@
+
+# Reference :https://docs.microsoft.com/en-us/azure/aks/private-clusters
+# Install the aks-preview extension
+az extension add --name aks-preview
+
+az feature register --name AKSPrivateLinkPreview --namespace Microsoft.ContainerService
+# check it is
+az feature list -o tsv --query "[?contains(name, 'Microsoft.ContainerService/AKSPrivateLinkPreview')].{Name:name,State:properties.state}"
+
+#Then
+az provider register --namespace Microsoft.ContainerService
+az provider register --namespace Microsoft.Network
+az provider register --namespace Microsoft.Kubernetes
+
+# Check namespaces
+for ns in Microsoft.ContainerService Microsoft.Network Microsoft.Kubernetes
+do
+  az provider show -n $ns -o tsv --query "{Name:namespace,State:registrationState}"
+done
+
+
+#all together
+https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/use-network-policies.md
