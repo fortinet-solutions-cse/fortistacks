@@ -74,7 +74,7 @@ az aks create \
     --client-secret $SP_PASSWORD \
     --network-policy calico
 # Node count if quota restrictions
-az aks get-credentials --resource-group ""$GROUP_NAME""  --name "secure-AKS"
+az aks get-credentials --resource-group "$GROUP_NAME"  --name "secure-AKS"
 
 az vm create \
   --resource-group "$GROUP_NAME" \
@@ -83,3 +83,8 @@ az vm create \
   --admin-username azureuser \
   --admin-password Fortin3t-aks \
   --subnet $SNET2  --authentication-type password
+
+
+
+
+
