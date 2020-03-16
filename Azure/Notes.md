@@ -15,6 +15,7 @@ kubectl config view --minify --raw --output 'jsonpath={..cluster.certificate-aut
 
 # Networking
 https://github.com/microsoft/Networking-with-Kubernetes-Azure
+Internal LB: https://docs.microsoft.com/en-us/azure/aks/internal-lb
 
 # Token
 https://kubernetes.io/docs/tasks/administer-cluster/access-cluster-api/

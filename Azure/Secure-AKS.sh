@@ -96,5 +96,5 @@ az aks create \
     --client-secret $SP_PASSWORD \
     --network-policy calico
 # Node count if quota restrictions
-az aks get-credentials --resource-group ""$GROUP_NAME""  --name "secure-AKS"
+az aks get-credentials --resource-group "$GROUP_NAME"  --name "secure-AKS"
 
