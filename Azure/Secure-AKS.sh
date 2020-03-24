@@ -25,22 +25,23 @@ REGION="westeurope"
   # see https://docs.microsoft.com/en-gb/azure/aks/private-clusters
 az group create --name "$GROUP_NAME"  --location "$REGION"
 #remove ssh keys to ensure proper regeneration see https://docs.microsoft.com/bs-latn-ba/azure/aks/ssh otherwize
-rm -f ~/.ssh/id*
+rm -f ~/.ssh/id* ~/.kube/*
 # To accept terms
 az vm image terms accept --offer fortinet_fortigate-vm_v5 --plan fortinet_fg-vm_payg --publisher fortinet
 az vm image terms accept --offer fortinet_fortigate-vm_v5 --plan fortinet_fg-vm --publisher fortinet
 
-DEPLOY_NAME=$GROUP_NAME"-FGT"
+az group deployment validate  --template-file FGT-FWB-VMs-2-Subnets/azuredeploy.json \
+                               --resource-group $GROUP_NAME  --parameters Az-FGT-parameters.json
+
+DEPLOY_NAME=$GROUP_NAME"-TRANSIT"
 az group deployment create --name $DEPLOY_NAME  -g $GROUP_NAME \
  --template-file FGT-FWB-VMs-2-Subnets/azuredeploy.json \
  --parameters Az-FGT-parameters.json
 
+exit 0
+
 SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-name nthomas-Vnet     --query "[1].id" --output tsv`
 
-DEPLOY_NAME=$GROUP_NAME"-FWB"
-az group deployment create --name $DEPLOY_NAME  -g $GROUP_NAME \
- --template-file FGT-FWB-VMs-2-Subnets/fortiweb.json \
- --parameters FWB-parameters.json
 
 
 

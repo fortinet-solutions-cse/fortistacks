@@ -23,8 +23,11 @@
     "publicIPNewOrExistingOrNone": {
       "value": "new"
     },
-    "publicIPAddressName": {
+    "publicIPAddressNameFGT": {
       "value": "fgtaz"
+    },
+    "publicIPAddressNameFWB": {
+      "value": "fwbaz"
     },
     "publicIPResourceGroup": {
       "value": "nthomas-aks-fortistacks"
@@ -49,7 +52,9 @@
     },
     "Subnet1Prefix": {
       "value": "10.20.1.0/24"
-    },
+    },       "fortiWebIPSub1": {
+            "value":  "10.20.1.253"
+        },
     "fortiGateIP1": {
       "value": "10.20.1.254"
     },
@@ -62,6 +67,9 @@
     "fortiGateIP2": {
       "value": "10.40.0.254"
     },
+        "fortiWebIPSub2": {
+            "value":  "10.40.0.253"
+        },
     "fortinetTags": {
       "value": {
         "provider": "6EB3B02F-50E5-4A3E-8CB8-2E129258317D"
