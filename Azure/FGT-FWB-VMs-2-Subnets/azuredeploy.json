@@ -119,14 +119,14 @@
         "description": "Virtual network address space in CIDR notation, example: 10.2.0.0/16"
       }
     },
-    "Subnet1Name": {
+    "PublicSubName": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
         "description": "Subnet 1 Name"
       }
     },
-    "Subnet1Prefix": {
+    "PublicSubPrefix": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
@@ -142,14 +142,14 @@
             "defaultValue": "10.0.1.10",
             "type": "String"
         },
-    "Subnet2Name": {
+    "TransitSubName": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
         "description": "Subnet 2 Name"
       }
     },
-    "Subnet2Prefix": {
+    "TransitSubPrefix": {
       "type": "string",
       "defaultValue": "",
       "metadata": {
@@ -222,18 +222,18 @@
     "vmSize": "[parameters('instanceType')]",
 
     "VNetName": "[parameters('vnetName')]",
-    "Subnet1Name": "[parameters('Subnet1Name')]",
-    "Subnet2Name": "[parameters('Subnet2Name')]",
+    "PublicSubName": "[parameters('PublicSubName')]",
+    "TransitSubName": "[parameters('TransitSubName')]",
     "vnetID": "[resourceId(parameters('vnetResourceGroup'),'Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
-    "subnet1Ref": "[concat(variables('vnetID'),'/subnets/', variables('Subnet1Name'))]",
-    "subnet2Ref": "[concat(variables('vnetID'),'/subnets/', variables('Subnet2Name'))]",
+    "PublicSubRef": "[concat(variables('vnetID'),'/subnets/', variables('PublicSubName'))]",
+    "TransitSubRef": "[concat(variables('vnetID'),'/subnets/', variables('TransitSubName'))]",
 
     "VNetAddressPrefix": "[parameters('vnetAddressPrefix')]",
-    "Subnet1Prefix": "[parameters('Subnet1Prefix')]",
-    "Subnet2Prefix": "[parameters('Subnet2Prefix')]",
+    "PublicSubPrefix": "[parameters('PublicSubPrefix')]",
+    "TransitSubPrefix": "[parameters('TransitSubPrefix')]",
 
-    "routeTable1Name": "[concat(parameters('FortiGateName'), '-', parameters('Subnet1Name'),'-routes')]",
-    "routeTable2Name": "[concat(parameters('FortiGateName'), '-', parameters('Subnet2Name'),'-routes')]",
+    "routeTable1Name": "[concat(parameters('FortiGateName'), '-', parameters('PublicSubName'),'-routes')]",
+    "routeTable2Name": "[concat(parameters('FortiGateName'), '-', parameters('TransitSubName'),'-routes')]",
 
     "FGDMZAddress": "[parameters('fortiGateIP2')]",
     "FGPubFacingAddress": "[parameters('fortiGateIP1')]",
@@ -289,9 +289,9 @@
       "properties": {
         "routes": [
           {
-            "name": "[concat('to', '-', parameters('Subnet2Name'))]",
+            "name": "[concat('to', '-', parameters('TransitSubName'))]",
             "properties": {
-              "addressPrefix": "[variables('Subnet2Prefix')]",
+              "addressPrefix": "[variables('TransitSubPrefix')]",
               "nextHopType": "VirtualAppliance",
               "nextHopIpAddress": "[variables('FGPubFacingAddress')]"
             }
@@ -310,9 +310,9 @@
       "properties": {
         "routes": [
           {
-            "name": "[concat('to', '-', parameters('Subnet1Name'))]",
+            "name": "[concat('to', '-', parameters('PublicSubName'))]",
             "properties": {
-              "addressPrefix": "[variables('Subnet1Prefix')]",
+              "addressPrefix": "[variables('PublicSubPrefix')]",
               "nextHopType": "VirtualAppliance",
               "nextHopIpAddress": "[variables('FGDMZAddress')]"
             }
@@ -353,16 +353,16 @@
             "value": "[parameters('vnetAddressPrefix')]"
           },
           "OutsideSubnetName": {
-            "value": "[parameters('Subnet1Name')]"
+            "value": "[parameters('PublicSubName')]"
           },
           "subnet1AddressPrefix": {
-            "value": "[parameters('Subnet1Prefix')]"
+            "value": "[parameters('PublicSubPrefix')]"
           },
           "DMZSubnetName": {
-            "value": "[parameters('Subnet2Name')]"
+            "value": "[parameters('TransitSubName')]"
           },
           "subnet2AddressPrefix": {
-            "value": "[parameters('Subnet2Prefix')]"
+            "value": "[parameters('TransitSubPrefix')]"
           },
           "vnetResourceGroup": {
             "value": "[parameters('vnetResourceGroup')]"
@@ -415,7 +415,7 @@
             "value": "[variables('FGPubFacingAddress')]"
           },
           "subnet1Ref": {
-            "value": "[variables('subnet1Ref')]"
+            "value": "[variables('PublicSubRef')]"
           },
           "network_NIC_fg11_Name": {
             "value": "[variables('network_NIC_fg11_Name')]"
@@ -445,7 +445,7 @@
               "privateIPAllocationMethod": "Static",
               "privateIPAddress": "[variables('FGDMZAddress')]",
               "subnet": {
-                "id": "[variables('subnet2Ref')]"
+                "id": "[variables('TransitSubRef')]"
               }
             }
           }
@@ -637,7 +637,7 @@
                             "privateIPAllocationMethod": "Static",
                             "privateIPAddress": "[parameters('FortiWebIPSub1')]",
                             "subnet": {
-                                "id": "[variables('subnet1Ref')]"
+                                "id": "[variables('PublicSubRef')]"
                             },
                             "publicIPAddress": "[if(not(equals(parameters('publicIpNewOrExistingOrNone'), 'none')), variables('publicIpAddressFWBId') , json('null'))]"
                         }
@@ -669,7 +669,7 @@
                             "privateIPAllocationMethod": "Static",
                             "privateIPAddress": "[parameters('FortiWebIPSub2')]",
                             "subnet": {
-                                "id": "[variables('subnet2Ref')]"
+                                "id": "[variables('TransitSubRef')]"
                             }
                         }
                     }

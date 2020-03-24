@@ -45,30 +45,31 @@
       "value": "nthomas-aks-fortistacks"
     },
     "vnetAddressPrefix": {
-      "value": "10.0.0.0/8"
+      "value": "172.27.40.0/22"
     },
-    "Subnet1Name": {
-      "value": "snet1"
+    "PublicSubName": {
+      "value": "publicsnet"
     },
-    "Subnet1Prefix": {
-      "value": "10.20.1.0/24"
-    },       "fortiWebIPSub1": {
-            "value":  "10.20.1.253"
+    "PublicSubPrefix": {
+      "value": "172.27.40.0/26"
+    },
+    "fortiWebIPSub1": {
+            "value":  "172.27.40.61"
         },
     "fortiGateIP1": {
-      "value": "10.20.1.254"
+      "value": "172.27.40.62"
     },
-    "Subnet2Name": {
-      "value": "snet2"
+    "TransitSubName": {
+      "value": "transitsnet"
     },
-    "Subnet2Prefix": {
-      "value": "10.40.0.0/16"
+    "TransitSubPrefix": {
+      "value": "172.27.40.64/26"
     },
     "fortiGateIP2": {
-      "value": "10.40.0.254"
+      "value": "172.27.40.126"
     },
         "fortiWebIPSub2": {
-            "value":  "10.40.0.253"
+            "value":  "172.27.40.125"
         },
     "fortinetTags": {
       "value": {
