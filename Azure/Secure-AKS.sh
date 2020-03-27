@@ -38,24 +38,10 @@ az group deployment create --name $DEPLOY_NAME  -g $GROUP_NAME \
  --template-file FGT-FWB-VMs-2-Subnets/azuredeploy.json \
  --parameters Az-FGT-parameters.json
 
-exit 0
 
 SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-name nthomas-Vnet     --query "[1].id" --output tsv`
 
-
-
-
-
-# Ref https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/use-network-policies.md
-# Create a service principal and read in the application ID
-# to find a previously created one :
-# az ad sp list --show-mine --query "[?displayName=='ForSecureAKS'].{id:appId}" -o tsv
-# is the id with the same name
-
-SP=$(az ad sp create-for-rbac --output json  --name ForSecureAKS)
-SP_ID=$(echo $SP | jq -r .appId)
-SP_PASSWORD=$(echo $SP | jq -r .password)
-
+# service VM on the transit network for accessing AKS
 az vm create \
   --resource-group "$GROUP_NAME" \
   --name nthomas-jumphost \
@@ -64,18 +50,43 @@ az vm create \
   --admin-password Fortin3t-aks \
   --subnet $SNET2  --authentication-type password
 
+
+
+# Ref https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/use-network-policies.md
+# Create a service principal and read in the application ID
+# to find a previously created one :
+# az ad sp list --show-mine --query "[?displayName=='ForSecureAKS'].{id:appId}" -o tsv
+# is the id with the same name
+CHECKSP=`az ad sp list --show-mine -o tsv --query "[?displayName == 'ForSecureAKS'].appId"`
+[ -z $CHECKSP ] ||  az ad sp delete  --id $CHECKSP
+
+SP=$(az ad sp create-for-rbac --output json  --name ForSecureAKS)
+SP_ID=$(echo $SP | jq -r .appId)
+SP_PASSWORD=$(echo $SP | jq -r .password)
+
+
+## must create VNET subnet for AKS and peering with Transit (cli)
+az network vnet create  --name fortistacks-aks  --resource-group $GROUP_NAME  \
+  --subnet-name fortistacks-aks-sub --address-prefix 10.20.0.0/16 --subnet-prefix 10.20.0.0/20
+
+az network vnet peering create -g  $GROUP_NAME  -n TransitToAKS --vnet-name nthomas-Vnet \
+    --remote-vnet fortistacks-aks --allow-vnet-access --allow-forwarded-traffic
+az network vnet peering create -g  $GROUP_NAME  -n AKStoTransit --vnet-name fortistacks-aks \
+    --remote-vnet  nthomas-Vnet --allow-vnet-access --allow-forwarded-traffic
+az network route-table create --resource-group $GROUP_NAME --name nthomas-routesForPeering
+
+
 # Wait 15 seconds to make sure that service principal has propagated
 echo "Waiting for service principal to propagate..."
 sleep 25
 
 # Get the virtual network resource ID
-VNET_ID=$(az network vnet show --resource-group $GROUP_NAME --name nthomas-Vnet --query id -o tsv)
+VNET_ID=$(az network vnet show --resource-group $GROUP_NAME --name  fortistacks-aks --query id -o tsv)
 
 # Assign the service principal Contributor permissions to the virtual network resource
 az role assignment create --assignee $SP_ID --scope $VNET_ID --role Contributor
 
-
-SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-name nthomas-Vnet     --query "[1].id" --output tsv`
+AKSSUBNET=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-name fortistacks-aks     --query "[0].id" --output tsv`
 
 # Install the aks-preview extension
 az extension add --name aks-preview
@@ -87,11 +98,11 @@ az aks create \
     --load-balancer-sku standard \
     --enable-private-cluster \
     --network-plugin azure \
-    --vnet-subnet-id $SNET2\
+    --vnet-subnet-id $AKSSUBNET\
     --generate-ssh-keys \
     --node-count 2 \
-    --service-cidr 10.0.0.0/16 \
-    --dns-service-ip 10.0.0.10 \
+    --service-cidr 10.40.0.0/16 \
+    --dns-service-ip 10.40.0.10 \
     --docker-bridge-address 172.17.0.1/16 \
     --service-principal $SP_ID \
     --client-secret $SP_PASSWORD \
