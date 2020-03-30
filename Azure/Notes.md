@@ -1,3 +1,21 @@
+# Cheat sheet
+
+Get kubectl https://kubernetes.io/docs/tasks/tools/install-kubectl/
+```sudo snap install kubectl --classic
+
+kubectl version
+```
+Completion
+As root
+```shell script
+source <(kubectl completion bash)
+kubectl completion bash >/etc/bash_completion.d/kubectl
+
+```
+
+Connect with ssh https://docs.microsoft.com/en-us/azure/aks/ssh
+
+
 # References
 - https://docs.microsoft.com/en-gb/azure/aks/private-clusters
 - https://eventmarketing.blob.core.windows.net/mstechsummit2018-after/CI32_PDF_TS18.pdf

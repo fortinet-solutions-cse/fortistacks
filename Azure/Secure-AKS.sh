@@ -67,13 +67,24 @@ SP_PASSWORD=$(echo $SP | jq -r .password)
 
 ## must create VNET subnet for AKS and peering with Transit (cli)
 az network vnet create  --name fortistacks-aks  --resource-group $GROUP_NAME  \
-  --subnet-name fortistacks-aks-sub --address-prefix 10.20.0.0/16 --subnet-prefix 10.20.0.0/20
+  --subnet-name fortistacks-aks-sub --address-prefix 10.40.0.0/16 --subnet-prefix 10.40.0.0/16
+
+az network route-table create --resource-group $GROUP_NAME --name nthomas-routesForPeering
+az network route-table route create --name default --resource-group $GROUP_NAME \
+     --route-table-name nthomas-routesForPeering --next-hop-type VirtualAppliance \
+     --next-hop-ip-address 172.27.40.126 --address-prefix 0.0.0.0/0
+
+az network route-table route create --name default --resource-group $GROUP_NAME \
+     --route-table-name nthomas-routesForPeering --next-hop-type VnetLocal --address-prefix 10.40.0.0/16
+
+az network vnet subnet update --vnet-name fortistacks-aks  --resource-group $GROUP_NAME  \
+   --route-table nthomas-routesForPeering --name fortistacks-aks-sub
 
 az network vnet peering create -g  $GROUP_NAME  -n TransitToAKS --vnet-name nthomas-Vnet \
     --remote-vnet fortistacks-aks --allow-vnet-access --allow-forwarded-traffic
 az network vnet peering create -g  $GROUP_NAME  -n AKStoTransit --vnet-name fortistacks-aks \
     --remote-vnet  nthomas-Vnet --allow-vnet-access --allow-forwarded-traffic
-az network route-table create --resource-group $GROUP_NAME --name nthomas-routesForPeering
+
 
 
 # Wait 15 seconds to make sure that service principal has propagated
@@ -101,8 +112,8 @@ az aks create \
     --vnet-subnet-id $AKSSUBNET\
     --generate-ssh-keys \
     --node-count 2 \
-    --service-cidr 10.40.0.0/16 \
-    --dns-service-ip 10.40.0.10 \
+    --service-cidr 10.8.0.0/16 \
+    --dns-service-ip 10.8.0.10 \
     --docker-bridge-address 172.17.0.1/16 \
     --service-principal $SP_ID \
     --client-secret $SP_PASSWORD \
