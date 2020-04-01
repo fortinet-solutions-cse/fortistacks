@@ -43,12 +43,12 @@ SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-
 
 # service VM on the transit network for accessing AKS
 az vm create \
-  --resource-group "$GROUP_NAME" \
+  --resource-group "$GROUP_NAME" --location "$REGION"\
   --name nthomas-jumphost \
   --image UbuntuLTS \
   --admin-username azureuser \
   --admin-password Fortin3t-aks \
-  --subnet $SNET2  --authentication-type password
+  --subnet $SNET2  --authentication-type password  --no-wait
 
 
 
@@ -113,11 +113,19 @@ az aks create \
     --generate-ssh-keys \
     --node-count 2 \
     --service-cidr 10.8.0.0/16 \
-    --dns-service-ip 10.8.0.10 \
+    --dns-service-ip 10.8.0.53 \
     --docker-bridge-address 172.17.0.1/16 \
     --service-principal $SP_ID \
     --client-secret $SP_PASSWORD \
     --network-policy calico
+
+# add the private dns to the transit network for kubectl to work on jumphost
+AKS_RESOURCE_GROUP=$(az aks show --resource-group $GROUP_NAME --name secure-aks --query nodeResourceGroup -o tsv)
+AKS_PRIV_DNS=$(az network private-dns  zone list -g $AKS_RESOURCE_GROUP -o tsv --query [0].name)
+FTNT_VNET_ID=$(az network vnet show --resource-group $GROUP_NAME --name nthomas-vnet --query "id" -o tsv )
+az network private-dns  link vnet create --name aks-dns --virtual-network "$FTNT_VNET_ID" --zone-name "$AKS_PRIV_DNS" \
+   --registration-enabled false -g "$AKS_RESOURCE_GROUP"
+
 # Node count if quota restrictions
 az aks get-credentials --resource-group "$GROUP_NAME"  --name "secure-AKS"
 

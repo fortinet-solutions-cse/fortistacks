@@ -11,3 +11,6 @@ COPY  Fortinet_CA_SSL.cer /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt
 RUN sudo update-ca-certificates
 USER ubuntu
 CMD ["/bin/bash"]
+
+
+### trying to avoid docker layer (generic for K8S then).
