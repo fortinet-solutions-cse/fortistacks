@@ -145,7 +145,7 @@ install()
 
 
 OPTS=$(getopt -o hdp: --long help,debug,partition: \
-     -n 'fortistacks' -- "$@")
+-n 'fortistacks' -- "$@")
 
 
 
