@@ -17,11 +17,31 @@ As root
 ```shell script
 source <(kubectl completion bash)
 kubectl completion bash >/etc/bash_completion.d/kubectl
-
 ```
 
-Connect with ssh https://docs.microsoft.com/en-us/azure/aks/ssh
-Example: https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough
+AKS dashboard:
+```shell script
+kubectl describe services kubernetes-dashboard --namespace=kube-system
+```
+Check endpoint (if enabling url filter it will be blocked)
+
+Connect with ssh https://docs.microsoft.com/en-us/azure/aks/ssh (for debug)
+```shell script
+CLUSTER_RESOURCE_GROUP=$(az aks show --resource-group $GROUP_NAME --name secure-aks --query nodeResourceGroup -o tsv) 
+SCALE_SET_NAME=$(az vmss list --resource-group $CLUSTER_RESOURCE_GROUP --query [0].name -o tsv)
+az vmss extension set  \
+    --resource-group $CLUSTER_RESOURCE_GROUP \
+    --vmss-name $SCALE_SET_NAME \
+    --name VMAccessForLinux \
+    --publisher Microsoft.OSTCExtensions \
+    --version 1.4 \
+    --protected-settings "{\"username\":\"azureuser\", \"ssh_key\":\"$(cat ~/.ssh/id_rsa.pub)\"}"
+
+az vmss update-instances --instance-ids '*' \
+    --resource-group $CLUSTER_RESOURCE_GROUP \
+    --name $SCALE_SET_NAME
+```
+Example app: https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough
 
 # References
 - https://docs.microsoft.com/en-gb/azure/aks/private-clusters
@@ -82,9 +102,13 @@ Then postStart to run update-ca-certificate https://kubernetes.io/docs/tasks/con
 https://kubernetes.io/docs/tasks/administer-cluster/access-cluster-api/
 ###How to get token for K8S connector: 
 
+# If default has all the API access
 TOKEN=$(kubectl get secrets -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='default')].data.token}"|base64 --decode)
-TODO fix this can be:https://docs.cloud.oracle.com/en-us/iaas/Content/ContEng/Tasks/contengaddingserviceaccttoken.htm 
-
+SRC:https://docs.cloud.oracle.com/en-us/iaas/Content/ContEng/Tasks/contengaddingserviceaccttoken.htm 
+# create service account and get TOKEN
+kubectl -n kube-system create serviceaccount kubeconfig-sa
+kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:kubeconfig-sa
+TOKEN=$(kubectl get secrets -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='kubeconfig-sa')].data.token}" -n kube-system | base64 -d)
 
 --network-plugin azure --network-policy Calico
 
