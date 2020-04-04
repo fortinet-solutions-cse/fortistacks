@@ -7,6 +7,7 @@
 Set defaults
 
 ## kubectl
+Cheat sheet: https://kubernetes.io/docs/reference/kubectl/cheatsheet/ 
 Get kubectl https://kubernetes.io/docs/tasks/tools/install-kubectl/
 ```sudo snap install kubectl --classic
 
@@ -26,16 +27,17 @@ kubectl describe services kubernetes-dashboard --namespace=kube-system
 Check endpoint (if enabling url filter it will be blocked)
 
 Connect with ssh https://docs.microsoft.com/en-us/azure/aks/ssh (for debug)
+
+# Ref https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/custom-script-linux
 ```shell script
 CLUSTER_RESOURCE_GROUP=$(az aks show --resource-group $GROUP_NAME --name secure-aks --query nodeResourceGroup -o tsv) 
 SCALE_SET_NAME=$(az vmss list --resource-group $CLUSTER_RESOURCE_GROUP --query [0].name -o tsv)
 az vmss extension set  \
     --resource-group $CLUSTER_RESOURCE_GROUP \
     --vmss-name $SCALE_SET_NAME \
-    --name VMAccessForLinux \
-    --publisher Microsoft.OSTCExtensions \
-    --version 1.4 \
-    --protected-settings "{\"username\":\"azureuser\", \"ssh_key\":\"$(cat ~/.ssh/id_rsa.pub)\"}"
+    --version 2.0 --publisher Microsoft.Azure.Extensions \
+    --name CustomScript \
+    --protected-settings '{"commandToExecute": "echo \"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUQ1akNDQXM2Z0F3SUJBZ0lJS3FIV3RFSHUzM0l3RFFZSktvWklodmNOQVFFTEJRQXdnYWt4Q3pBSkJnTlYKQkFZVEFsVlRNUk13RVFZRFZRUUlEQXBEWVd4cFptOXlibWxoTVJJd0VBWURWUVFIREFsVGRXNXVlWFpoYkdVeApFVEFQQmdOVkJBb01DRVp2Y25ScGJtVjBNUjR3SEFZRFZRUUxEQlZEWlhKMGFXWnBZMkYwWlNCQmRYUm9iM0pwCmRIa3hHVEFYQmdOVkJBTU1FRVpIVkVGYVVrODJUVk5CUVRoVE0wRXhJekFoQmdrcWhraUc5dzBCQ1FFV0ZITjEKY0hCdmNuUkFabTl5ZEdsdVpYUXVZMjl0TUI0WERUSXdNRFF3TVRFd01qY3lORm9YRFRNd01EUXdNakV3TWpjeQpORm93Z2FreEN6QUpCZ05WQkFZVEFsVlRNUk13RVFZRFZRUUlEQXBEWVd4cFptOXlibWxoTVJJd0VBWURWUVFICkRBbFRkVzV1ZVhaaGJHVXhFVEFQQmdOVkJBb01DRVp2Y25ScGJtVjBNUjR3SEFZRFZRUUxEQlZEWlhKMGFXWnAKWTJGMFpTQkJkWFJvYjNKcGRIa3hHVEFYQmdOVkJBTU1FRVpIVkVGYVVrODJUVk5CUVRoVE0wRXhJekFoQmdrcQpoa2lHOXcwQkNRRVdGSE4xY0hCdmNuUkFabTl5ZEdsdVpYUXVZMjl0TUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGCkFBT0NBUThBTUlJQkNnS0NBUUVBOERFUk1vcGJ5aUJCVmh0WHRLM1lzVDNTS252bGJzQVNESFhiTElvSVBsTGMKR0tkTW4rditvUmlFMGU1QS9RdzlhNlloLzNvWEtlWjdML0JhbU1qU3ZpcFFNSnQwYUtERXpCYWxpYjkzKzYvMQorYmM1N3FaVGdTcFFPSDVJbElqSy9tQzNUNkVlQ2RmcGt0TlZNMXptMFE1TVZPaHovSUlGcitFUXZpWUdnMjJWClZYbTRYWDRkNjdOY0hScGFSMjIvL2RwRy9XQ0RqN013ekt3VDBHdzhhOTRRbWZ0N0hncUgwTmJEd0JHZ1pUc3gKVEhCanF5QVkvUjZja2hjaXdIMzRjUlNmNHRhWnV5MkFpaFZlbnBBNXVEemZsOExXV0RLTytnM2JUZ2xPS2d3WQpndjBRQXZVUWJseDJYT011Z1kzM2x1UVNBeFl2Uk5FVlZQa0t4VkZHS1FJREFRQUJveEF3RGpBTUJnTlZIUk1FCkJUQURBUUgvTUEwR0NTcUdTSWIzRFFFQkN3VUFBNElCQVFBeG9HQUJwSWJJemdBR2Vua2dLYXZTVUJ4eE9iZ0QKZ0xWMjlKdlpFcHp3L2xNWEJTMGhiU1dBbHZHV0VmR0pMTHk2V1h0V0tRK0ZNQ2VFS1JkblpkQmh4OHNoR3lQQgplQUpKbGVkeWNjRThHd2srejlBVGw2WlYyTlZ3cUJPUVM5aGNheDJUUE9rbXNVNFdsMmJpYmlibUxSZFA1Z0h5Ck50N3RKQU5mZHIyYnNXVWlGQ090RzJ1TS9vM3ZYT2ZSQlBSZ1RkbXMzV3N3ZG41WU1sNXk4ZXRUOWVVL1h5Q1EKTk1GRDRBV0M5cXI2WlVsWnZrSEdCKzlYejFHL2pvMUJhaEV0dUp6MGlyWG5YOHYwSDc2OW9Hd2NhSEtDUUJXWApOcEpZMEtzNGdNdVIrRDA3U3RFNFNKTnUrS2wzdnptSXBPajhMSnhEdkZ0a3NzNHFHKzlKSVJmTwotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==\"| base64 -d > /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt ; update-ca-certificates"}'
 
 az vmss update-instances --instance-ids '*' \
     --resource-group $CLUSTER_RESOURCE_GROUP \
@@ -44,6 +46,7 @@ az vmss update-instances --instance-ids '*' \
 Example app: https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough
 
 # References
+- https://github.com/microsoft/Networking-with-Kubernetes-Azure
 - https://docs.microsoft.com/en-gb/azure/aks/private-clusters
 - https://eventmarketing.blob.core.windows.net/mstechsummit2018-after/CI32_PDF_TS18.pdf
 - https://medium.com/@tufin/integrating-aks-cluster-with-azure-firewall-b3e56d163866

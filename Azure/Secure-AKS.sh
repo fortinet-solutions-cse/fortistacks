@@ -75,7 +75,8 @@ az network route-table route create --name default --resource-group $GROUP_NAME 
      --next-hop-ip-address 172.27.40.126 --address-prefix 0.0.0.0/0
 
 az network route-table route create --name default --resource-group $GROUP_NAME \
-     --route-table-name nthomas-routesForPeering --next-hop-type VnetLocal --address-prefix 10.40.0.0/16
+     --route-table-name nthomas-routesForPeering --next-hop-type VirtualAppliance \
+     --next-hop-ip-address 172.27.40.126 --address-prefix 10.40.0.0/16
 
 az network vnet subnet update --vnet-name fortistacks-aks  --resource-group $GROUP_NAME  \
    --route-table nthomas-routesForPeering --name fortistacks-aks-sub
@@ -117,7 +118,15 @@ az aks create \
     --docker-bridge-address 172.17.0.1/16 \
     --service-principal $SP_ID \
     --client-secret $SP_PASSWORD \
-    --network-policy calico
+    --network-policy calico \
+    --node-count 2 \
+    --enable-cluster-autoscaler \
+    --min-count 1 \
+    --max-count 5 \
+    --cluster-autoscaler-profile scan-interval=30s
+
+
+# next private registry https://docs.microsoft.com/en-us/azure/aks/cluster-container-registry-integration
 
 # add the private dns to the transit network for kubectl to work on jumphost
 AKS_RESOURCE_GROUP=$(az aks show --resource-group $GROUP_NAME --name secure-aks --query nodeResourceGroup -o tsv)
