@@ -70,11 +70,11 @@ az network vnet create  --name fortistacks-aks  --resource-group $GROUP_NAME  \
   --subnet-name fortistacks-aks-sub --address-prefix 10.40.0.0/16 --subnet-prefix 10.40.0.0/16
 
 az network route-table create --resource-group $GROUP_NAME --name nthomas-routesForPeering
-az network route-table route create --name default --resource-group $GROUP_NAME \
+az network route-table route create --name internet --resource-group $GROUP_NAME \
      --route-table-name nthomas-routesForPeering --next-hop-type VirtualAppliance \
      --next-hop-ip-address 172.27.40.126 --address-prefix 0.0.0.0/0
 
-az network route-table route create --name default --resource-group $GROUP_NAME \
+az network route-table route create --name eastwest --resource-group $GROUP_NAME \
      --route-table-name nthomas-routesForPeering --next-hop-type VirtualAppliance \
      --next-hop-ip-address 172.27.40.126 --address-prefix 10.40.0.0/16
 
@@ -111,8 +111,6 @@ az aks create \
     --enable-private-cluster \
     --network-plugin azure \
     --vnet-subnet-id $AKSSUBNET\
-    --generate-ssh-keys \
-    --node-count 2 \
     --service-cidr 10.8.0.0/16 \
     --dns-service-ip 10.8.0.53 \
     --docker-bridge-address 172.17.0.1/16 \
@@ -121,10 +119,8 @@ az aks create \
     --network-policy calico \
     --node-count 2 \
     --enable-cluster-autoscaler \
-    --min-count 1 \
-    --max-count 5 \
-    --cluster-autoscaler-profile scan-interval=30s
-
+    --min-count 1 --max-count 3 \
+    --generate-ssh-keys
 
 # next private registry https://docs.microsoft.com/en-us/azure/aks/cluster-container-registry-integration
 

@@ -20,8 +20,10 @@ source <(kubectl completion bash)
 kubectl completion bash >/etc/bash_completion.d/kubectl
 ```
 
-AKS dashboard:
+AKS dashboard (ref https://docs.microsoft.com/en-us/azure/aks/kubernetes-dashboard):
+Dashboard is very limited by default (good)
 ```shell script
+kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
 kubectl describe services kubernetes-dashboard --namespace=kube-system
 ```
 Check endpoint (if enabling url filter it will be blocked)

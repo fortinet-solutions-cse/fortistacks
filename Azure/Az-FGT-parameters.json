@@ -9,7 +9,7 @@
       "value": "fgtadmin"
     },
     "adminPassword": {
-      "value": "FgtAdmin1234"
+      "value": "Fortin3t-aks"
     },
     "FortiGateName": {
       "value": "fgtAKS"
@@ -18,7 +18,7 @@
       "value": "fortinet_fg-vm_payg"
     },
     "instanceType": {
-      "value": "Standard_F1"
+      "value": "Standard_D2_v2"
     },
     "publicIPNewOrExistingOrNone": {
       "value": "new"
