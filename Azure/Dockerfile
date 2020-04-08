@@ -1,9 +1,9 @@
 # Dockerfile for azure cli, ansible and kubectl with optionnal SSL inspection.
 # build cmd:
 # on MacOS
-# docker build --build-arg FGTCA=$(base64 Fortinet_CA_SSL.cer -b0) --pull -t az-aks-cli .
+# docker build --build-arg FGTCA_BUILD=$(base64 Fortinet_CA_SSL.cer -b0) --pull -t az-aks-cli .
 #on Linux
-# docker build --build-arg FGTCA=$(base64 Fortinet_CA_SSL.cer -w0) --pull -t az-aks-cli .
+# docker build --build-arg FGTCA_BUILD=$(base64 Fortinet_CA_SSL.cer -w0) --pull -t az-aks-cli .
 
 #was FROM mcr.microsoft.com/azure-clibut completion do not work well on microsoft image
 FROM ubuntu:18.04
@@ -11,12 +11,12 @@ LABEL maintainer="Nicolas Thomas <nthomas@fortinet.com>" provider="Fortinet"
 #Update the az software repository inside the dockerfile with the 'RUN' command.
 
 RUN apt-get update
-ARG FGTCAB
+ARG FGTCA_BUILD
 ENV DEBIAN_FRONTEND=noninteractive FGTCA=none
 RUN apt-get install -y ca-certificates curl apt-transport-https lsb-release gnupg
 #build arg to allow ssl inspect during build must create a base64 env with the CA in it: FGTCA=$(base64 Fortinet_CA_SSL.crt -w0)
-#RUN [ $FGTCAB = "none"] || (echo "${FGTCAB}"| base64 -d > /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt; update-ca-certificates)
-RUN  (echo "${FGTCAB}"| base64 -d > /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt; update-ca-certificates)
+#RUN [ $FGTCA_BUILD = "none"] || (echo "${FGTCA_BUILD}"| base64 -d > /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt; update-ca-certificates)
+RUN  (echo "${FGTCA_BUILD}"| base64 -d > /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt; update-ca-certificates)
 COPY docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT [ "/usr/local/bin/docker-entrypoint.sh"]
 
