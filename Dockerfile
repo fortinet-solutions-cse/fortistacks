@@ -5,7 +5,7 @@
 # docker build --force-rm -t fortistacks-cli .
 #
 FROM ubuntu:18.04
-MAINTAINER Nicolas Thomas <nthomas@fortinet.com>
+LABEL maintainer="Nicolas Thomas <nthomas@fortinet.com>"
 #Update the Ubuntu software repository inside the dockerfile with the 'RUN' command.
 RUN apt-get update && apt-get -y upgrade
 ENV DEBIAN_FRONTEND=noninteractive

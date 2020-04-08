@@ -45,7 +45,10 @@ az vmss update-instances --instance-ids '*' \
     --resource-group $CLUSTER_RESOURCE_GROUP \
     --name $SCALE_SET_NAME
 ```
+The long base64 is a base64 -w0 string of the FortigateCA
+
 Example app: https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough
+
 
 # References
 - https://github.com/microsoft/Networking-with-Kubernetes-Azure
@@ -120,6 +123,12 @@ TOKEN=$(kubectl get secrets -o jsonpath="{.items[?(@.metadata.annotations['kuber
 
 https://docs.microsoft.com/en-us/azure/aks/use-network-policies
 
-## fix/bug ?
-src: https://github.com/Azure/AKS/issues/400
-az network vnet subnet update -n ${azurerm_subnet.aks_subnet.name} -g ${azurerm_resource_group.aks_resource_group.name} --vnet-name ${azurerm_virtual_network.aks_virtualnetwork.name} --route-table $(az resource list --resource-group MC_${azurerm_resource_group.aks_resource_group.name}_${azurerm_kubernetes_cluster.aks_cluster.name}_<YOUR LOCATION HERE> --resource-type Microsoft.Network/routeTables --query '[].{ID:id}' -o tsv)"
+##internal load balancer   
+https://docs.microsoft.com/en-us/azure/aks/internal-lb 
+```yaml
+metadata:
+  name: azure-vote-front
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+```
+Can benefit from Kustomize here
