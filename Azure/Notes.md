@@ -30,7 +30,7 @@ Check endpoint (if enabling url filter it will be blocked)
 
 Connect with ssh https://docs.microsoft.com/en-us/azure/aks/ssh (for debug)
 
-#SSH access to nodes for debug
+# SSH access to nodes for debug
 
 Ref https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/custom-script-linux
 ```shell script
