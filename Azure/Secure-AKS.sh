@@ -3,7 +3,7 @@
 #    Secured AKS deployment
 #    Copyright (C) 2016 Fortinet  Ltd.
 #
-#    Authors: Nicolas Thomss  <nthomasfortinet.com>
+#    Authors: Nicolas Thomss  <fortistacksfortinet.com>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -19,32 +19,32 @@
 
 # Be sure to have login (az login) first
 
-GROUP_NAME="nthomas-aks-fortistacks"
+GROUP_NAME="fortistacks-aks"
 #REGION="francecentral"
 REGION="westeurope"
   # see https://docs.microsoft.com/en-gb/azure/aks/private-clusters
 az group create --name "$GROUP_NAME"  --location "$REGION"
 #remove ssh keys to ensure proper regeneration see https://docs.microsoft.com/bs-latn-ba/azure/aks/ssh otherwize
-rm -f ~/.kube/*
+rm -rf ~/.kube/*
 # To accept terms
 az vm image terms accept --offer fortinet_fortigate-vm_v5 --plan fortinet_fg-vm_payg --publisher fortinet
 az vm image terms accept --offer fortinet_fortigate-vm_v5 --plan fortinet_fg-vm --publisher fortinet
 
-az group deployment validate  --template-file FGT-FWB-VMs-2-Subnets/azuredeploy.json \
+az  deployment group validate  --template-file FGT-FWB-VMs-2-Subnets/azuredeploy.json \
                                --resource-group $GROUP_NAME  --parameters Az-FGT-parameters.json
 
 DEPLOY_NAME=$GROUP_NAME"-TRANSIT"
-az group deployment create --name $DEPLOY_NAME  -g $GROUP_NAME \
+az  deployment group create --name $DEPLOY_NAME  -g $GROUP_NAME \
  --template-file FGT-FWB-VMs-2-Subnets/azuredeploy.json \
  --parameters Az-FGT-parameters.json
 
 
-SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-name nthomas-Vnet     --query "[1].id" --output tsv`
+SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-name fortistacks-Vnet     --query "[1].id" --output tsv`
 
 # service VM on the transit network for accessing AKS
 az vm create \
   --resource-group "$GROUP_NAME" --location "$REGION"\
-  --name nthomas-jumphost \
+  --name fortistacks-jumphost \
   --image UbuntuLTS \
   --admin-username azureuser \
   --admin-password Fortin3t-aks \
@@ -69,22 +69,22 @@ SP_PASSWORD=$(echo $SP | jq -r .password)
 az network vnet create  --name fortistacks-aks  --resource-group $GROUP_NAME  \
   --subnet-name fortistacks-aks-sub --address-prefix 10.40.0.0/16 --subnet-prefix 10.40.0.0/16
 
-az network route-table create --resource-group $GROUP_NAME --name nthomas-routesForPeering
+az network route-table create --resource-group $GROUP_NAME --name fortistacks-routesForPeering
 az network route-table route create --name internet --resource-group $GROUP_NAME \
-     --route-table-name nthomas-routesForPeering --next-hop-type VirtualAppliance \
+     --route-table-name fortistacks-routesForPeering --next-hop-type VirtualAppliance \
      --next-hop-ip-address 172.27.40.126 --address-prefix 0.0.0.0/0
 
 az network route-table route create --name eastwest --resource-group $GROUP_NAME \
-     --route-table-name nthomas-routesForPeering --next-hop-type VirtualAppliance \
+     --route-table-name fortistacks-routesForPeering --next-hop-type VirtualAppliance \
      --next-hop-ip-address 172.27.40.126 --address-prefix 10.40.0.0/16
 
 az network vnet subnet update --vnet-name fortistacks-aks  --resource-group $GROUP_NAME  \
-   --route-table nthomas-routesForPeering --name fortistacks-aks-sub
+   --route-table fortistacks-routesForPeering --name fortistacks-aks-sub
 
-az network vnet peering create -g  $GROUP_NAME  -n TransitToAKS --vnet-name nthomas-Vnet \
+az network vnet peering create -g  $GROUP_NAME  -n TransitToAKS --vnet-name fortistacks-Vnet \
     --remote-vnet fortistacks-aks --allow-vnet-access --allow-forwarded-traffic
 az network vnet peering create -g  $GROUP_NAME  -n AKStoTransit --vnet-name fortistacks-aks \
-    --remote-vnet  nthomas-Vnet --allow-vnet-access --allow-forwarded-traffic
+    --remote-vnet  fortistacks-Vnet --allow-vnet-access --allow-forwarded-traffic
 
 
 
@@ -127,7 +127,7 @@ az aks create \
 # add the private dns to the transit network for kubectl to work on jumphost
 AKS_RESOURCE_GROUP=$(az aks show --resource-group $GROUP_NAME --name secure-aks --query nodeResourceGroup -o tsv)
 AKS_PRIV_DNS=$(az network private-dns  zone list -g $AKS_RESOURCE_GROUP -o tsv --query [0].name)
-FTNT_VNET_ID=$(az network vnet show --resource-group $GROUP_NAME --name nthomas-vnet --query "id" -o tsv )
+FTNT_VNET_ID=$(az network vnet show --resource-group $GROUP_NAME --name fortistacks-vnet --query "id" -o tsv )
 az network private-dns  link vnet create --name aks-dns --virtual-network "$FTNT_VNET_ID" --zone-name "$AKS_PRIV_DNS" \
    --registration-enabled false -g "$AKS_RESOURCE_GROUP"
 
