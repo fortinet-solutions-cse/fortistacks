@@ -12,9 +12,23 @@ git clone https://github.com/fortinet-solutions-cse/fortistacks.git --recursive
 cd fortistacks/Azure
 ```
 ## Using provided docker image
+```shell script
+docker run -v $PWD:/Azure/  -i --name az-aks-cli  -h az-aks-cli -t fortinetsolutioncse/az-aks-cli
+```
+
+If like me you have internal SSL inspection you use the same image.
+(Curious check the code).
+
+```shell script
+export FGTCA=$(base64 Fortinet_CA_SSL.cer -b0)
+# this is for MacOS use -w0 on Linux
+docker run -v $PWD:/Azure/ -e FGTCA -i --name az-aks-cli  -h az-aks-cli -t fortinetsolutioncse/az-aks-cli
+```
+
 
 ## Script
 ```shell script
+az login
 ./Secure-AKS.sh
 ```
 The script will deploy the following and ensure all AKS traffic goes to the Firewall for analysis.
