@@ -16,6 +16,8 @@ nav:
 - Fortigate: 'Fortigate.md'
 - Other Fortinet VMs:
     - Fortimanager: 'Fortimanager.md'
+- Kubernetes:
+    - AKS: 'Kubernetes/AKS-Private-secured.md'
 - MANO:
     - Cloudify: 'MANO/Cloudify.md'
     - osm.etsi.org: 'MANO/OSM.md'
