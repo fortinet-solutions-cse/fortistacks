@@ -31,7 +31,16 @@ Check endpoint (if enabling url filter it will be blocked)
 Connect with ssh https://docs.microsoft.com/en-us/azure/aks/ssh (for debug)
 
 # SSH access to nodes for debug
+```shell script
+az vmss extension set  \
+    --resource-group $CLUSTER_RESOURCE_GROUP \
+    --vmss-name $SCALE_SET_NAME \
+    --name VMAccessForLinux \
+    --publisher Microsoft.OSTCExtensions \
+    --version 1.4 \
+    --protected-settings "{\"username\":\"azureuser\", \"ssh_key\":\"$(cat ~/.ssh/id_rsa.pub)\"}"
 
+```
 Ref https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/custom-script-linux
 ```shell script
 CLUSTER_RESOURCE_GROUP=$(az aks show --resource-group $GROUP_NAME --name secure-aks --query nodeResourceGroup -o tsv) 
@@ -140,3 +149,9 @@ metadata:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 ```
 Can benefit from Kustomize here
+
+## Using ansible for demo (complex setup)
+````shell script
+ansible-playbook -i hosts fgt-playbook.yaml 
+````
+Change the IP in hosts to reflect your fortigate

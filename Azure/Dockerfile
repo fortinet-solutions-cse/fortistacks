@@ -14,7 +14,7 @@ RUN apt-get update
 ARG FGTCA_BUILD
 ENV DEBIAN_FRONTEND=noninteractive
 ENV FGTCA none
-RUN apt-get install -y ca-certificates curl apt-transport-https lsb-release gnupg
+RUN apt-get install -y ca-certificates curl apt-transport-https lsb-release gnupg python3-pip
 #build arg to allow ssl inspect during build must create a base64 env with the CA in it: export FGTCA=$(base64 Fortinet_CA_SSL.crt -w0)
 #RUN [ $FGTCA_BUILD = "none"] || (echo "${FGTCA_BUILD}"| base64 -d > /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt; update-ca-certificates)
 RUN  (echo "${FGTCA_BUILD}"| base64 -d > /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt; update-ca-certificates)
@@ -27,8 +27,11 @@ RUN curl -sL https://packages.microsoft.com/keys/microsoft.asc |  apt-key add -
 RUN AZ_REPO=$(lsb_release -cs); echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" > /etc/apt/sources.list.d/azure-cli.list
 RUN curl -sL https://packages.cloud.google.com/apt/doc/apt-key.gpg |  apt-key add -
 RUN echo "deb https://apt.kubernetes.io/ kubernetes-xenial main"  > /etc/apt/sources.list.d/kubernetes.list
-RUN apt-get update && (apt-get -y install bash-completion kubectl ansible jq azure-cli sudo  wget zile byobu ccze )&& \
+
+RUN apt-get update && (apt-get -y install bash-completion kubectl openssh-client apache2-utils  jq azure-cli sudo  wget zile byobu ccze )&& \
         kubectl completion bash >/etc/bash_completion.d/kubectl
+# Must use python3 or the fortios ansible modules do not work
+RUN pip3 install ansible
 RUN export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt ;az extension add --name aks-preview
 RUN groupadd -r az && useradd  -g az -G adm,sudo az -m -p fortinet -s /bin/bash && \
     echo "az ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-nopasswd && chmod 640 /etc/sudoers.d/99-nopasswd; \

@@ -41,14 +41,14 @@ az  deployment group create --name $DEPLOY_NAME  -g $GROUP_NAME \
 
 SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-name fortistacks-Vnet     --query "[1].id" --output tsv`
 
-# service VM on the transit network for accessing AKS
-az vm create \
-  --resource-group "$GROUP_NAME" --location "$REGION"\
-  --name fortistacks-jumphost \
-  --image UbuntuLTS \
-  --admin-username azureuser \
-  --admin-password Fortin3t-aks \
-  --subnet $SNET2  --authentication-type password  --no-wait
+## service VM on the transit network for accessing AKS
+#az vm create \
+#  --resource-group "$GROUP_NAME" --location "$REGION"\
+#  --name fortistacks-jumphost \
+#  --image UbuntuLTS \
+#  --admin-username azureuser \
+#  --admin-password Fortin3t-aks \
+#  --subnet $SNET2  --authentication-type password  --no-wait
 
 
 
@@ -60,7 +60,7 @@ az vm create \
 CHECKSP=`az ad sp list --show-mine -o tsv --query "[?displayName == 'ForSecureAKS'].appId"`
 [ -z $CHECKSP ] ||  az ad sp delete  --id $CHECKSP
 
-SP=$(az ad sp create-for-rbac --output json  --name ForSecureAKS)
+SP=$(az ad sp create-for-rbac --output json  --name ForSecureAKS.io)
 SP_ID=$(echo $SP | jq -r .appId)
 SP_PASSWORD=$(echo $SP | jq -r .password)
 

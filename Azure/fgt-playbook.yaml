@@ -1,0 +1,52 @@
+- hosts: fortigates
+  connection: httpapi
+  vars:
+   vdom: "root"
+   ansible_httpapi_use_ssl: yes
+   ansible_httpapi_validate_certs: no
+   ansible_httpapi_port: 443
+  tasks:
+  - name: Configure global attributes.
+    fortios_system_global:
+      vdom:  "{{ vdom }}"
+      system_global:
+        admintimeout: "480"
+        hostname: "fgtaz-ansibleconf"
+  - name: Create local user for VPN.
+    fortios_user_local:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      user_local:
+        email_to: "nthomas@fortinet.com"
+        name: "aks"
+        passwd: "Fortin3t-aks"
+        status: "enable"
+        two_factor: "disable"
+        type: "password"
+  - name: Configure user groups.
+    fortios_user_group:
+      vdom:  "{{ vdom }}"
+      https: "False"
+      state: "present"
+      user_group:
+        group_type: "firewall"
+        member:
+         -  name: "aks"
+         -  name: "guest"
+        name: "VPN"
+  - name: K8Snetwork address
+    fortios_firewall_address:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_address:
+        name: "K8Svnet"
+        subnet: "10.40.0.0/16"
+        type: "ipmask"
+  - name: Transit network address
+    fortios_firewall_address:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_address:
+        name: "Transit"
+        subnet: "172.20.40.54/26"
+        type: "ipmask"

@@ -38,9 +38,39 @@ Again for education, feature it can be split and made elastic.
 # Access the environment
 
 ## VPN to Fortigate
-## Verify Kubectl works
+
+I recommend setting up an IPsec VPN access and use Forticlient VPN to get to the environment.
+You can also choose to add a jumphost on the tranist network (it is the purpose of this intermediate to have tools to manage K8S there)
+
+## Verify AKS works
+https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough
+
+## AKS dashboard 
+(ref https://docs.microsoft.com/en-us/azure/aks/kubernetes-dashboard):
+Dashboard is very limited by default (good for security)
+```shell script
+kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+kubectl describe services kubernetes-dashboard --namespace=kube-system
+```
+You can then access with the IP:PORT provided.
 ## Scale
 # Debug 
+
+
+# SSH access to nodes (VMs) for debug
+
+Using the script you should have a direct ssh accesss to the nodes (VMs) with the user which create the cluster.
+
+If not ref: https://docs.microsoft.com/en-us/azure/aks/ssh (for debug)
+```shell script
+az@az-aks-cli:/Azure $kubectl get nodes -o wide
+NAME                                STATUS   ROLES   AGE   VERSION    INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
+aks-nodepool1-13072840-vmss000000   Ready    agent   61m   v1.15.10   10.40.0.4     <none>        Ubuntu 16.04.6 LTS   4.15.0-1071-azure   docker://3.0.10+azure
+aks-nodepool1-13072840-vmss000001   Ready    agent   61m   v1.15.10   10.40.0.35    <none>        Ubuntu 16.04.6 LTS   4.15.0-1071-azure   docker://3.0.10+azure
+az@az-aks-cli:/Azure $ssh azureuser@10.40.0.4 
+```
+The above example should be successfull. This allow you to see the work done on Kubernetes nodes (docker cli).
+You should NOT allow this in production.
 
 # SSL inspection
 ## K8S Nodes (i.e. VMs)
@@ -48,21 +78,21 @@ Ref https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/custom-sc
 You get the Fortinet_CA_SSL.crt from your running Fortigate
 
 ```shell script
-export FGTCA=$(base64 Fortinet_CA_SSL.crt -w0) # or -b0 on MacOS
+export FGTCA=$(base64 Fortinet_CA_SSL.cer -w0) # or -b0 on MacOS
+GROUP_NAME="fortistacks-aks"
 CLUSTER_RESOURCE_GROUP=$(az aks show --resource-group $GROUP_NAME --name secure-aks --query nodeResourceGroup -o tsv) 
 SCALE_SET_NAME=$(az vmss list --resource-group $CLUSTER_RESOURCE_GROUP --query [0].name -o tsv)
-az vmss extension set  \
-    --resource-group $CLUSTER_RESOURCE_GROUP \
-    --vmss-name $SCALE_SET_NAME \
-    --version 2.0 --publisher Microsoft.Azure.Extensions \
-    --name CustomScript \
-    --protected-settings '{"commandToExecute": "echo \"$FGTCA\"| base64 -d > /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt ; update-ca-certificates"}'
+
+az vmss extension set      --resource-group $CLUSTER_RESOURCE_GROUP     --vmss-name $SCALE_SET_NAME   \
+    --version 2.0 --publisher Microsoft.Azure.Extensions     --name CustomScript    \
+    --protected-settings "{\"commandToExecute\": \"echo $FGTCA| base64 -d > /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt ; update-ca-certificates --fresh\"}"
 
 az vmss update-instances --instance-ids '*' \
     --resource-group $CLUSTER_RESOURCE_GROUP \
     --name $SCALE_SET_NAME
 ```
 This install and trust the Fortigate CA for SSL inspection, allowing antivirus and DLP on your infra and application code.
+You must at least restart the docker deamon on nodes.
 
 ## K8S containers
 
