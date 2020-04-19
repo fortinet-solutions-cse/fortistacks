@@ -57,7 +57,7 @@ SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-
 # to find a previously created one :
 # az ad sp list --show-mine --query "[?displayName=='ForSecureAKS'].{id:appId}" -o tsv
 # is the id with the same name
-CHECKSP=`az ad sp list --show-mine -o tsv --query "[?displayName == 'ForSecureAKS'].appId"`
+CHECKSP=`az ad sp list --show-mine -o tsv --query "[?displayName == 'ForSecureAKS.io'].appId"`
 [ -z $CHECKSP ] ||  az ad sp delete  --id $CHECKSP
 
 SP=$(az ad sp create-for-rbac --output json  --name ForSecureAKS.io)
@@ -118,10 +118,13 @@ az aks create \
     --client-secret $SP_PASSWORD \
     --network-policy calico \
     --node-count 2 \
+    --node-vm-size Standard_A2_v2\
     --enable-cluster-autoscaler \
-    --min-count 1 --max-count 3 \
-    --generate-ssh-keys
+    --min-count 2 --max-count 5 \
+    --generate-ssh-keys --outbound-type userDefinedRouting
 
+# https://docs.microsoft.com/en-us/azure/aks/egress-outboundtype
+# check addons: https://github.com/Azure/aks-engine/blob/master/docs/topics/clusterdefinitions.md#addons (like tiller/helm)
 # next private registry https://docs.microsoft.com/en-us/azure/aks/cluster-container-registry-integration
 
 # add the private dns to the transit network for kubectl to work on jumphost

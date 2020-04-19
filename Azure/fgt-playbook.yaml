@@ -42,6 +42,14 @@
         name: "K8Svnet"
         subnet: "10.40.0.0/16"
         type: "ipmask"
+  - name: AKS services net address
+    fortios_firewall_address:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_address:
+        name: "K8Sservices"
+        subnet: "10.8.0.0/16"
+        type: "ipmask"
   - name: Transit network address
     fortios_firewall_address:
       vdom:  "{{ vdom }}"
@@ -50,3 +58,49 @@
         name: "Transit"
         subnet: "172.20.40.54/26"
         type: "ipmask"
+  - name: Group network address
+    fortios_firewall_addrgrp:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_addrgrp:
+        comment: "Ansible create group to map traffic related to AKS"
+        member:
+         - name: "Transit"
+         - name: "K8Svnet"
+         - name: "K8Sservices"
+        name: "K8S"
+  - name: Configure IPSEC VPN dialin gateway p1
+    fortios_vpn_ipsec_phase1_interface:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      vpn_ipsec_phase1_interface:
+        name: "AKSaccess"
+        type: "dynamic"
+        interface:  "port1"
+        mode: "aggressive"
+        peertype: "any"
+        net_device: "enable"
+        mode_cfg: "enable"
+#        proposal: "des-sha256"
+        ##"aes128-sha256 aes256-sha256 aes128-sha1 aes256-sha1"
+        dpd: "on-idle"
+        comments: "VPN: AKSaccess (Created by VPN wizard)"
+        wizard_type: "dialup-forticlient"
+        xauthtype: "auto"
+        ipv4_start_ip: "172.27.20.12"
+        ipv4_end_ip: "172.27.20.32"
+        dns_mode: "auto"
+        save_password:  "enable"
+        client_keep_alive: "enable"
+        psksecret: "Fortin3t-aks"
+        dpd_retryinterval: "60"
+  - name: Configure IPSEC VPN dialin gateway p2
+    fortios_vpn_ipsec_phase2_interface:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      vpn_ipsec_phase2_interface:
+        name: "AKSaccess"
+        phase1name: "AKSaccess"
+#        proposal: "des-sha256"
+#        proposal: "aes128-sha1 aes256-sha1 aes128-sha256 aes256-sha256 aes128gcm aes256gcm chacha20poly1305"
+        comments: "VPN: AKSaccess (Created by VPN wizard)"

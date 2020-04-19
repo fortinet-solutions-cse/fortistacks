@@ -75,10 +75,10 @@ You should NOT allow this in production.
 # SSL inspection
 ## K8S Nodes (i.e. VMs)
 Ref https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/custom-script-linux
-You get the Fortinet_CA_SSL.crt from your running Fortigate
+You get the Fortinet_AKS_CA.crt from your running Fortigate in the custom deep inspection security profile download.
 
 ```shell script
-export FGTCA=$(base64 Fortinet_CA_SSL.cer -w0) # or -b0 on MacOS
+export FGTCA=$(base64 Fortinet_AKS_CA.cer -w0) # or -b0 on MacOS
 GROUP_NAME="fortistacks-aks"
 CLUSTER_RESOURCE_GROUP=$(az aks show --resource-group $GROUP_NAME --name secure-aks --query nodeResourceGroup -o tsv) 
 SCALE_SET_NAME=$(az vmss list --resource-group $CLUSTER_RESOURCE_GROUP --query [0].name -o tsv)
@@ -94,5 +94,10 @@ az vmss update-instances --instance-ids '*' \
 This install and trust the Fortigate CA for SSL inspection, allowing antivirus and DLP on your infra and application code.
 You must at least restart the docker deamon on nodes.
 
+## quick test
+```shell script
+kubectl run eicar --image=fortinetsolutioncse/ubuntu-eicar bash -i
+```
+Should trigger the antivirus
 ## K8S containers
 

@@ -107,9 +107,9 @@ metadata:
 spec:
   selector: {}
   volumeMounts:
-    - mountPath: /etc/ssl/certs/cert1.pem
+    - mountPath: /etc/ssl/certs/ca-certificates.crt
       name: ca
-      subPath: cert1.pem
+      subPath: ca-certificates.crt
   volumes:
     - configMap:
         defaultMode: 420
@@ -123,9 +123,9 @@ https://kubernetes.io/docs/tasks/administer-cluster/access-cluster-api/
 
 # create service account and get TOKEN
 ```shell script
-kubectl -n kube-system create serviceaccount kubeconfig-sa
-kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:kubeconfig-sa
-TOKEN=$(kubectl get secrets -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='kubeconfig-sa')].data.token}" -n kube-system | base64 -d)
+kubectl -n kube-system create serviceaccount fortigate
+kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:fortigate
+TOKEN=$(kubectl get secrets -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='fortigate')].data.token}" -n kube-system | base64 -d)
 ```
 
 
@@ -149,6 +149,12 @@ metadata:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 ```
 Can benefit from Kustomize here
+
+## specify egress
+TODO check: 
+https://docs.microsoft.com/en-us/azure/aks/egress-outboundtype
+Show that we can better automate than Azure here !!
+
 
 ## Using ansible for demo (complex setup)
 ````shell script

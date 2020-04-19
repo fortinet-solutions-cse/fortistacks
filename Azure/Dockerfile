@@ -32,6 +32,8 @@ RUN apt-get update && (apt-get -y install bash-completion kubectl openssh-client
         kubectl completion bash >/etc/bash_completion.d/kubectl
 # Must use python3 or the fortios ansible modules do not work
 RUN pip3 install ansible
+# see https://galaxy.ansible.com/fortinet/fortios
+RUN ansible-galaxy collection install fortinet.fortios
 RUN export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt ;az extension add --name aks-preview
 RUN groupadd -r az && useradd  -g az -G adm,sudo az -m -p fortinet -s /bin/bash && \
     echo "az ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/99-nopasswd && chmod 640 /etc/sudoers.d/99-nopasswd; \
