@@ -43,7 +43,7 @@ kind: Deployment
 metadata:
   name: azure-vote-front
 spec:
-  replicas: 2
+  replicas: 5
   selector:
     matchLabels:
       app: azure-vote-front
@@ -80,6 +80,7 @@ metadata:
     service.beta.kubernetes.io/azure-load-balancer-internal: "true"
 spec:
   type: LoadBalancer
+  # may try nodeport type to see if works better for K8S connector
   ports:
   - port: 80
   selector:
@@ -104,10 +105,10 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: azure-vote-front-hpa
 spec:
-  maxReplicas: 10 # define max replica count
-  minReplicas: 1  # define min replica count
+  maxReplicas: 40
+  minReplicas: 2
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: azure-vote-front
-  targetCPUUtilizationPercentage: 50 # target CPU utilization
+  targetCPUUtilizationPercentage: 60 # target CPU utilization

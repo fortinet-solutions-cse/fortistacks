@@ -2,7 +2,7 @@
 
 ## Benchmark
 ```shell script
-ab -c 20 -n 12000 -p vote.txt -T application/x-www-form-urlencoded http://10.40.0.67/
+ab -s 120 -c 500 -n 120000 -p vote.txt -T application/x-www-form-urlencoded -k http://10.40.0.67/ 
 ```
 
 with vote.txt containing: vote=Cats
