@@ -1,5 +1,5 @@
 [fortigates]
-fgtaz ansible_host=40.91.233.135 ansible_user="fgtadmin" ansible_password="Fortin3t-aks"
+fgtaz ansible_host=104.47.161.74 ansible_user="fgtadmin" ansible_password="Fortin3t-aks"
 
 [fortigates:vars]
 ansible_network_os=fortios

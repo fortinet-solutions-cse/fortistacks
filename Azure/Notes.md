@@ -97,6 +97,7 @@ See: https://docs.microsoft.com/en-us/cli/azure/vmss/extension?view=azure-cli-la
 Multi nodes pool: https://docs.microsoft.com/en-us/azure/aks/use-multiple-node-pools
 Can be used to showcase SSL protection on/off
 
+## does not work on AKS
 Pods: PodPreset 
 https://stackoverflow.com/questions/57090050/is-it-possible-to-use-podpresets-in-openshift-3-11-3-7
 ````yaml
@@ -161,3 +162,5 @@ Show that we can better automate than Azure here !!
 ansible-playbook -i hosts fgt-playbook.yaml 
 ````
 Change the IP in hosts to reflect your fortigate
+
+## use Azurefile (inject CA)

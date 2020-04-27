@@ -85,7 +85,7 @@ SCALE_SET_NAME=$(az vmss list --resource-group $CLUSTER_RESOURCE_GROUP --query [
 
 az vmss extension set      --resource-group $CLUSTER_RESOURCE_GROUP     --vmss-name $SCALE_SET_NAME   \
     --version 2.0 --publisher Microsoft.Azure.Extensions     --name CustomScript    \
-    --protected-settings "{\"commandToExecute\": \"echo $FGTCA| base64 -d > /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt ; update-ca-certificates --fresh\"}"
+    --protected-settings "{\"commandToExecute\": \"echo $FGTCA| base64 -d > /usr/local/share/ca-certificates/Fortinet_CA_SSL.crt ; update-ca-certificates --fresh; service docker restart \"}"
 
 az vmss update-instances --instance-ids '*' \
     --resource-group $CLUSTER_RESOURCE_GROUP \
@@ -96,7 +96,7 @@ You must at least restart the docker deamon on nodes.
 
 ## quick test
 ```shell script
-kubectl run eicar --image=fortinetsolutioncse/ubuntu-eicar bash -i
+kubectl run eicar --image=fortinetsolutioncse/ubuntu-eicar bash -it
 ```
 Should trigger the antivirus
 ## K8S containers

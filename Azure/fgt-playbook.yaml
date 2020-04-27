@@ -11,7 +11,20 @@
       vdom:  "{{ vdom }}"
       system_global:
         admintimeout: "480"
-        hostname: "fgtaz-ansibleconf"
+        admin_port: "8080"
+#        admin_https_redirect: "disable"
+        timezone: "26"
+#        gui_date_time_source: "browser"
+  - name: Configure global session TTL timers for this FortiGate.
+    fortios_system_session_ttl:
+      vdom:  "{{ vdom }}"
+      system_session_ttl:
+        port:
+         -  end_port: "4443"
+            id:  "1"
+            protocol: "6"
+            start_port: "80"
+            timeout: "40"
   - name: Create local user for VPN.
     fortios_user_local:
       vdom:  "{{ vdom }}"

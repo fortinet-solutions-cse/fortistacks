@@ -121,8 +121,9 @@ az aks create \
     --node-vm-size Standard_A2_v2\
     --enable-cluster-autoscaler \
     --min-count 2 --max-count 5 \
-    --generate-ssh-keys --outbound-type userDefinedRouting \
-    --dns-name-prefix fortistacks
+    --generate-ssh-keys --outbound-type userDefinedRouting
+#
+#    --dns-name-prefix fortistacks
 
 # https://docs.microsoft.com/en-us/azure/aks/egress-outboundtype
 # check addons: https://github.com/Azure/aks-engine/blob/master/docs/topics/clusterdefinitions.md#addons (like tiller/helm)
@@ -140,6 +141,8 @@ az aks get-credentials --resource-group "$GROUP_NAME"  --name "secure-AKS"
 
 FGTAZIP=`az network public-ip show --name fgtaz   --resource-group $GROUP_NAME  --query ipAddress -o tsv`
 echo " You can login on fortigate at https://$FGTAZIP"
-
+echo "can configure your azure sdn connector with: "
+echo "$SP"
 ## KAPI_ID=`az network private-endpoint show --name kube-apiserver --resource-group $AKS_RESOURCE_GROUP --query "networkInterfaces[0].id" -o tsv`
 ## KAPI_IP=`az network  nic show --ids $KAPI_ID --query "ipConfigurations[0].privateIpAddress" -o tsv`
+
