@@ -44,7 +44,8 @@ if [ -x $OS_AUTH_URL ]; then
   . ~/nova.rc
 fi
 
-
+#if EXT_NET variable not set use default (allow to have it as param from the .rc file)
+[ -x $EXT_NET ] && EXT_NET=ext-net
 [ -x $OS_FLAVOR_CFY ] && OS_FLAVOR_CFY=2C-4GB-50GB
 #Follow http://docs.getcloudify.org/
 export LC_ALL=C
@@ -58,12 +59,10 @@ sudo dpkg -i cloudify-cli-community-$CFY_VERSION.deb
 
 # Will now use the package rpm on centos ..
 #
-[ -x $CFY_IMAGE ] && CFY_IMAGE=`openstack image list --format value -c ID -c Name |grep -i "CentOS 7"|head -1|awk '{print $1}'`
+[ -x "$CFY_IMAGE" ] || CFY_IMAGE=`openstack image list --format value -c ID -c Name |grep -i "CentOS 7"|head -1|awk '{print $1}'`
 
 if (openstack server show cfy-manager-$CFY_VERSION  > /dev/null 2>&1 );then
     echo "cloudify manager already started"
-    #get the floating-ip from openstack and trim result
-    FLOATING_IP=`openstack server show cfy-manager-$CFY_VERSION -f value -c addresses|awk -F , '{print $2}'|sed 's/ //g'`
 else
     #check the fingerprint are equal (will work if not existant)
     OSKEY_FPRINT=`openstack keypair show cloudify -f value -c fingerprint|| echo "none"`
@@ -81,7 +80,7 @@ else
     sleep 8
 fi
 
-FMG_IP =    `openstack server show cfy-manager-$CFY_VERSION -f value -c addresses|awk -F "=|," '{print $2}'|sed 's/ //g'`
+FMG_IP=`openstack server show cfy-manager-$CFY_VERSION -f value -c addresses|awk -F "=|," '{print $2}'|sed 's/ //g'`
 SSH="ssh -t -i cloudify-key -o StrictHostKeyChecking=no centos@$FMG_IP"
 until ($SSH ping -c 3 cloudify.co); do
 sleep 4

@@ -155,11 +155,6 @@ node_templates:
           inputs:
             args:
               userdata: |
-                config system admin
-                    edit "admin"
-                        set password fortinet
-                    next
-                end
                 #FOS VM Config File
                 config system interface
                 edit mgmt
@@ -184,17 +179,17 @@ node_templates:
                 next
                 end
                 config firewall policy
-                edit 2
-                  set name "Default all open for conectivity checks"
-                  set srcintf "all"
-                  set dstintf "all"
-                  set srcaddr "all"
-                  set dstaddr "all"
-                  set action accept
-                  set schedule "always"
-                  set service "ALL"
-                  set nat enable
-                next
+                    edit 1
+                        set name "Allow any any"
+                        set srcintf "any"
+                        set dstintf "any"
+                        set srcaddr "all"
+                        set dstaddr "all"
+                        set action accept
+                        set schedule "always"
+                        set service "ALL"
+                        set nat enable
+                    next
                 end
                 config system central-management
                  set include-default-servers disable
@@ -205,6 +200,12 @@ node_templates:
                   set server-type update rating
                   set server-address 192.168.1.99
                   end
+                end
+                # warning changing the password trigger a reboot
+                config system admin
+                    edit "admin"
+                        set password fortinet
+                    next
                 end
     relationships:
       - target: fos_nat_port

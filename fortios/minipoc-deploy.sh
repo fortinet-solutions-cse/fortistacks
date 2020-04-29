@@ -31,7 +31,7 @@ fi
 
 
 #Push image if needed
-openstack image show  fos60 > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fos60"  --file fortios.qcow2
+openstack image show  fos64 > /dev/null 2>&1 || openstack image create --disk-format qcow2 --container-format bare   "fos64"  --file fortios.qcow2
 #find the name of the Ubuntu 16.04 image
 UB_IMAGE=`openstack image list -f value -c Name |grep 16.04`
 
@@ -76,13 +76,13 @@ openstack port show right1 > /dev/null 2>&1 ||openstack port create right1 --net
 LEFTPORT=`openstack port show left1 -c id -f value`
 RIGHTPORT=`openstack port show right1 -c id -f value`
     
-if (openstack server show fos60  > /dev/null 2>&1 );then
-    echo "fos60 already installed"
+if (openstack server show fos64  > /dev/null 2>&1 );then
+    echo "fos64 already installed"
 else
     #need to provide an example without config_drive
-    openstack server create --image "fos60" fos60 --key-name default  --security-group default  --flavor $OS_FLAVOR  --user-data fos-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT
+    openstack server create --image "fos64" fos64 --key-name default  --security-group default  --flavor $OS_FLAVOR  --user-data fos-user-data.txt --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT
 
-    while [ `openstack server show fos60 -f value -c status` == "BUILD" ]; do
+    while [ `openstack server show fos64 -f value -c status` == "BUILD" ]; do
 	sleep 4
     done
     FLOAT_IP=`openstack  floating ip create $EXT_NET -f value -c floating_ip_address`
