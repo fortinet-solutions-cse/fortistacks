@@ -48,10 +48,12 @@ https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough
 ## AKS dashboard 
 (ref https://docs.microsoft.com/en-us/azure/aks/kubernetes-dashboard):
 Dashboard is very limited by default (good for security)
+
 ```shell script
 kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
 kubectl describe services kubernetes-dashboard --namespace=kube-system
 ```
+
 You can then access with the IP:PORT provided.
 ## Scale
 # Debug 
@@ -62,6 +64,8 @@ You can then access with the IP:PORT provided.
 Using the script you should have a direct ssh accesss to the nodes (VMs) with the user which create the cluster.
 
 If not ref: https://docs.microsoft.com/en-us/azure/aks/ssh (for debug)
+
+
 ```shell script
 az@az-aks-cli:/Azure $kubectl get nodes -o wide
 NAME                                STATUS   ROLES   AGE   VERSION    INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
@@ -91,13 +95,16 @@ az vmss update-instances --instance-ids '*' \
     --resource-group $CLUSTER_RESOURCE_GROUP \
     --name $SCALE_SET_NAME
 ```
+
 This install and trust the Fortigate CA for SSL inspection, allowing antivirus and DLP on your infra and application code.
 You must at least restart the docker deamon on nodes.
 
 ## quick test
+
 ```shell script
 kubectl run eicar --image=fortinetsolutioncse/ubuntu-eicar bash -it
 ```
+
 Should trigger the antivirus
 ## K8S containers
 
