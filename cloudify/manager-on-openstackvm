@@ -59,7 +59,7 @@ sudo dpkg -i cloudify-cli-community-$CFY_VERSION.deb
 
 # Will now use the package rpm on centos ..
 #
-[ -x "$CFY_IMAGE" ] && CFY_IMAGE=`openstack image list --format value -c ID -c Name |grep -i "CentOS 7"|head -1|awk '{print $1}'`
+[ -x "$CFY_IMAGE" ] || CFY_IMAGE=`openstack image list --format value -c ID -c Name |grep -i "CentOS 7"|head -1|awk '{print $1}'`
 
 if (openstack server show cfy-manager-$CFY_VERSION  > /dev/null 2>&1 );then
     echo "cloudify manager already started"

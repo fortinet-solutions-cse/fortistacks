@@ -1,0 +1,82 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "westeurope"
+    },
+    "adminUsername": {
+      "value": "fgtadmin"
+    },
+    "adminPassword": {
+      "value": "Fortin3t-aks"
+    },
+    "FortiGateName": {
+      "value": "fgtAKS"
+    },
+    "FortiGateImageSKU": {
+      "value": "fortinet_fg-vm_payg"
+    },
+    "instanceType": {
+      "value": "Standard_D2_v2"
+    },
+    "publicIPNewOrExistingOrNone": {
+      "value": "new"
+    },
+    "publicIPAddressNameFGT": {
+      "value": "fgtaz"
+    },
+    "publicIPAddressNameFWB": {
+      "value": "fwbaz"
+    },
+    "publicIPResourceGroup": {
+      "value": "fortistacks-aks"
+    },
+    "publicIPAddressType": {
+      "value": "Dynamic"
+    },
+    "vnetNewOrExisting": {
+      "value": "new"
+    },
+    "vnetName": {
+      "value": "fortistacks-Vnet"
+    },
+    "vnetResourceGroup": {
+      "value": "fortistacks-aks"
+    },
+    "vnetAddressPrefix": {
+      "value": "172.27.40.0/22"
+    },
+    "PublicSubName": {
+      "value": "publicsnet"
+    },
+    "PublicSubPrefix": {
+      "value": "172.27.40.0/26"
+    },
+    "fortiWebIPSub1": {
+            "value":  "172.27.40.61"
+        },
+    "fortiGateIP1": {
+      "value": "172.27.40.62"
+    },
+    "TransitSubName": {
+      "value": "transitsnet"
+    },
+    "TransitSubPrefix": {
+      "value": "172.27.40.64/26"
+    },
+    "fortiGateIP2": {
+      "value": "172.27.40.126"
+    },
+        "fortiWebIPSub2": {
+            "value":  "172.27.40.125"
+        },
+    "fortinetTags": {
+      "value": {
+        "provider": "6EB3B02F-50E5-4A3E-8CB8-2E129258317D"
+      }
+    }
+  }
+}
+
+

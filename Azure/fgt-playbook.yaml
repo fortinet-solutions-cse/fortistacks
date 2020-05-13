@@ -1,0 +1,154 @@
+- hosts: fortigates
+  connection: httpapi
+  vars:
+   vdom: "root"
+   ansible_httpapi_use_ssl: yes
+   ansible_httpapi_validate_certs: no
+   ansible_httpapi_port: 443
+  tasks:
+  - name: Configure global attributes.
+    fortios_system_global:
+      vdom:  "{{ vdom }}"
+      system_global:
+        admintimeout: "480"
+        admin_port: "8080"
+#        admin_https_redirect: "disable"
+        timezone: "26"
+#        gui_date_time_source: "browser"
+  - name: Configure global session TTL timers for this FortiGate.
+    fortios_system_session_ttl:
+      vdom:  "{{ vdom }}"
+      system_session_ttl:
+        port:
+         -  end_port: "4443"
+            id:  "1"
+            protocol: "6"
+            start_port: "80"
+            timeout: "40"
+  - name: Create local user for VPN.
+    fortios_user_local:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      user_local:
+        email_to: "nthomas@fortinet.com"
+        name: "aks"
+        passwd: "Fortin3t-aks"
+        status: "enable"
+        two_factor: "disable"
+        type: "password"
+  - name: Configure user groups.
+    fortios_user_group:
+      vdom:  "{{ vdom }}"
+      https: "False"
+      state: "present"
+      user_group:
+        group_type: "firewall"
+        member:
+         -  name: "aks"
+         -  name: "guest"
+        name: "VPN"
+  - name: K8Snetwork address
+    fortios_firewall_address:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_address:
+        name: "K8Svnet"
+        subnet: "10.40.0.0/16"
+        type: "ipmask"
+  - name: AKS services net address
+    fortios_firewall_address:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_address:
+        name: "K8Sservices"
+        subnet: "10.8.0.0/16"
+        type: "ipmask"
+  - name: Transit network address
+    fortios_firewall_address:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_address:
+        name: "Transit"
+        subnet: "172.20.40.54/26"
+        type: "ipmask"
+  - name: Group network address
+    fortios_firewall_addrgrp:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_addrgrp:
+        comment: "Ansible create group to map traffic related to AKS"
+        member:
+         - name: "Transit"
+         - name: "K8Svnet"
+         - name: "K8Sservices"
+        name: "K8S"
+  - name: Configure IPSEC VPN dialin gateway p1
+    fortios_vpn_ipsec_phase1_interface:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      vpn_ipsec_phase1_interface:
+        name: "AKSaccess"
+        type: "dynamic"
+        interface:  "port1"
+        mode: "aggressive"
+        peertype: "any"
+        net_device: "enable"
+        mode_cfg: "enable"
+#        proposal: "des-sha256"
+        ##"aes128-sha256 aes256-sha256 aes128-sha1 aes256-sha1"
+        dpd: "on-idle"
+        comments: "VPN: AKSaccess (Created by VPN wizard)"
+        wizard_type: "dialup-forticlient"
+        xauthtype: "auto"
+        ipv4_start_ip: "172.27.20.12"
+        ipv4_end_ip: "172.27.20.32"
+        dns_mode: "auto"
+        save_password:  "enable"
+        client_keep_alive: "enable"
+        psksecret: "Fortin3t-aks"
+        dpd_retryinterval: "60"
+  - name: Configure IPSEC VPN dialin gateway p2
+    fortios_vpn_ipsec_phase2_interface:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      vpn_ipsec_phase2_interface:
+        name: "AKSaccess"
+        phase1name: "AKSaccess"
+#        proposal: "des-sha256"
+#        proposal: "aes128-sha1 aes256-sha1 aes128-sha256 aes256-sha256 aes128gcm aes256gcm chacha20poly1305"
+        comments: "VPN: AKSaccess (Created by ansible like wizard)"
+  - name: AKS vpn access address
+    fortios_firewall_address:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_address:
+        name: "AKSaccess_range"
+        type:   iprange
+        comment: "VPN: AKSaccess "
+        start_ip: 172.27.20.12
+        end_ip: 172.27.20.32
+  - name: Configure VPN policy in
+    fortios_firewall_policy:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_policy:
+        policyid: 40
+        name: "vpn_AKSaccess_remote"
+        srcintf:
+          - name: "AKSaccess"
+        dstintf:
+          - name: "port2"
+        srcaddr:
+          - name: "AKSaccess_range"
+        dstaddr:
+          - name: "K8Svnet"
+          - name: "Transit"
+        action: accept
+        schedule: "always"
+        service:
+          - name: "ALL"
+        fsso: disable
+        groups:
+          - name: "VPN"
+        nat: enable
+

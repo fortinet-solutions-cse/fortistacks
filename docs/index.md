@@ -12,6 +12,10 @@ Initial focus is on OpenStack, more to come.
 * [mini-poc](mini-poc.md) - The default deployment example explained.
 * [fortigate](Fortigate.md) - Scripts, heat templates and doc for fortigate.
 
+## Kubernetes
+
+* [Azure Kubernetes Service](Kubernetes/AKS-Private-secured.md) - Kubernetes protection step by step
+
 ## Advanced examples
 
 * [Life Cycle Management](Advanced Examples/LCM.md) - Scalability and complete lifecycle management.
