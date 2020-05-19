@@ -1,0 +1,49 @@
+                config system interface
+                edit mgmt
+                set mode dhcp
+                set allowaccess ping https ssh http snmp fgfm
+                set defaultgw enable 
+                next
+                edit port1
+                set mode dhcp
+                set allowaccess ping
+                 set defaultgw disable 
+                next
+                edit port2
+                set mode dhcp
+                set allowaccess ping
+                  set defaultgw disable 
+               next
+                end
+                config system dns
+                set primary 8.8.8.8
+                end
+                config firewall policy
+                edit 1
+                set name "Allow any any"
+                set srcintf "any"
+                set dstintf "any"
+                set srcaddr "all"
+                set dstaddr "all"
+                set action accept
+                set schedule "always"
+                set service "ALL"
+                set nat enable
+                next
+                end
+                config system central-management
+                set include-default-servers disable
+                set type fortimanager
+                set fmg 192.168.1.99
+                config server-list
+                edit 1
+                set server-type update rating
+                set server-address 192.168.1.99
+                end
+                end
+                # warning changing the password trigger a reboot
+                config system admin
+                    edit "admin"
+                        set password fortinet
+                    next
+                end

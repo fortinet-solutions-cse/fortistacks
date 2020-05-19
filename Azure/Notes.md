@@ -163,4 +163,15 @@ ansible-playbook -i hosts fgt-playbook.yaml
 ````
 Change the IP in hosts to reflect your fortigate
 
+# SSL CA ingest for Containers
+Easiest is to put in the image for the ones who are allowed.
+May want to make this an infra parameter and keep image generic
 ## use Azurefile (inject CA)
+Hard and not really efficient see [ConfigureK8Sstorage.sh]
+https://stackoverflow.com/questions/39436845/multiple-command-in-poststart-hook-of-a-container
+Might be 
+
+## watch with crd in color
+```
+watch -c "kubectl get pods,lb-fgt,svc -o wide|ccze -A"
+```
