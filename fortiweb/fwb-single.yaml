@@ -1,0 +1,116 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: azure-managed-disk-single
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: default
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fortiweb-single
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fortiweb-single
+  # strategy is supposed to ensure 1 single conf server
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: fortiweb-single
+    spec:
+      nodeSelector:
+        "beta.kubernetes.io/os": linux
+      restartPolicy: Always
+      containers:
+      - name: fweb
+        image: fortistackscontainerregistry.azurecr.io/fortinet/fweb
+        command: ["/bin/docker_init"]
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN", "NET_RAW", "SYS_TIME", "SYS_PTRACE" ]
+#          allowPrivilegeEscalation: true
+#          privileged: true
+        resources:
+          requests:
+            cpu: 0.5
+            memory: 2048Mi
+          limits:
+            cpu: 2
+            memory: 4096Mi
+        env:
+        # Define the environment variable
+        - name: FWB_ADMIN_PASSWORD
+          value: "Fortin3t"
+        # of course can be replaced by a secret
+        ports:
+        - containerPort: 8
+          name: mgmt
+        - containerPort: 43
+          name: gui
+        - containerPort: 996
+          name: mgmt6
+        - containerPort: 997
+          name: mgmt7
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+        volumeMounts:
+        - mountPath: /data/config/
+          name: fwbconfig
+        - mountPath: /data/etc/vmware/vm.lic
+          subPath: vm.lic
+          name: licenseconfig
+      volumes:
+      - name: licenseconfig
+        secret:
+          secretName: fwblicense2
+          items:
+            - key: vm.lic
+              path: vm.lic
+      - name: fwbconfig
+        persistentVolumeClaim:
+          claimName: azure-managed-disk-single
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fortiweb-single
+  labels:
+    app: fortiweb-single
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+spec:
+  type: LoadBalancer
+  # may try nodeport type to see if works better for K8S connector
+  ports:
+    - port: 80
+      name: http
+    - port: 443
+      name: https
+    - name: mgmt
+      port: 8008
+      targetPort: 8
+    - name: gui
+      port: 8443
+      targetPort: 43
+    - name: mgmt6
+      port: 996
+      targetPort: 996
+    - name: mgmt7
+      port: 997
+      targetPort: 997
+  selector:
+    app: fortiweb-single
+
+### Volume attach fails node VM too small https://docs.microsoft.com/en-us/azure/aks/concepts-storage
+##can redo config for the fortiweb workers

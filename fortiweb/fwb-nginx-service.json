@@ -1,0 +1,35 @@
+{
+  "kind": "Service",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "fwbnginx",
+    "namespace": "default",
+    "labels": {
+      "app": "fwbnginx"
+    }
+  },
+  "spec": {
+    "ports": [
+      {
+        "name": "80-80",
+        "protocol": "TCP",
+        "port": 80,
+        "targetPort": 80,
+        "nodePort": 31489
+      },
+      {
+        "name": "43-43",
+        "protocol": "TCP",
+        "port": 43,
+        "targetPort": 43,
+        "nodePort": 31490
+      }
+    ],
+    "selector": {
+      "app": "fwbnginx"
+    },
+    "type": "NodePort",
+    "sessionAffinity": "None",
+    "externalTrafficPolicy": "Cluster"
+  },
+}

@@ -238,7 +238,7 @@ resources:
 #   user_data:     { get_resource: fos_config }
    user_data:     { get_resource: fos_config_eval }
    name: FOS
-   user_data_format: SOFTWARE_CONFIG
+   user_data_format: RAW
    networks:
     - port: { get_resource: fos_mgmt_port }
     - port:  { get_resource: fos_left_port }

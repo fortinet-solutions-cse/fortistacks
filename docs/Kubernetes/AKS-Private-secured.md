@@ -108,3 +108,5 @@ kubectl run eicar --image=fortinetsolutioncse/ubuntu-eicar bash -it
 Should trigger the antivirus
 ## K8S containers
 
+# Helm development
+https://docs.microsoft.com/en-us/azure/aks/quickstart-helm

@@ -26,21 +26,12 @@ Dashboard is very limited by default (good)
 kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
 kubectl describe services kubernetes-dashboard --namespace=kube-system
 ```
+Dashboard should be avoided in production. Use https://octant.dev/ which provides a better alternative (more interactive and CRD)
+
 Check endpoint (if enabling url filter it will be blocked)
 
-Connect with ssh https://docs.microsoft.com/en-us/azure/aks/ssh (for debug)
 
-# SSH access to nodes for debug
-```shell script
-az vmss extension set  \
-    --resource-group $CLUSTER_RESOURCE_GROUP \
-    --vmss-name $SCALE_SET_NAME \
-    --name VMAccessForLinux \
-    --publisher Microsoft.OSTCExtensions \
-    --version 1.4 \
-    --protected-settings "{\"username\":\"azureuser\", \"ssh_key\":\"$(cat ~/.ssh/id_rsa.pub)\"}"
 
-```
 Ref https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/custom-script-linux
 ```shell script
 CLUSTER_RESOURCE_GROUP=$(az aks show --resource-group $GROUP_NAME --name secure-aks --query nodeResourceGroup -o tsv) 
@@ -57,6 +48,23 @@ az vmss update-instances --instance-ids '*' \
     --name $SCALE_SET_NAME
 ```
 The long base64 is a base64 -w0 string of the FortigateCA
+
+Connect with ssh https://docs.microsoft.com/en-us/azure/aks/ssh (for debug)
+# SSH access to nodes for debug
+
+```shell script
+az vmss extension set  \
+    --resource-group $CLUSTER_RESOURCE_GROUP \
+    --vmss-name $SCALE_SET_NAME \
+    --name VMAccessForLinux \
+    --publisher Microsoft.OSTCExtensions \
+    --version 1.4 \
+    --protected-settings "{\"username\":\"azureuser\", \"ssh_key\":\"$(cat ~/.ssh/id_rsa.pub)\"}"
+
+az vmss update-instances --instance-ids '*' \
+    --resource-group $CLUSTER_RESOURCE_GROUP \
+    --name $SCALE_SET_NAME
+```
 
 Example app: https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough
 
@@ -167,9 +175,22 @@ Change the IP in hosts to reflect your fortigate
 Easiest is to put in the image for the ones who are allowed.
 May want to make this an infra parameter and keep image generic
 ## use Azurefile (inject CA)
-Hard and not really efficient see [ConfigureK8Sstorage.sh]
+Hard and not really efficient see [ConfigureK8Sstorage.sh](ConfigureK8Sstorage.sh)
 https://stackoverflow.com/questions/39436845/multiple-command-in-poststart-hook-of-a-container
-Might be 
+Might be useable to inject CA on Docker instances
+TODO check this https://medium.com/@paraspatidar/add-self-signed-or-ca-root-certificate-in-kubernetes-pod-ca-root-certificate-store-cb7863cb3f87#b760 
+for pods CA injections
+
+## ACR usage (Azure registry)
+```shell script
+az acr login --name fortistacksContainerRegistry --expose-token
+```
+Get the token to register your docker cmd, (access from public by default)
+
+#TODO check if this give good feedback in our case
+https://github.com/darkbitio/mkit/blob/master/README.md
+
+Uploadfile demo https://hub.docker.com/r/mayth/simple-upload-server/ how to antivir scan files ?
 
 ## watch with crd in color
 ```

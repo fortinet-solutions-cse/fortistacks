@@ -23,6 +23,7 @@
 export LC_ALL=C
 ## avoid warnings about utf-8 for macusers
 
+## TODO switch to dconf https://askubuntu.com/questions/1039587/screen-sharing-option-missing-from-ubuntu-18-04-vino-installed
 
 desktop()
 {

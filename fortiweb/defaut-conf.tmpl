@@ -1,0 +1,34 @@
+
+config server-policy server-pool
+  edit "K8S-default"
+    set flag 1
+    set server-pool-id 9504000004522990961
+    config  pserver-list
+      edit 1
+        set ip ${TARGET_IP}
+      next
+    end
+  next
+end
+
+config server-policy vserver
+  edit "K8S-default"
+    config  vip-list
+      edit 1
+        set interface port1
+      next
+    end
+  next
+end
+
+config server-policy policy
+  edit "K8S-default"
+    set vserver K8S-default
+    set service HTTP
+    set web-protection-profile "Inline Standard Protection"
+    set replacemsg Predefined
+    set server-pool K8S-default
+    config  http-content-routing-list
+    end
+  next
+end

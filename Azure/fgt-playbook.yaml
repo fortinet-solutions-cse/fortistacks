@@ -69,7 +69,7 @@
       state: "present"
       firewall_address:
         name: "Transit"
-        subnet: "172.20.40.54/26"
+        subnet: "172.27.40.64/26"
         type: "ipmask"
   - name: Group network address
     fortios_firewall_addrgrp:
@@ -151,4 +151,24 @@
         groups:
           - name: "VPN"
         nat: enable
-
+  - name: Configure VPN policy out
+    fortios_firewall_policy:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_policy:
+        policyid: 41
+        name: "vpn_breakout"
+        srcintf:
+          - name: "AKSaccess"
+        dstintf:
+          - name: "port1"
+        srcaddr:
+          - name: "AKSaccess_range"
+        dstaddr:
+          - name: "all"
+        action: accept
+        schedule: "always"
+        service:
+          - name: "ALL"
+        fsso: disable
+        nat: enable
