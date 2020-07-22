@@ -1,0 +1,78 @@
+# Default values for fortiweb.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: fortistackscontainerregistry.azurecr.io/fortiweb
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: [ {"name:", "fwbregistrysecret"} ]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+  portssl: 443
+
+ingress:
+  enabled: false
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths: []
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+   limits:
+     cpu: 2
+     memory: 4096Mi
+   requests:
+     cpu: 200m
+     memory: 500Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+# from https://helm.sh/docs/howto/charts_tips_and_tricks/
+imageCredentials:
+  registry: fortistackscontainerregistry.azurecr.io
+  username: 00000000-0000-0000-0000-000000000000
+  password: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkpTU1E6VjVJQzpKTVlPOlRPU1Y6NlEzTTpDV0pTOlZCWVA6SlJSVDoyTEs2OkE2RkQ6WUVFVjpDNjREIn0.eyJqdGkiOiJiZGNiMjY2Ny01ZDJkLTRhOTEtYTQzNC0xNzllNDcxOGMxNGUiLCJzdWIiOiJudGhvbWFzQGZvcnRpbmV0LXVzLmNvbSIsIm5iZiI6MTU5NTMzNzc0MSwiZXhwIjoxNTk1MzQ5NDQxLCJpYXQiOjE1OTUzMzc3NDEsImlzcyI6IkF6dXJlIENvbnRhaW5lciBSZWdpc3RyeSIsImF1ZCI6ImZvcnRpc3RhY2tzY29udGFpbmVycmVnaXN0cnkuYXp1cmVjci5pbyIsInZlcnNpb24iOiIxLjAiLCJncmFudF90eXBlIjoicmVmcmVzaF90b2tlbiIsInRlbmFudCI6Ijk0MmI4MGNkLTFiMTQtNDJhMS04ZGNmLTRiMjFkZWNlNjFiYSIsInBlcm1pc3Npb25zIjp7ImFjdGlvbnMiOlsicmVhZCIsIndyaXRlIiwiZGVsZXRlIl0sIm5vdEFjdGlvbnMiOm51bGx9LCJyb2xlcyI6W119.Rxvpo6k71MmtRk8UkYzCkSN80FR2pCPzmiQWogLUI9VHwDAsuEt8AOVfS-vffcu_L8-n5qE29nwF0D5TvPKla4-q2UbdhnlUrbmHOaNsiw_iM0D2QF9T0nij1ILvB1Wogh5Sv40Fyhl373WvPtu78MfzkK179EBuOPmuyVtEPIw08Nfs5VKckrE_eHip-BGlEi34Tr3wK2ZTxoHKtd-ou4O3ouJCl9EBMMX_OJ_dz1ikRFlyY-lDiJxGx5pVaokGrGPMapUBCEjLs45wSHzM9nxdwNU_MMl1kd__P8-b0VxU55YTF4VtXhUCMrP2nFOvIGYAd6KMaiOrybCb5mbhlg
+  email: tregistry@azureacr.org
+# use: az acr login -n fortistacksContainerRegistry --expose-token
