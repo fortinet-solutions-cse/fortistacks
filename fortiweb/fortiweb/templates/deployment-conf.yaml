@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fortiweb.fullname" . }}
+  labels:
+    {{- include "fortiweb.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+#  hostname: {{ include "fortiweb.fullname" . }}
+#  subdomain: cluster.local
+  # Use dns to ease passing the IP of controller to workers
+  selector:
+    matchLabels:
+      {{- include "fortiweb.selectorLabels" . | nindent 6 }}
+  # strategy is supposed to ensure 1 single conf server
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        {{- include "fortiweb.selectorLabels" . | nindent 8 }}
+    spec:
+    {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      serviceAccountName: {{ include "fortiweb.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+          # Define the environment variable
+          - name: MGR_MODE_ENV
+            value: server
+          - name: FWB_ADMIN_PASSWORD
+            value: "Fortin3t"
+          ports:
+            - containerPort: 8
+              name: mgmt
+              protocol: TCP
+            - containerPort: 43
+              name: gui-intern
+              protocol: TCP
+            - containerPort: 8443
+              name: gui
+              protocol: TCP
+            - containerPort: 996
+              name: server
+              protocol: TCP
+            - containerPort: 997
+              name: config-sync
+              protocol: TCP
+#          livenessProbe:
+#            tcpSocket:
+#              port: server
+#            initialDelaySeconds: 140
+#            periodSeconds: 10
+#          readinessProbe:
+#            tcpSocket:
+#              port: server
+#            initialDelaySeconds: 140
+#            periodSeconds: 10
+          volumeMounts:
+            - name: fortiweb-persistent-storage-data
+              mountPath: /data
+            - name: fortiweb-persistent-storage-log
+              mountPath: /var/log
+            - mountPath: /data/etc/vmware/vm.lic
+              subPath: vm.lic
+              name: licenseconfig
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+      - name: fortiweb-persistent-storage-data
+        persistentVolumeClaim:
+          claimName: fortiweb-persistent-storage-data
+      - name: fortiweb-persistent-storage-log
+        persistentVolumeClaim:
+          claimName: fortiweb-persistent-storage-log
+      - name: licenseconfig
+        secret:
+          secretName: fwblicense
+          items:
+            - key: vm.lic
+              path: vm.lic
+      # to create the secret: 'kubectl create secret generic fwblicense --from-file=vm.lic=./FVVC080000204656.lic '
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

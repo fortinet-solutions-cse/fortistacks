@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "fortiweb.fullname" . }}
+  name: {{ include "fortiweb.fullname" . }}-workers
   labels:
-    {{- include "fortiweb.labels" . | nindent 4 }}
+    {{- include "fortiweb-workers.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      {{- include "fortiweb.selectorLabels" . | nindent 6 }}
+      {{- include "fortiweb-workers.selectorLabels" . | nindent 6 }}
   # strategy is supposed to ensure 1 single conf server
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        {{- include "fortiweb.selectorLabels" . | nindent 8 }}
+        {{- include "fortiweb-workers.selectorLabels" . | nindent 8 }}
     spec:
     {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -31,30 +31,28 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: 8
-              name: mgmt
-            - containerPort: 43
-              name: gui
-            - containerPort: 996
-              name: mgmt6
-            - containerPort: 997
-              name: mgmt7
             - name: http
               containerPort: 80
               protocol: TCP
             - name: https
               containerPort: 443
               protocol: TCP
-          livenessProbe:
-            tcpSocket:
-              port: mgmt
-            initialDelaySeconds: 120
-            periodSeconds: 10
+          env:
+          - name: MGR_MODE_ENV
+            value: client
+          - name: MGR_SVRIP_ENV
+            value:  10.40.0.99
+          - name: FWB_ADMIN_PASSWORD
+            value: "Fortin3t"
+        # {{ include "fortiweb.fullname" . }}.cluster.local  (trying dns resolv)
+            # this is the Manager Service's Public IP, need input correct value.
           readinessProbe:
-            tcpSocket:
-              port: mgmt
-            initialDelaySeconds: 120
-            periodSeconds: 10
+            exec:
+              command:
+              - cat
+              - /tmp/manager_config_healthy
+            initialDelaySeconds: 5
+            periodSeconds: 3
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

@@ -2,7 +2,7 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 1
+replicaCount: 3
 
 image:
   repository: fortistackscontainerregistry.azurecr.io/fortiweb
@@ -24,8 +24,9 @@ serviceAccount:
 podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext: {}
-  # capabilities:
+securityContext:
+  capabilities:
+    add: ["NET_ADMIN", "NET_RAW", "SYS_TIME", "SYS_PTRACE" ]
   #   drop:
   #   - ALL
   # readOnlyRootFilesystem: true
@@ -59,8 +60,8 @@ resources:
      cpu: 2
      memory: 4096Mi
    requests:
-     cpu: 200m
-     memory: 500Mi
+     cpu: 700m
+     memory: 1024Mi
 
 nodeSelector: {}
 
@@ -72,7 +73,7 @@ affinity: {}
 # from https://helm.sh/docs/howto/charts_tips_and_tricks/
 imageCredentials:
   registry: fortistackscontainerregistry.azurecr.io
-  username: 00000000-0000-0000-0000-000000000000
-  password: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IkpTU1E6VjVJQzpKTVlPOlRPU1Y6NlEzTTpDV0pTOlZCWVA6SlJSVDoyTEs2OkE2RkQ6WUVFVjpDNjREIn0.eyJqdGkiOiJiZGNiMjY2Ny01ZDJkLTRhOTEtYTQzNC0xNzllNDcxOGMxNGUiLCJzdWIiOiJudGhvbWFzQGZvcnRpbmV0LXVzLmNvbSIsIm5iZiI6MTU5NTMzNzc0MSwiZXhwIjoxNTk1MzQ5NDQxLCJpYXQiOjE1OTUzMzc3NDEsImlzcyI6IkF6dXJlIENvbnRhaW5lciBSZWdpc3RyeSIsImF1ZCI6ImZvcnRpc3RhY2tzY29udGFpbmVycmVnaXN0cnkuYXp1cmVjci5pbyIsInZlcnNpb24iOiIxLjAiLCJncmFudF90eXBlIjoicmVmcmVzaF90b2tlbiIsInRlbmFudCI6Ijk0MmI4MGNkLTFiMTQtNDJhMS04ZGNmLTRiMjFkZWNlNjFiYSIsInBlcm1pc3Npb25zIjp7ImFjdGlvbnMiOlsicmVhZCIsIndyaXRlIiwiZGVsZXRlIl0sIm5vdEFjdGlvbnMiOm51bGx9LCJyb2xlcyI6W119.Rxvpo6k71MmtRk8UkYzCkSN80FR2pCPzmiQWogLUI9VHwDAsuEt8AOVfS-vffcu_L8-n5qE29nwF0D5TvPKla4-q2UbdhnlUrbmHOaNsiw_iM0D2QF9T0nij1ILvB1Wogh5Sv40Fyhl373WvPtu78MfzkK179EBuOPmuyVtEPIw08Nfs5VKckrE_eHip-BGlEi34Tr3wK2ZTxoHKtd-ou4O3ouJCl9EBMMX_OJ_dz1ikRFlyY-lDiJxGx5pVaokGrGPMapUBCEjLs45wSHzM9nxdwNU_MMl1kd__P8-b0VxU55YTF4VtXhUCMrP2nFOvIGYAd6KMaiOrybCb5mbhlg
+  username: fortistacksContainerRegistry
+  password: br+JMM8h3mMOjPsahHcj1NAqNC8Hny4U
   email: tregistry@azureacr.org
-# use: az acr login -n fortistacksContainerRegistry --expose-token
+# use: az acr credential show --name fortistacksContainerRegistry
