@@ -70,7 +70,7 @@ spec:
               mountPath: /data
             - name: fortiweb-persistent-storage-log
               mountPath: /var/log
-            - mountPath: /data/etc/vmware/vm.lic
+            - mountPath: /etc/config/license.lic
               subPath: vm.lic
               name: licenseconfig
           resources:
