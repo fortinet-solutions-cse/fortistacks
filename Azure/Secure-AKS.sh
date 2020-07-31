@@ -109,10 +109,10 @@ az aks create \
     --docker-bridge-address 172.17.0.1/16 \
     --network-policy calico \
     --node-count 2 \
-    --node-vm-size Standard_A2_v2\
     --enable-cluster-autoscaler \
     --min-count 2 --max-count 5 \
     --generate-ssh-keys --outbound-type userDefinedRouting
+#    --node-vm-size Standard_A2_v2\
 #    --attach-acr $MYACR \
 #   --enable-pod-security-policy
 #    --dns-name-prefix fortistacks

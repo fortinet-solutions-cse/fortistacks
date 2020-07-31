@@ -15,6 +15,18 @@
 #        admin_https_redirect: "disable"
         timezone: "26"
 #        gui_date_time_source: "browser"
+  - name: Configure interfaces.
+    fortios_system_interface:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      system_interface:
+        allowaccess:
+          - ping
+          - https
+        mode: "dhcp"
+        name: "port2"
+        role: "lan"
+        device_identification: "enable"
   - name: Configure global session TTL timers for this FortiGate.
     fortios_system_session_ttl:
       vdom:  "{{ vdom }}"
@@ -30,7 +42,7 @@
       vdom:  "{{ vdom }}"
       state: "present"
       user_local:
-        email_to: "nthomas@fortinet.com"
+        email_to: "demo@fortistacks.net"
         name: "aks"
         passwd: "Fortin3t-aks"
         status: "enable"
@@ -172,3 +184,32 @@
           - name: "ALL"
         fsso: disable
         nat: enable
+  - name: Configure Egress
+    fortios_firewall_policy:
+      vdom:  "{{ vdom }}"
+      state: "present"
+      firewall_policy:
+        policyid: 42
+        name: "Egress"
+        srcintf:
+          - name: "port2"
+        dstintf:
+          - name: "port1"
+        srcaddr:
+          - name: "K8S"
+        dstaddr:
+          - name: "all"
+        action: accept
+        schedule: "always"
+        service:
+          - name: "ALL"
+        fsso: disable
+        nat: enable
+        utm_status: "enable"
+        av_profile: "default"
+        logtraffic: "all"
+        ssl_ssh_profile: "deep-inspection"
+        dnsfilter_profile: "default"
+        scan_botnet_connections: "block"
+        application_list: "block-high-risk"
+        ips_sensor: "protect_client"
