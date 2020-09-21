@@ -3,7 +3,6 @@ api_calls:
   - path: /dvm/cmd/discover/device
     method: EXECUTE
     data:
-      adom: root
       device:
         adm_pass: "{{fgt_password}}"
         adm_usr: "{{fgt_user}}"
@@ -16,15 +15,13 @@ api_calls:
     method: EXECUTE
     data:
       adom: root
-      flags: [ "create_task" ]
+      flags: [ create_task, log_dev ]
       device:
         adm_pass: "{{fgt_password}}"
         adm_usr: "{{fgt_user}}"
         desc: "LCM managed Fortios"
         ip: "{{fgt_ip}}"
-        meta fields:
-          "Company/Organization": "Fortinet"
-          "Country": "France"
+        "device action" : "promote_unreg"
         name: "{{fgt_name}}"
         mgmt_mode: "fmg"
     recoverable_code:

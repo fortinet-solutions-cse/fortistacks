@@ -27,8 +27,8 @@ fi
 cat << EOF | openstack
 server delete trafleft
 server delete trafright
-server delete fos56
-server delete fos60
+server delete fos64
+
 
 
 port delete left1
