@@ -1,0 +1,130 @@
+heat_template_version: 2016-04-08
+## cli deploy
+#$ openstack stack create --template heat-fmg.yaml fmg
+# on citycloud or with specific inputs file
+# openstack stack create --template heat-fmg.yaml fmg -e citycloud-env.yaml
+####
+# to follow execution:
+# openstack stack event list fmg --follow
+#
+# To see the resutls IPs
+# openstack stack show fmg -c outputs
+
+
+description: >
+  HOT template to create deploy 1 FMG with cloud-init and license
+  with existing network
+
+
+parameters:
+ fmgimage:
+  type: string
+  description: Fortimanager image name
+  default: "FMG642"
+  constraints:
+    - custom_constraint: glance.image
+ mgmt_net:
+  type: string
+  description: existing management network on which Fortimanager will be deployed
+  default: "mgmt"
+  constraints:
+    - custom_constraint: neutron.network
+ vms_flavor:
+  type: string
+  description: Flavor of the VMs
+  default: "m1.small"
+  constraints:
+    - custom_constraint: nova.flavor
+ volume_type_name:
+  type: string
+  description: Name of new volume type to be created.
+  default: classic
+ volume_size:
+  type: number
+  description: Size of the volume to be created.
+  default: 30
+  constraints:
+    - range: { min: 1, max: 1024 }
+      description: must be between 1 and 1024 Gb.
+ fortimanager_ip:
+   type: string
+ mgt_net_mask:
+   type: string
+   default: "255.255.255.0"
+ mgt_net_gateway:
+   type: string
+ mgt_net_mtu:
+   type: number
+   default: 1500
+
+  
+resources:
+ fmg_config:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config:
+      str_replace:
+        template: |
+          config system admin user
+          edit "admin"
+          set password fortinet
+          end
+          config system interface
+          edit port1
+           set ip $fortimanager_ip  $mgt_net_mask
+           set mtu $mgt_net_mtu
+          end
+          config system route
+          edit 1
+                  set device "port1"
+                  set gateway $mgt_net_gateway
+          end
+          config system admin user
+           edit admin
+            set rpc-permit read-write
+          end
+        params:
+          { $fortimanager_ip: { get_param: fortimanager_ip } ,
+            $mgt_net_mask: { get_param: mgt_net_mask } ,
+            $mgt_net_gateway: { get_param: mgt_net_gateway },
+            $mgt_net_mtu: { get_param: mgt_net_mtu }  }
+
+ fmg_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param:  mgmt_net }
+      fixed_ips:
+        - ip_address: { get_param: fortimanager_ip }
+
+
+
+ fmg_log_volume:
+  type: OS::Cinder::Volume
+  properties:
+    size: { get_param: volume_size }
+    volume_type: { get_param: volume_type_name }
+
+ fmg_log_volume_attachment:
+  type: OS::Cinder::VolumeAttachment
+  properties:
+    volume_id: { get_resource: fmg_log_volume }
+    instance_uuid: { get_resource: fmg }
+
+ fmg:
+  type: OS::Nova::Server
+  properties:
+   image: { get_param: fmgimage }
+   flavor: { get_param: vms_flavor }
+   user_data: { get_resource: fmg_config}
+   name: fortimanager
+   user_data_format: RAW
+   config_drive: true
+   networks:
+    - port: { get_resource: fmg_port }
+
+      
+outputs:
+ fmg-mgmt-ip:
+    description: IP address to access of the fmg
+    value: { get_attr: [fmg, networks, {get_param: mgmt_net}, 0] }

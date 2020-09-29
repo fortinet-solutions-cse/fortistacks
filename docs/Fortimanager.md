@@ -1,4 +1,4 @@
-# Frotimanager on Openstack
+# Fortimanager on Openstack
 
 Ref: [docs.fortinet.com](https://docs.fortinet.com/vm/kvm/fortimanager/6.2/fortimanager-vm-on-kvm/6.2.0/681012/about-fortimanager-vm-on-kvm)
 

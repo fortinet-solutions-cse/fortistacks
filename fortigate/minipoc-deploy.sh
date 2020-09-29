@@ -54,14 +54,13 @@ openstack subnet show right_subnet > /dev/null 2>&1 || openstack subnet create r
 if (openstack server show trafleft  > /dev/null 2>&1 );then
     echo "trafleft already installed"
 else
-    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network left --wait
-	sleep 4
+    openstack server create  --image "$UB_IMAGE" trafleft --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network left
 fi
 
 if (openstack server show trafright  > /dev/null 2>&1 );then
     echo "trafright already installed"
 else
-    openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network right --wait
+    openstack server create  --image "$UB_IMAGE" trafright --key-name default --security-group default --flavor $OS_FLAVOR --user-data $UB_USERDATA_FILE --network mgmt --network right
 fi
 
 
@@ -76,6 +75,6 @@ RIGHTPORT=`openstack port show right1 -c id -f value`
 if (openstack server show fortigate  > /dev/null 2>&1 );then
     echo "fortigate already installed"
 else
-    #need to provide an example without config_drive
-    openstack server create --image "$FGT_IMAGE_NAME" fortigate   --flavor $OS_FLAVOR  --user-data $FGT_USERDATA --network mgmt --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --wait
+#    openstack server create --config-drive True --image "$FGT_IMAGE_NAME" fortigate   --flavor $OS_FLAVOR  --user-data $FGT_USERDATA --network $EXT_NET --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --wait
+ openstack server create --key-name default --image "$FGT_IMAGE_NAME" fortigate   --flavor $OS_FLAVOR  --user-data $FGT_USERDATA --network $EXT_NET --nic port-id=$LEFTPORT --nic port-id=$RIGHTPORT --wait
 fi
