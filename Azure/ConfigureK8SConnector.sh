@@ -26,7 +26,7 @@ KAPI_ID=`az network private-endpoint show --name kube-apiserver --resource-group
 KAPI_IP=`az network  nic show --ids $KAPI_ID --query "ipConfigurations[0].privateIpAddress" -o tsv`
 
 kubectl -n kube-system create serviceaccount fortigate || true
-kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:fortigate || true
+kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=view --serviceaccount=kube-system:fortigate || true
 TOKEN=$(kubectl get secrets -o jsonpath="{.items[?(@.metadata.annotations['kubernetes\.io/service-account\.name']=='fortigate')].data.token}" -n kube-system | base64 -d)
 
 FGTAZIP=`az network public-ip show --name fgtaz   --resource-group $GROUP_NAME  --query ipAddress -o tsv`
