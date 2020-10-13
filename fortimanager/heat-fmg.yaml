@@ -93,7 +93,7 @@ resources:
  fmg_port:
     type: OS::Neutron::Port
     properties:
-      network_id: { get_param:  mgmt_net }
+      network: { get_param:  mgmt_net }
       fixed_ips:
         - ip_address: { get_param: fortimanager_ip }
 
