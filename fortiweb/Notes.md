@@ -5,7 +5,9 @@ kubectl create secret generic fwblicense --from-file=./vm.lic
 ```
 Must be named vm.lic
 
+Use fwb-single-d0.yml for a full day0+license example
 ##Storage 
+```yaml
         volumeMounts:
           - mountPath: "/var/my-app/id_rsa"
               subPath: id_rsa
@@ -18,3 +20,4 @@ Must be named vm.lic
             items:
               - key: id_rsa
                 path: id_rsa
+```
