@@ -53,16 +53,6 @@ SNET2=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-
 
 
 # Ref https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/aks/use-network-policies.md
-# Create a service principal and read in the application ID
-# to find a previously created one :
-# az ad sp list --show-mine --query "[?displayName=='ForSecureAKS'].{id:appId}" -o tsv
-# is the id with the same name
-CHECKSP=`az ad sp list --show-mine -o tsv --query "[?displayName == 'ForSecureAKS.io'].appId"`
-[ -z $CHECKSP ] ||  az ad sp delete  --id $CHECKSP
-
-SP=$(az ad sp create-for-rbac --output json  --name ForSecureAKS.io)
-SP_ID=$(echo $SP | jq -r .appId)
-SP_PASSWORD=$(echo $SP | jq -r .password)
 
 
 ## must create VNET subnet for AKS and peering with Transit (cli)
@@ -95,9 +85,6 @@ sleep 25
 # Get the virtual network resource ID
 VNET_ID=$(az network vnet show --resource-group $GROUP_NAME --name  fortistacks-aks --query id -o tsv)
 
-# Assign the service principal Contributor permissions to the virtual network resource
-az role assignment create --assignee $SP_ID --scope $VNET_ID --role Contributor
-
 AKSSUBNET=`az network vnet subnet list     --resource-group  $GROUP_NAME     --vnet-name fortistacks-aks     --query "[0].id" --output tsv`
 
 # Install the aks-preview extension
@@ -120,15 +107,13 @@ az aks create \
     --service-cidr 10.8.0.0/16 \
     --dns-service-ip 10.8.0.53 \
     --docker-bridge-address 172.17.0.1/16 \
-    --service-principal $SP_ID \
-    --client-secret $SP_PASSWORD \
     --network-policy calico \
     --node-count 2 \
-    --node-vm-size Standard_A2_v2\
     --enable-cluster-autoscaler \
     --min-count 2 --max-count 5 \
-    --attach-acr $MYACR \
     --generate-ssh-keys --outbound-type userDefinedRouting
+#    --node-vm-size Standard_A2_v2\
+#    --attach-acr $MYACR \
 #   --enable-pod-security-policy
 #    --dns-name-prefix fortistacks
 
@@ -149,7 +134,7 @@ az aks get-credentials --resource-group "$GROUP_NAME"  --name "secure-AKS"
 FGTAZIP=`az network public-ip show --name fgtaz   --resource-group $GROUP_NAME  --query ipAddress -o tsv`
 echo " You can login on fortigate at https://$FGTAZIP"
 echo "can configure your azure sdn connector with: "
-echo "$SP"
+
 ## KAPI_ID=`az network private-endpoint show --name kube-apiserver --resource-group $AKS_RESOURCE_GROUP --query "networkInterfaces[0].id" -o tsv`
 ## KAPI_IP=`az network  nic show --ids $KAPI_ID --query "ipConfigurations[0].privateIpAddress" -o tsv`
 

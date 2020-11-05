@@ -35,6 +35,13 @@ The script will deploy the following and ensure all AKS traffic goes to the Fire
 Again for education, feature it can be split and made elastic.
 ![Architecture](SecureAKS.svg)
 
+# Day 1
+Apply configuration to the FGT.
+
+```
+ansible-playbook fgt-playbook.yaml -i hosts -e ansible_host=52.174.188.48
+```
+
 # Access the environment
 
 ## VPN to Fortigate
