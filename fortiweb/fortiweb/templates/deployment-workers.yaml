@@ -41,7 +41,7 @@ spec:
           - name: MGR_MODE_ENV
             value: client
           - name: MGR_SVRIP_ENV
-            value:  10.40.0.99
+            value:  10.40.40.99
           - name: FWB_ADMIN_PASSWORD
             value: "Fortin3t"
         # {{ include "fortiweb.fullname" . }}.cluster.local  (trying dns resolv)

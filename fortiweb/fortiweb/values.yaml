@@ -74,6 +74,8 @@ affinity: {}
 imageCredentials:
   registry: fortistackscontainerregistry.azurecr.io
   username: fortistacksContainerRegistry
-  password: DH25vRAQjoLiKc9TDEE5V1FNSayu/fbZ
-  email: tregistry@azureacr.org
+  password: se0+GF8u7uO6TR4OJ/wsIW9SAxoGAqEg
+  email: thegistry@azureacr.org
 # use: az acr credential show --name fortistacksContainerRegistry
+# docker login fortistackscontainerregistry.azurecr.io -u fortistacksContainerRegistry -p "se0+GF8u7uO6TR4OJ/wsIW9SAxoGAqEg"
+# to push image
