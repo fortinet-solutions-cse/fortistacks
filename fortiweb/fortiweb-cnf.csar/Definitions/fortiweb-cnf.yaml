@@ -54,7 +54,7 @@ node_types:
         type: tosca.artifacts.File
       software_images:
         description: "Location of the CNF images being used in this package"
-        file: Files/fortiweb-cnf-image.tgz
+        file: Files/fortiweb-6.3.7.tgz
         type: tosca.artifacts.nfv.SwImage
   product_name:
     default: fortiweb-cnf

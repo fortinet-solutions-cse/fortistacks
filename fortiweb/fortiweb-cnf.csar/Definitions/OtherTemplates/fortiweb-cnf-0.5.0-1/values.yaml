@@ -11,3 +11,8 @@ imageCredentials:
   registry: 
     url: "registry.eccd-cnf.partnervnflab.xgic.ericsson.se:443"
   repoPath: ""
+service:
+  type: NodePort
+  port: 80
+  portssl: 443
+  gui: 43
