@@ -1,0 +1,9 @@
+config system admin user
+    edit "admin"
+    set password fortinet
+end
+
+config system admin user
+  edit admin
+  set rpc-permit read-write
+end
