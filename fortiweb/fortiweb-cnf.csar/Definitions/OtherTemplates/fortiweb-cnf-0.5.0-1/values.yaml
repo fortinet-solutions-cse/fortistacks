@@ -15,4 +15,4 @@ service:
   type: NodePort
   port: 80
   portssl: 443
-  gui: 43
+  gui: 8443
