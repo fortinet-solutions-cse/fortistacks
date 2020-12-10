@@ -1,0 +1,512 @@
+heat_template_version: 2016-04-08
+## cli deploy $ openstack stack create --template heat-ha-minipoc.yaml mini-poc-fgcp -e env.yaml
+# in ha mode dhcp is disabled (totally)
+# must provide fixed IP port
+
+description: >
+  HOT template to create 2 Fortigate VM in FGCP mode with parameters.
+  Do not create the networks except the HA_sync
+# must set fixed ports and ips but use only 1 of the IP
+# Heat does not allow creating 2 ports with same IP,
+#  port security disable allow to switch the IP will running
+
+parameters:
+ fgtimage:
+  type: string
+  description: Fortios image
+  default: "fgt643"
+  constraints:
+    - custom_constraint: glance.image
+
+
+ fgt_flavor:
+  type: string
+  description: Flavor of the VMs
+  default: "m1.small"
+  constraints:
+    - custom_constraint: nova.flavor
+
+ fgt_data_vol_size:
+    type: number
+    description: FGT data volume size
+    default: 5
+
+ fgta_license:
+  type: string
+  default: |
+       -----BEGIN FGT VM LICENSE-----
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXA
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXA
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdE
+       -----END FGT VM LICENSE-----
+ fgtb_license:
+  type: string
+  default: |
+       -----BEGIN FGT VM LICENSE-----
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXA
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXA
+       xXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdExXxxXAbCdE
+       -----END FGT VM LICENSE-----
+ ssh-key-name:
+  type: string
+  default: "default"
+
+ fgt_password:
+   type: string
+   default: "fortinet"
+
+ ha_sync_net_prefix:
+  type: string
+  default: "172.27.0"
+ ha_sync_net_mask:
+   type: string
+   default: "24"
+ ha_sync_net_name:
+   type: string
+   default: "fgt-ha-sync"
+
+ north_net_prefix:
+  type: string
+  default: "10.40.40"
+ north_net_mask:
+   type: string
+   default: "24"
+ north_net_name:
+   type: string
+   default: "wan"
+   constraints:
+     - custom_constraint: neutron.network
+
+ south_net_prefix:
+  type: string
+  default: "10.20.20"
+ south_net_mask:
+   type: string
+   default: "24"
+ south_net_name:
+   type: string
+   default: "lan"
+   constraints:
+     - custom_constraint: neutron.network
+
+ south2_net_prefix:
+  type: string
+  default: "10.30.30"
+ south2_net_mask:
+   type: string
+   default: "24"
+ south2_net_name:
+   type: string
+   default: "lan2"
+   constraints:
+     - custom_constraint: neutron.network
+
+ mgmt_net_prefix:
+  type: string
+  default: "192.168.1"
+ mgmt_net_mask:
+   type: string
+   default: "24"
+ mgmt_net_name:
+   type: string
+   default: "mgmt"
+   constraints:
+     - custom_constraint: neutron.network
+
+
+########## Networks config #############
+
+
+resources:
+ hasync_net:
+    type: OS::Neutron::Net
+    properties:
+      name: "hasync"
+
+ hasync_subnet:
+   type: OS::Neutron::Subnet
+   properties:
+     network_id: { get_resource: hasync_net }
+     cidr:
+       str_replace:
+         template: "$prefix.0/$mask"
+         params:
+           {
+             $prefix: { get_param: ha_sync_net_prefix } ,
+             $mask: { get_param: ha_sync_net_mask }
+           }
+     allocation_pools:
+       - start: {list_join: [ '.', [ { get_param: ha_sync_net_prefix }, '3'] ]}
+         end: { list_join: [ '.', [ { get_param: ha_sync_net_prefix }, '150'] ] }
+   #      dns: "8.8.8.8"
+
+#### First FGT ports with fixed IPs
+ fgta_north_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: north_net_name }
+      port_security_enabled: false
+      fixed_ips:
+        - ip_address:  { list_join: [ '.', [ { get_param: north_net_prefix }, '254'] ] }
+
+ fgta_south_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: south_net_name }
+      port_security_enabled: false
+      fixed_ips:
+        - ip_address:  { list_join: [ '.', [ { get_param: south_net_prefix }, '254'] ] }
+
+ fgta_south2_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: south2_net_name }
+      port_security_enabled: false
+      fixed_ips:
+        - ip_address:  { list_join: [ '.', [ { get_param: south2_net_prefix }, '254'] ] }
+
+ fgta_hb_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: hasync_net  }
+      port_security_enabled: false
+      fixed_ips:
+        - ip_address: { list_join: [ '.', [ { get_param: ha_sync_net_prefix }, '40'] ] }
+
+ fgta_mgmt_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: mgmt_net_name }
+      port_security_enabled: false
+#      fixed_ips:
+#        - ip_address: { list_join: [ '.', [ { get_param: mgmt_net_prefix }, '254'] ] }
+
+#### Second FGT ports with fixed IPs can not be the same here so .253 is going to be used for install then not used
+ fgtb_north_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: north_net_name }
+      port_security_enabled: false
+      fixed_ips:
+        - ip_address:  { list_join: [ '.', [ { get_param: north_net_prefix }, '253'] ] }
+
+ fgtb_south_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: south_net_name }
+      port_security_enabled: false
+      fixed_ips:
+        - ip_address:  { list_join: [ '.', [ { get_param: south_net_prefix }, '253'] ] }
+
+ fgtb_south2_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: south2_net_name }
+      port_security_enabled: false
+      fixed_ips:
+        - ip_address:  { list_join: [ '.', [ { get_param: south2_net_prefix }, '253'] ] }
+
+ fgtb_hb_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_resource: hasync_net  }
+      port_security_enabled: false
+      fixed_ips:
+        - ip_address: { list_join: [ '.', [ { get_param: ha_sync_net_prefix }, '41'] ] }
+
+ fgtb_mgmt_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: { get_param: mgmt_net_name }
+      port_security_enabled: false
+#      fixed_ips:
+#        - ip_address: { list_join: [ '.', [ { get_param: mgmt_net_prefix }, '253'] ] }
+
+
+################## Fortinet configurations
+
+
+ fgta_config:
+   type: OS::Heat::SoftwareConfig
+   properties:
+     group: ungrouped
+     config:
+       str_replace:
+         template: |
+           config system admin
+             edit "admin"
+             set password $fgt_password
+           end
+           config system interface
+            edit port1
+             set mode dhcp
+             set allowaccess ping https ssh http snmp fgfm
+             set defaultgw enable
+            next
+            edit port2
+             set mode static
+             set allowaccess ping
+             set ip $north_net_prefix.254/$north_net_mask
+           next
+            edit port3
+            set mode static
+            set allowaccess ping
+            set ip $south_net_prefix.254/$south_net_mask
+           next
+           edit port4
+            set mode static
+            set allowaccess ping
+            set ip $south2_net_prefix.254/$south2_net_mask
+           next
+            edit port5
+             set mode static
+             set allowaccess ping
+             set ip $ha_sync_net_prefix.40/$ha_sync_net_mask
+             set defaultgw enable
+            next
+           end
+           config router static
+           edit 1
+            set gateway $north_net_prefix.1
+            set device port2
+           next
+           edit 2
+              set dst 0.0.0.0/0
+              set gateway $mgmt_net_prefix.1
+              set device port1
+           next
+           end
+
+           config system dns
+            set primary 8.8.8.8
+           end
+
+           config firewall policy
+           edit 1
+           set name "Allow any any"
+           set srcintf "port2"
+           set dstintf "port3"
+           set srcaddr "all"
+           set dstaddr "all"
+           set action accept
+           set schedule "always"
+           set service "ALL"
+           set nat enable
+           next
+           end
+            config system link-monitor
+                edit "ha-link-monitor"
+                    set srcintf "port2"
+                    set server $north_net_prefix.1
+                    set failtime 2
+                    set ha-priority 5
+                next
+            end
+
+           config system ha
+              set group-id 12
+              set group-name "ClusterAB"
+              set mode a-p
+              set password "ClusterABnotsecret"
+              set override disable
+              set hbdev port5 50
+              set session-sync-dev port5
+              set session-pickup enable
+              set monitor "port2" "port3" "port4"
+              set pingserver-monitor-interface "port2"
+               set unicast-hb enable
+               set unicast-hb-peerip $ha_sync_net_prefix.41
+            end
+         params:
+           {
+            $fgt_password: { get_param: fgt_password } ,
+            $mgmt_net_prefix: { get_param: mgmt_net_prefix } ,
+            $mgmt_net_mask: { get_param: mgmt_net_mask } ,
+            $north_net_prefix: { get_param: north_net_prefix } ,
+            $north_net_mask: { get_param: north_net_mask } ,
+            $south_net_prefix: { get_param: south_net_prefix } ,
+            $south_net_mask: { get_param: south_net_mask } ,
+            $south2_net_prefix: { get_param: south2_net_prefix } ,
+            $south2_net_mask: { get_param: south2_net_mask } ,
+            $ha_sync_net_prefix: { get_param: ha_sync_net_prefix } ,
+            $ha_sync_net_mask: { get_param: ha_sync_net_mask }
+           }
+
+
+ fgta_license_file:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config:  {get_param: fgta_license}
+
+ fgtb_config:
+   type: OS::Heat::SoftwareConfig
+   properties:
+     group: ungrouped
+     config:
+       str_replace:
+         template: |
+           config system admin
+             edit "admin"
+             set password $fgt_password
+            end
+           config system interface
+            edit port1
+            set mode dhcp
+            set allowaccess ping https ssh http snmp fgfm
+            set defaultgw enable
+           next
+            edit port2
+            set mode static
+            set allowaccess ping
+            set ip $north_net_prefix.254/$north_net_mask
+           next
+            edit port3
+            set mode static
+            set allowaccess ping
+            set ip $south_net_prefix.254/$south_net_mask
+           next
+           edit port4
+            set mode static
+            set allowaccess ping
+            set ip $south2_net_prefix.254/$south2_net_mask
+           next
+            edit port5
+             set mode static
+             set allowaccess ping
+             set ip $ha_sync_net_prefix.41/$ha_sync_net_mask
+             set defaultgw enable
+            next
+           end
+
+           config router static
+           edit 1
+            set gateway $north_net_prefix.1
+            set device port2
+           next
+           edit 2
+              set dst 0.0.0.0/0
+              set gateway $mgmt_net_prefix.1
+              set device port1
+           next
+           end
+
+           config system dns
+            set primary 8.8.8.8
+           end
+
+           config firewall policy
+           edit 1
+           set name "Allow any any"
+           set srcintf "port2"
+           set dstintf "port3"
+           set srcaddr "all"
+           set dstaddr "all"
+           set action accept
+           set schedule "always"
+           set service "ALL"
+           set nat enable
+           next
+           end
+            config system link-monitor
+                edit "ha-link-monitor"
+                    set srcintf "port2"
+                    set server $north_net_prefix.1
+                    set failtime 2
+                    set ha-priority 5
+                next
+            end
+
+           config system ha
+              set group-id 12
+              set group-name "ClusterAB"
+              set mode a-p
+              set password "ClusterABnotsecret"
+              set override disable
+              set hbdev port5 50
+              set session-sync-dev port5
+              set session-pickup enable
+              set monitor "port2" "port3" "port4"
+              set pingserver-monitor-interface "port2"
+               set unicast-hb enable
+               set unicast-hb-peerip $ha_sync_net_prefix.40
+            end
+
+         params:
+           {
+            $fgt_password: { get_param: fgt_password } ,
+            $mgmt_net_prefix: { get_param: mgmt_net_prefix } ,
+            $mgmt_net_mask: { get_param: mgmt_net_mask } ,
+            $north_net_prefix: { get_param: north_net_prefix } ,
+            $north_net_mask: { get_param: north_net_mask } ,
+            $south_net_prefix: { get_param: south_net_prefix } ,
+            $south_net_mask: { get_param: south_net_mask } ,
+            $south2_net_prefix: { get_param: south2_net_prefix } ,
+            $south2_net_mask: { get_param: south2_net_mask } ,
+            $ha_sync_net_prefix: { get_param: ha_sync_net_prefix } ,
+            $ha_sync_net_mask: { get_param: ha_sync_net_mask }
+           }
+
+ fgtb_license_file:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config:  {get_param: fgtb_license}
+
+
+ fgta_init:
+  type: OS::Heat::MultipartMime
+  properties:
+    parts:
+     - config: {get_resource: fgta_license_file}
+     - config: {get_resource: fgta_config}
+
+ fgtb_init:
+  type: OS::Heat::MultipartMime
+  properties:
+    parts:
+     - config: {get_resource: fgtb_license_file}
+     - config: {get_resource: fgtb_config}
+
+
+ fgta:
+  type: OS::Nova::Server
+  properties:
+   key_name: { get_param: ssh-key-name }
+   image: { get_param: fgtimage }
+   flavor: { get_param: fgt_flavor }
+   user_data_format: RAW
+   user_data: { get_resource: fgta_init }
+   name: FGTA
+   networks:
+    - port: { get_resource: fgta_mgmt_port }
+    - port:  { get_resource: fgta_north_port }
+    - port:  { get_resource: fgta_south_port }
+    - port:  { get_resource: fgta_south2_port }
+    - port:  { get_resource: fgta_hb_port }
+
+ fgtb:
+  type: OS::Nova::Server
+  properties:
+   key_name: { get_param: ssh-key-name }
+   image: { get_param: fgtimage }
+   flavor: { get_param: fgt_flavor }
+   user_data_format: RAW
+   user_data: { get_resource: fgtb_init }
+   name: FGTB
+   networks:
+    - port: { get_resource: fgtb_mgmt_port }
+    - port:  { get_resource: fgtb_north_port }
+    - port:  { get_resource: fgtb_south_port }
+    - port: { get_resource: fgtb_south2_port }
+    - port:  { get_resource: fgtb_hb_port }
+
+      
+outputs:
+# fgta-info:
+#   description: IP address to access of the FGTA
+#   value: { get_attr: [ fgta, networks, { get_param: mgmt_net }, 0 ] }
+
+# fgtb-info:
+#   description: IP address to access of the FGTB
+#   value: { get_attr: [ fgtb, networks, { get_param: mgmt_net }, 0 ] }

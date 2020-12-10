@@ -1,0 +1,230 @@
+heat_template_version: 2016-04-08
+## cli deploy $ openstack stack create --template heat-ha-minipoc.yaml mini-poc-fgcp -e env.yaml
+# in ha mode dhcp is disabled (totally)
+# must provide fixed IP port
+
+description: >
+  HOT template to create 3 neutron networks, 2 generic VMs to work with heat-fgt-fgcp.yaml
+
+parameters:
+
+ ubimage:
+  type: string
+  description: Ubuntu image
+  default: "Trusty x86_64"
+  constraints:
+    - custom_constraint: glance.image
+
+ vms_flavor:
+  type: string
+  description: Flavor of the VMs
+  default: "m1.small"
+  constraints:
+    - custom_constraint: nova.flavor
+
+ ssh-key-name:
+  type: string
+  default: "default"
+
+########## Networks config #############
+ ha_sync_net_prefix:
+  type: string
+  default: "172.27.0"
+ ha_sync_net_mask:
+   type: string
+   default: "24"
+ ha_sync_net_name:
+   type: string
+   default: "fgt-ha-sync"
+
+ north_net_prefix:
+  type: string
+  default: "10.40.40"
+ north_net_mask:
+   type: string
+   default: "24"
+ north_net_name:
+   type: string
+   default: "wan"
+ south_net_prefix:
+  type: string
+  default: "10.20.20"
+ south_net_mask:
+   type: string
+   default: "24"
+ south_net_name:
+   type: string
+   default: "lan"
+
+ south2_net_prefix:
+  type: string
+  default: "10.30.30"
+ south2_net_mask:
+   type: string
+   default: "24"
+ south2_net_name:
+   type: string
+   default: "lan2"
+
+ mgmt_net_prefix:
+  type: string
+  default: "192.168.1"
+ mgmt_net_mask:
+   type: string
+   default: "24"
+ mgmt_net_name:
+   type: string
+   default: "mgmt"
+   constraints:
+     - custom_constraint: neutron.network
+
+ ub_nic2_name:
+  type: string
+  description: Name of the second interface on Ubuntu may vary
+  default: "eth1"
+
+
+###############################   RESSOURCES #############
+
+resources:
+ north_net:
+    type: OS::Neutron::Net
+    properties:
+      name: { get_param: north_net_name }
+
+ north_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: north_net }
+      cidr:
+        str_replace:
+          template: "$prefix.0/$mask"
+          params:
+            {
+              $prefix: { get_param: north_net_prefix } ,
+              $mask: { get_param: north_net_mask }
+            }
+      allocation_pools:
+        - start: {list_join: [ '.', [ { get_param: north_net_prefix }, '5'] ]}
+          end:  {list_join: [ '.', [ { get_param: north_net_prefix }, '240'] ]}
+      host_routes: [{"nexthop": {list_join: [ '.', [ { get_param: north_net_prefix }, '254'] ]} , "destination": {list_join: [ '.', [ { get_param: south_net_prefix }, '0/24'] ]}}]
+ 
+ south_net:
+    type: OS::Neutron::Net
+    properties:
+      name: { get_param: south_net_name }
+
+ south_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: south_net }
+      cidr:
+        str_replace:
+          template: "$prefix.0/$mask"
+          params:
+            {
+              $prefix: { get_param: south_net_prefix } ,
+              $mask: { get_param: south_net_mask }
+            }
+      allocation_pools:
+        - start: {list_join: [ '.', [ { get_param: south_net_prefix }, '5'] ]}
+          end:  {list_join: [ '.', [ { get_param: south_net_prefix }, '240'] ]}
+
+ south2_net:
+    type: OS::Neutron::Net
+    properties:
+      name: { get_param: south2_net_name }
+
+ south2_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: south2_net }
+      cidr:
+        str_replace:
+          template: "$prefix.0/$mask"
+          params:
+            {
+              $prefix: { get_param: south2_net_prefix } ,
+              $mask: { get_param: south2_net_mask }
+            }
+      allocation_pools:
+        - start: {list_join: [ '.', [ { get_param: south2_net_prefix }, '5'] ]}
+          end:  {list_join: [ '.', [ { get_param: south2_net_prefix }, '240'] ]}
+
+
+
+ ub_config:
+  type: OS::Heat::SoftwareConfig
+  properties:
+    group: ungrouped
+    config:
+      str_replace:
+        template: |
+           #cloud-config for citycloud using new schema ens
+           chpasswd:
+             list: |
+               ubuntu:fortinet
+             expire: False
+           write_files:
+             - content: |
+                 # Enable dhcp on ens4 some use the new schema
+                 auto $nic2
+                 iface $nic2 inet dhcp
+                 metric 100
+                 post-up route del default dev $nic2
+               path: /etc/network/interfaces.d/51-$nic2.cfg
+           package_upgrade: true
+           package_reboot_if_required: true
+           packages:
+             - apache2-utils
+             - apache2
+             - tcpdump
+             - iperf3
+           power_state:
+             mode: reboot
+             message: Rebooting to ensure network conf
+             timeout: 10
+             condition: True
+        params:
+          $nic2:  { get_param: ub_nic2_name }
+
+ ubnorth:
+  type: OS::Nova::Server
+  properties:
+   image: { get_param: ubimage }
+   flavor: { get_param: vms_flavor }
+   key_name: { get_param: ssh-key-name }
+   user_data_format: RAW
+   user_data: { get_resource: ub_config }
+   name: trafnorth
+   security_groups: [ default ]
+   networks:
+    - network: { get_param: mgmt_net_name }
+    - subnet:  { get_resource: north_subnet }
+
+
+ ubsouth:
+  type: OS::Nova::Server
+  properties:
+   image: { get_param: ubimage }
+   flavor: { get_param: vms_flavor }
+   key_name: { get_param: ssh-key-name }
+   user_data_format: RAW
+   user_data: { get_resource: ub_config }
+   name: trafsouth
+   security_groups: [ default ]
+   networks:
+    - network: { get_param: mgmt_net_name }
+    - subnet:  { get_resource: south_subnet }
+
+
+
+      
+outputs:
+ north-info:
+    description: IP address to access north ubuntu machine 
+    value: { get_attr: [ ubnorth, networks, { get_param: mgmt_net_name }, 0 ] }
+
+ south-info:
+    description: IP address to access south ubuntu machine 
+    value: { get_attr: [ ubsouth, networks, { get_param: mgmt_net_name }, 0 ] }

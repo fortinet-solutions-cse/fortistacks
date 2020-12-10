@@ -28,7 +28,7 @@ fi
 #if EXT_NET variable not set use default (allow to have it as param from the .rc file)
 [ -x $EXT_NET ] && EXT_NET=ext_net
 [ -x $OS_FLAVOR ] && OS_FLAVOR=m1.small
-[ -x $FGT_IMAGE_NAME ] && FGT_IMAGE_NAME=fortigate
+[ -x $FGT_IMAGE_NAME ] && FGT_IMAGE_NAME=fortigate643
 
 [ -f fgt-userdata.txt ] || (echo " you must have create a user-data file see README"; exit 2)
 

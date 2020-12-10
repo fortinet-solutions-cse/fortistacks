@@ -128,7 +128,7 @@
         phase1name: "AKSaccess"
 #        proposal: "des-sha256"
 #        proposal: "aes128-sha1 aes256-sha1 aes128-sha256 aes256-sha256 aes128gcm aes256gcm chacha20poly1305"
-        comments: "VPN: AKSaccess (Created by ansible like wizard)"
+        comments: "VPN: AKSaccess (Created by ansible, like wizard)"
   - name: AKS vpn access address
     fortios_firewall_address:
       vdom:  "{{ vdom }}"

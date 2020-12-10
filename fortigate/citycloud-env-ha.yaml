@@ -1,4 +1,4 @@
-# usage : openstack stack create --template heat-ha-poc.yaml -e citycloud-env-ha.yaml ha-poc
+# usage : openstack stack create --template heat-ha-minipoc.yaml -e citycloud-env-ha.yaml ha-poc
 parameters:
   fgtimage: "fgt60"
   ubimage: "Ubuntu 16.04 Xenial Xerus"
