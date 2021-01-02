@@ -32,7 +32,7 @@ RUN add-apt-repository universe
 RUN apt-get update && (apt-get -y install bash-completion kubectl openssh-client apache2-utils  jq azure-cli sudo  wget zile byobu ccze powershell)&& \
         kubectl completion bash >/etc/bash_completion.d/kubectl
 # Must use python3 or the fortios ansible modules do not work
-RUN pip3 install ansible
+RUN pip3 --no-cache-dir install ansible
 # see https://galaxy.ansible.com/fortinet/fortios
 RUN ansible-galaxy collection install fortinet.fortios
 RUN export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt ;az extension add --name aks-preview
