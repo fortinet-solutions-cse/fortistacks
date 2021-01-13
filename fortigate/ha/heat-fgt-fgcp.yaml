@@ -471,6 +471,11 @@ resources:
 
  fgta:
   type: OS::Nova::Server
+  depends_on:
+    - fgta_mgmt_port
+    - fgta_north_port
+    - fgta_south_port
+    - fgta_hb_port
   properties:
    key_name: { get_param: ssh-key-name }
    image: { get_param: fgtimage }
@@ -487,6 +492,11 @@ resources:
 
  fgtb:
   type: OS::Nova::Server
+  depends_on:
+    - fgtb_mgmt_port
+    - fgtb_north_port
+    - fgtb_south_port
+    - fgtb_hb_port
   properties:
    key_name: { get_param: ssh-key-name }
    image: { get_param: fgtimage }
@@ -503,10 +513,10 @@ resources:
 
       
 outputs:
-# fgta-info:
-#   description: IP address to access of the FGTA
-#   value: { get_attr: [ fgta, networks, { get_param: mgmt_net }, 0 ] }
+ fgta-info:
+   description: IP address to access of the FGTA
+   value: { get_attr: [ fgta, networks] }
 
-# fgtb-info:
-#   description: IP address to access of the FGTB
-#   value: { get_attr: [ fgtb, networks, { get_param: mgmt_net }, 0 ] }
+ fgtb-info:
+   description: IP address to access of the FGTB
+   value: { get_attr: [ fgtb, networks, { get_param: mgmt_net }, 0 ] }
