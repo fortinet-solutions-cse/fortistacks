@@ -13,7 +13,7 @@ setup(
     license='LICENSE',
     install_requires=['cloudify-plugins-common>=4.0',
                       'ConfigObj==5.0.6',
-                      'psutil==2.1.1',
+                      'psutil==5.6.6',
                       'fortiosapi',
                       'service'],
 )
